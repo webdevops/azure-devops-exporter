@@ -1,0 +1,8 @@
+package: azure-devops-exporter/src
+import:
+- package: github.com/go-resty/resty
+- package: github.com/jessevdk/go-flags
+- package: github.com/prometheus/client_golang
+  subpackages:
+  - prometheus
+  - prometheus/promhttp
