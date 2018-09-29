@@ -14,7 +14,7 @@ Normally no configuration is needed but can be customized using environment vari
 
 | Environment variable              | DefaultValue                | Description                                                       |
 |-----------------------------------|-----------------------------|-------------------------------------------------------------------|
-| `SCRAPE_TIME`                     | `2m`                        | Time (time.Duration) between API calls                            |
+| `SCRAPE_TIME`                     | `15m`                       | Time (time.Duration) between API calls                            |
 | `SERVER_BIND`                     | `:8080`                     | IP/Port binding                                                   |
 | `AZURE_DEVOPS_ORGANISATION`       | none                        | Azure DevOps organisation (subdomain)                             |
 | `AZURE_DEVOPS_ACCESS_TOKEN`       | none                        | Azure DevOps access token                                         |
