@@ -26,15 +26,17 @@ var (
 
 var opts struct {
 	// general settings
-	Verbose     []bool `       long:"verbose" short:"v"               env:"VERBOSE"                         description:"Verbose mode"`
+	Verbose     []bool `            long:"verbose" short:"v"                    env:"VERBOSE"                                        description:"Verbose mode"`
 
 	// server settings
-	ServerBind  string `       long:"bind"                            env:"SERVER_BIND"                     description:"Server address"               default:":8080"`
-	ScrapeTime  time.Duration `long:"scrape-time"                     env:"SCRAPE_TIME"                     description:"Scrape time (time.duration)"  default:"15m"`
+	ServerBind  string `            long:"bind"                                 env:"SERVER_BIND"                                    description:"Server address"                               default:":8080"`
+	ScrapeTime  time.Duration `     long:"scrape-time"                          env:"SCRAPE_TIME"                                    description:"Scrape time (time.duration)"                  default:"15m"`
+	ScrapeTimeQueues time.Duration `long:"scrape-time-queues"                   env:"SCRAPE_TIME_QUEUES"                             description:"Scrape time for agent queues (time.duration)" default:"30s"`
 
 	// azure settings
-	AzureDevopsAccessToken string ` long:"azure-devops-access-token"  env:"AZURE_DEVOPS_ACCESS_TOKEN"       description:"Azure DevOps access token" required:"true"`
-	AzureDevopsOrganisation string `long:"azure-devops-organisation"  env:"AZURE_DEVOPS_ORGANISATION"       description:"Azure DevOps organization" required:"true"`
+	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
+	AzureDevopsOrganisation string `long:"azure-devops-organisation"            env:"AZURE_DEVOPS_ORGANISATION"                      description:"Azure DevOps organization" required:"true"`
+	AzureDevopsFilterAgentPoolId []int64 `long:"azure-devops-filter-agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 }
 
 func main() {
