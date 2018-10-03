@@ -13,8 +13,8 @@ type PullRequestList struct {
 }
 
 type PullRequest struct {
-	Id int `json:"pullRequestId"`
-	CodeReviewId int `json:"codeReviewId"`
+	Id int64 `json:"pullRequestId"`
+	CodeReviewId int64 `json:"codeReviewId"`
 
 	Title string
 	Description string

@@ -1,5 +1,8 @@
 package main
 
+import (
+	"strconv"
+)
 
 func boolToString(b bool) string {
 	if b {
@@ -22,4 +25,8 @@ func arrayInt64Contains(s []int64, e int64) bool {
 		}
 	}
 	return false
+}
+
+func int64ToString(v int64) string {
+	return strconv.FormatInt(v, 10)
 }

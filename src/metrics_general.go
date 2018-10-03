@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"time"
 	"sync"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
@@ -128,11 +127,11 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 	for _, build := range buildList.List {
 		infoLabels := prometheus.Labels{
 			"projectID": project.Id,
-			"buildDefinitionID": fmt.Sprintf("%d", build.Definition.Id),
-			"buildID": fmt.Sprintf("%d", build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildID": int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
 			"buildName": build.Definition.Name,
-			"agentPoolID": fmt.Sprintf("%d", build.Queue.Pool.Id),
+			"agentPoolID": int64ToString(build.Queue.Pool.Id),
 			"requestedBy": build.RequestedBy.DisplayName,
 			"status": build.Status,
 			"reason": build.Reason,
@@ -142,7 +141,7 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 
 		statusStartedLabels := prometheus.Labels{
 			"projectID":     project.Id,
-			"buildID": fmt.Sprintf("%d", build.Id),
+			"buildID": int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
 			"type": "started",
 		}
@@ -150,7 +149,7 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 
 		statuQueuedLabels := prometheus.Labels{
 			"projectID":     project.Id,
-			"buildID": fmt.Sprintf("%d", build.Id),
+			"buildID": int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
 			"type": "queued",
 		}
@@ -158,7 +157,7 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 
 		statuFinishedLabels := prometheus.Labels{
 			"projectID":     project.Id,
-			"buildID": fmt.Sprintf("%d", build.Id),
+			"buildID": int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
 			"type": "finished",
 		}
@@ -186,12 +185,12 @@ func collectBuildQueues(project devopsClient.Project, callback chan<- func()) {
 		waitDuration := build.QueueDuration().Seconds()
 
 		agentPoolBuildLabels := prometheus.Labels{
-			"agentPoolID": fmt.Sprintf("%d", build.Queue.Pool.Id),
+			"agentPoolID": int64ToString(build.Queue.Pool.Id),
 			"result": build.Result,
 		}
 
 		agentPoolWaitLabels := prometheus.Labels{
-			"agentPoolID": fmt.Sprintf("%d", build.Queue.Pool.Id),
+			"agentPoolID": int64ToString(build.Queue.Pool.Id),
 		}
 
 		callback <- func() {
@@ -217,14 +216,14 @@ func collectAgentQueues(project devopsClient.Project, callback chan<- func(), ca
 	for _, agentQueue := range agentQueueList.List {
 
 		infoLabels := prometheus.Labels{
-			"agentPoolID": fmt.Sprintf("%d", agentQueue.Pool.Id),
+			"agentPoolID": int64ToString(agentQueue.Pool.Id),
 			"agentPoolName": agentQueue.Name,
 			"isHosted": boolToString(agentQueue.Pool.IsHosted),
 			"agentPoolType": agentQueue.Pool.PoolType,
 		}
 
 		sizeLabels := prometheus.Labels{
-			"agentPoolID": fmt.Sprintf("%d", agentQueue.Pool.Id),
+			"agentPoolID": int64ToString(agentQueue.Pool.Id),
 		}
 		agentPoolValue := float64(agentQueue.Pool.Size)
 
@@ -248,7 +247,7 @@ func collectPullRequests(project devopsClient.Project, repository devopsClient.R
 		infoLabels := prometheus.Labels{
 			"projectID":     project.Id,
 			"repositoryID":  repository.Id,
-			"pullrequestID": fmt.Sprintf("%d", pullRequest.Id),
+			"pullrequestID": int64ToString(pullRequest.Id),
 			"pullrequestTitle": pullRequest.Title,
 			"status": pullRequest.Status,
 			"creator": pullRequest.CreatedBy.DisplayName,
@@ -259,7 +258,7 @@ func collectPullRequests(project devopsClient.Project, repository devopsClient.R
 		statusCreatedLabels := prometheus.Labels{
 			"projectID":     project.Id,
 			"repositoryID":  repository.Id,
-			"pullrequestID": fmt.Sprintf("%d", pullRequest.Id),
+			"pullrequestID": int64ToString(pullRequest.Id),
 			"type": "created",
 		}
 		statusCreatedValue := float64(pullRequest.CreationDate.Unix())

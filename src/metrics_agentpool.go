@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
 	"sync"
-	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 // Metrics run
@@ -57,18 +56,18 @@ func collectAgentPoolAgents(agentPool devopsClient.AgentQueue, callback chan<- f
 
 	for _, agentPoolAgent := range list.List {
 		infoLabels := prometheus.Labels{
-			"agentPoolID": fmt.Sprintf("%d", agentPool.Pool.Id),
-			"agentPoolAgentID": fmt.Sprintf("%d", agentPoolAgent.Id),
+			"agentPoolID": int64ToString(agentPool.Pool.Id),
+			"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
 			"agentPoolAgentName": agentPoolAgent.Name,
 			"agentPoolAgentVersion": agentPoolAgent.Version,
 			"provisioningState": agentPoolAgent.ProvisioningState,
-			"maxParallelism": fmt.Sprintf("%d", agentPoolAgent.MaxParallelism),
+			"maxParallelism": int64ToString(agentPoolAgent.MaxParallelism),
 			"agentPoolAgentOs": agentPoolAgent.OsDescription,
 		}
 		infoValue := boolToFloat64(agentPoolAgent.Enabled)
 
 		statusCreatedLabels :=prometheus.Labels{
-			"agentPoolAgentID": fmt.Sprintf("%d", agentPoolAgent.Id),
+			"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
 			"type": "created",
 		}
 		statusCreatedValue := float64(agentPoolAgent.CreatedOn.Unix())
@@ -80,10 +79,10 @@ func collectAgentPoolAgents(agentPool devopsClient.AgentQueue, callback chan<- f
 
 		if agentPoolAgent.AssignedRequest.RequestId > 0 {
 			jobLabels :=prometheus.Labels{
-				"agentPoolAgentID": fmt.Sprintf("%d", agentPoolAgent.Id),
+				"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
 				"planType": agentPoolAgent.AssignedRequest.PlanType,
-				"jobRequestId": fmt.Sprintf("%d", agentPoolAgent.AssignedRequest.RequestId),
-				"definitionID": fmt.Sprintf("%d", agentPoolAgent.AssignedRequest.Definition.Id),
+				"jobRequestId": int64ToString(agentPoolAgent.AssignedRequest.RequestId),
+				"definitionID": int64ToString(agentPoolAgent.AssignedRequest.Definition.Id),
 				"definitionName": agentPoolAgent.AssignedRequest.Definition.Name,
 				"scopeID": agentPoolAgent.AssignedRequest.ScopeId,
 			}
