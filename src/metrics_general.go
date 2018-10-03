@@ -165,9 +165,18 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 
 		callback <- func() {
 			prometheusBuild.With(infoLabels).Set(1)
-			prometheusBuildStatus.With(statuQueuedLabels).Set(statusQueuedValue)
-			prometheusBuildStatus.With(statusStartedLabels).Set(statusStartedValue)
-			prometheusBuildStatus.With(statuFinishedLabels).Set(statusFinishedValue)
+
+			if statusQueuedValue > 0 {
+				prometheusBuildStatus.With(statuQueuedLabels).Set(statusQueuedValue)
+			}
+
+			if statusStartedValue > 0 {
+				prometheusBuildStatus.With(statusStartedLabels).Set(statusStartedValue)
+			}
+
+			if statusFinishedValue > 0 {
+				prometheusBuildStatus.With(statuFinishedLabels).Set(statusFinishedValue)
+			}
 		}
 	}
 }
@@ -265,7 +274,10 @@ func collectPullRequests(project devopsClient.Project, repository devopsClient.R
 
 		callback <- func() {
 			prometheusPullRequest.With(infoLabels).Set(1)
-			prometheusPullRequestStatus.With(statusCreatedLabels).Set(statusCreatedValue)
+
+			if statusCreatedValue > 0 {
+				prometheusPullRequestStatus.With(statusCreatedLabels).Set(statusCreatedValue)
+			}
 		}
 	}
 }
