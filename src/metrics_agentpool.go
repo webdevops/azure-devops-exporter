@@ -81,7 +81,11 @@ func collectAgentPoolAgents(agentPool devopsClient.AgentQueue, callback chan<- f
 		if agentPoolAgent.AssignedRequest.RequestId > 0 {
 			jobLabels :=prometheus.Labels{
 				"agentPoolAgentID": fmt.Sprintf("%d", agentPoolAgent.Id),
+				"planType": agentPoolAgent.AssignedRequest.PlanType,
 				"jobRequestId": fmt.Sprintf("%d", agentPoolAgent.AssignedRequest.RequestId),
+				"definitionID": fmt.Sprintf("%d", agentPoolAgent.AssignedRequest.Definition.Id),
+				"definitionName": agentPoolAgent.AssignedRequest.Definition.Name,
+				"scopeID": agentPoolAgent.AssignedRequest.ScopeId,
 			}
 			jobValue := float64(agentPoolAgent.AssignedRequest.AssignTime.Unix())
 			callback <- func() {

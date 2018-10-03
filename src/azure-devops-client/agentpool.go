@@ -66,6 +66,7 @@ type AgentPoolAgent struct {
 
 	AssignedRequest struct {
 		RequestId int64
+		Demands []string
 		QueueTime time.Time
 		AssignTime time.Time
 		ReceiveTime time.Time
@@ -76,6 +77,11 @@ type AgentPoolAgent struct {
 		PlanType string
 		PlanId string
 		JobId string
+		Definition struct {
+			Id int64
+			Name string
+			Links Links `json:"_links"`
+		}
 	}
 }
 

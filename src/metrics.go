@@ -21,6 +21,7 @@ var (
 	prometheusAgentPoolAgentJob *prometheus.GaugeVec
 	prometheusBuild *prometheus.GaugeVec
 	prometheusBuildStatus *prometheus.GaugeVec
+	prometheusRelease *prometheus.GaugeVec
 
 	agentPoolList map[int64]devopsClient.AgentQueue
 	agentPoolListMux sync.Mutex
@@ -113,7 +114,7 @@ func setupMetricsCollection() {
 			Name: "azure_devops_agentpool_agent_job",
 			Help: "Azure DevOps agentpool",
 		},
-		[]string{"agentPoolAgentID", "jobRequestId"},
+		[]string{"agentPoolAgentID", "jobRequestId", "definitionID", "definitionName", "planType", "scopeID"},
 	)
 
 	prometheusBuild = prometheus.NewGaugeVec(
@@ -121,7 +122,7 @@ func setupMetricsCollection() {
 			Name: "azure_devops_build_info",
 			Help: "Azure DevOps build",
 		},
-		[]string{"projectID", "buildID", "agentPoolID", "requestedBy", "buildNumber", "buildName", "status", "reason", "result", "url"},
+		[]string{"projectID", "buildDefinitionID", "buildID", "agentPoolID", "requestedBy", "buildNumber", "buildName", "status", "reason", "result", "url"},
 	)
 
 	prometheusBuildStatus = prometheus.NewGaugeVec(
@@ -129,7 +130,15 @@ func setupMetricsCollection() {
 			Name: "azure_devops_build_status",
 			Help: "Azure DevOps build",
 		},
-		[]string{"projectID", "buildID", "buildNumber", "type"},
+	[]string{"projectID", "buildID", "buildNumber", "type"},
+	)
+
+	prometheusRelease = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_release_info",
+			Help: "Azure DevOps release",
+		},
+		[]string{"projectID", "releaseID", "agentPoolID", "requestedBy", "releaseNumber", "releasedName", "status", "reason", "result", "url"},
 	)
 
 	prometheus.MustRegister(prometheusProject)
@@ -145,6 +154,7 @@ func setupMetricsCollection() {
 	prometheus.MustRegister(prometheusAgentPoolAgentJob)
 	prometheus.MustRegister(prometheusBuild)
 	prometheus.MustRegister(prometheusBuildStatus)
+	prometheus.MustRegister(prometheusRelease)
 }
 
 // Start backgrounded metrics collection

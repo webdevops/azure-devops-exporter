@@ -30,6 +30,7 @@ func runMetricsCollectionGeneral() {
 			collectAgentQueues(project, callbackChannel, callbackAgentPools)
 			collectBuilds(project, callbackChannel)
 			collectBuildQueues(project, callbackChannel)
+			collectReleases(project, callbackChannel)
 		}(project)
 
 		repositoryList, err := AzureDevopsClient.ListRepositories(project.Name)
@@ -66,6 +67,7 @@ func runMetricsCollectionGeneral() {
 		prometheusAgentPoolWait.Reset()
 		prometheusBuild.Reset()
 		prometheusBuildStatus.Reset()
+		prometheusRelease.Reset()
 		for _, callback := range callbackList {
 			callback()
 		}
@@ -126,6 +128,7 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 	for _, build := range buildList.List {
 		infoLabels := prometheus.Labels{
 			"projectID": project.Id,
+			"buildDefinitionID": fmt.Sprintf("%d", build.Definition.Id),
 			"buildID": fmt.Sprintf("%d", build.Id),
 			"buildNumber": build.BuildNumber,
 			"buildName": build.Definition.Name,
@@ -196,6 +199,11 @@ func collectBuildQueues(project devopsClient.Project, callback chan<- func()) {
 			prometheusAgentPoolWait.With(agentPoolWaitLabels).Observe(waitDuration)
 		}
 	}
+}
+
+
+func collectReleases(project devopsClient.Project, callback chan<- func()) {
+	// todo
 }
 
 func collectAgentQueues(project devopsClient.Project, callback chan<- func(), callbackAgentPools chan<- devopsClient.AgentQueue) {
