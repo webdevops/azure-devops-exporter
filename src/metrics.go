@@ -98,7 +98,7 @@ func setupMetricsCollection() {
 			Name: "azure_devops_agentpool_agent_info",
 			Help: "Azure DevOps agentpool",
 		},
-		[]string{"agentPoolID", "agentPoolAgentID", "agentPoolAgentName", "agentPoolAgentVersion", "provisioningState", "maxParallelism", "agentPoolAgentOs"},
+		[]string{"agentPoolID", "agentPoolAgentID", "agentPoolAgentName", "agentPoolAgentVersion", "provisioningState", "maxParallelism", "agentPoolAgentOs", "enabled"},
 	)
 
 	prometheusAgentPoolAgentStatus = prometheus.NewGaugeVec(

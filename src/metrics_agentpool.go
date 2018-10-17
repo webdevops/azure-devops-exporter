@@ -63,8 +63,8 @@ func collectAgentPoolAgents(agentPool devopsClient.AgentQueue, callback chan<- f
 			"provisioningState": agentPoolAgent.ProvisioningState,
 			"maxParallelism": int64ToString(agentPoolAgent.MaxParallelism),
 			"agentPoolAgentOs": agentPoolAgent.OsDescription,
+			"enabled": boolToString(agentPoolAgent.Enabled),
 		}
-		infoValue := boolToFloat64(agentPoolAgent.Enabled)
 
 		statusCreatedLabels :=prometheus.Labels{
 			"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
@@ -73,7 +73,7 @@ func collectAgentPoolAgents(agentPool devopsClient.AgentQueue, callback chan<- f
 		statusCreatedValue := float64(agentPoolAgent.CreatedOn.Unix())
 
 		callback <- func() {
-			prometheusAgentPoolAgent.With(infoLabels).Set(infoValue)
+			prometheusAgentPoolAgent.With(infoLabels).Set(1)
 			prometheusAgentPoolAgentStatus.With(statusCreatedLabels).Set(statusCreatedValue)
 		}
 
