@@ -47,12 +47,13 @@ func (r *Release) QueueDuration() time.Duration {
 }
 
 
-func (c *AzureDevopsClient) ListReleases(project string) (list ReleaseList, error error) {
+func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=4.1-preview.6&isDeleted=false&%24expand=94",
+		"%v/_apis/release/releases?api-version=4.1-preview.6&isDeleted=false&expand=94&$top=100&latestAttemptsOnly=true&definitionIdFilter=%s",
 		url.QueryEscape(project),
+		url.QueryEscape(string(releaseDefinitionId)),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.restVsrm().R().Get(url)
 
 	if err != nil {
 		error = err

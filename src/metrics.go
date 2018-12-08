@@ -22,6 +22,7 @@ var (
 	prometheusBuild *prometheus.GaugeVec
 	prometheusBuildStatus *prometheus.GaugeVec
 	prometheusRelease *prometheus.GaugeVec
+	prometheusReleaseDefinition *prometheus.GaugeVec
 
 	agentPoolList map[int64]devopsClient.AgentQueue
 	agentPoolListMux sync.Mutex
@@ -138,7 +139,15 @@ func setupMetricsCollection() {
 			Name: "azure_devops_release_info",
 			Help: "Azure DevOps release",
 		},
-		[]string{"projectID", "releaseID", "agentPoolID", "requestedBy", "releaseNumber", "releasedName", "status", "reason", "result", "url"},
+		[]string{"projectID", "releaseID", "releaseDefinitionID", "requestedBy", "releasedName", "status", "reason", "result", "url"},
+	)
+
+	prometheusReleaseDefinition = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_definition_release",
+			Help: "Azure DevOps release definition",
+		},
+		[]string{"projectID", "releaseDefinitionID", "releaseNameFormat", "releasedDefinitionName", "url"},
 	)
 
 	prometheus.MustRegister(prometheusProject)
@@ -154,6 +163,7 @@ func setupMetricsCollection() {
 	prometheus.MustRegister(prometheusAgentPoolAgentJob)
 	prometheus.MustRegister(prometheusBuild)
 	prometheus.MustRegister(prometheusBuildStatus)
+	prometheus.MustRegister(prometheusReleaseDefinition)
 	prometheus.MustRegister(prometheusRelease)
 }
 

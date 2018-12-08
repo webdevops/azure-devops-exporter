@@ -12,6 +12,7 @@ type AzureDevopsClient struct {
 
 	restClient *resty.Client
 	restClientDev *resty.Client
+	restClientVsrm *resty.Client
 }
 
 func NewAzureDevopsClient() *AzureDevopsClient {
@@ -47,12 +48,23 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 
 
 func (c *AzureDevopsClient) restDev() *resty.Client {
-	if c.restClient == nil {
-		c.restClient = resty.New()
-		c.restClient.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
-		c.restClient.SetHeader("Accept", "application/json")
-		c.restClient.SetBasicAuth("", *c.accessToken)
+	if c.restClientDev == nil {
+		c.restClientDev = resty.New()
+		c.restClientDev.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
+		c.restClientDev.SetHeader("Accept", "application/json")
+		c.restClientDev.SetBasicAuth("", *c.accessToken)
 	}
 
-	return c.restClient
+	return c.restClientDev
+}
+
+func (c *AzureDevopsClient) restVsrm() *resty.Client {
+	if c.restClientVsrm == nil {
+		c.restClientVsrm = resty.New()
+		c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
+		c.restClientVsrm.SetHeader("Accept", "application/json")
+		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
+	}
+
+	return c.restClientVsrm
 }

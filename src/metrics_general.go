@@ -1,10 +1,10 @@
 package main
 
 import (
-	"time"
-	"sync"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"github.com/prometheus/client_golang/prometheus"
+	"sync"
+	"time"
 )
 
 // Metrics run
@@ -29,6 +29,7 @@ func runMetricsCollectionGeneral() {
 			collectAgentQueues(project, callbackChannel, callbackAgentPools)
 			collectBuilds(project, callbackChannel)
 			collectBuildQueues(project, callbackChannel)
+
 			collectReleases(project, callbackChannel)
 		}(project)
 
@@ -67,6 +68,7 @@ func runMetricsCollectionGeneral() {
 		prometheusBuild.Reset()
 		prometheusBuildStatus.Reset()
 		prometheusRelease.Reset()
+		prometheusReleaseDefinition.Reset()
 		for _, callback := range callbackList {
 			callback()
 		}
@@ -181,6 +183,53 @@ func collectBuilds(project devopsClient.Project, callback chan<- func()) {
 	}
 }
 
+
+func collectReleases(project devopsClient.Project, callback chan<- func()) {
+	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Name)
+	if err != nil {
+		ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+		return
+	}
+
+	for _, releaseDefinition := range list.List {
+		infoLabels := prometheus.Labels{
+			"projectID": project.Id,
+			"releaseDefinitionID": int64ToString(releaseDefinition.Id),
+			"releaseNameFormat": releaseDefinition.ReleaseNameFormat,
+			"releasedDefinitionName": releaseDefinition.Name,
+			"url": releaseDefinition.Links.Web.Href,
+		}
+
+		callback <- func() {
+			prometheusReleaseDefinition.With(infoLabels).Set(1)
+		}
+
+		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
+		if err != nil {
+			ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+			return
+		}
+
+		for _, release := range releaseList.List {
+			infoLabels := prometheus.Labels{
+				"projectID": project.Id,
+				"releaseID": int64ToString(release.Id),
+				"releaseDefinitionID": int64ToString(release.Definition.Id),
+				"requestedBy": release.RequestedBy.DisplayName,
+				"releasedName": release.Name,
+				"status": release.Status,
+				"reason": release.Reason,
+				"result": release.Result,
+				"url": release.Links.Web.Href,
+			}
+
+			callback <- func() {
+				prometheusRelease.With(infoLabels).Set(1)
+			}
+		}
+	}
+}
+
 func collectBuildQueues(project devopsClient.Project, callback chan<- func()) {
 	minTime := time.Now().Add(- opts.ScrapeTime)
 
@@ -207,11 +256,6 @@ func collectBuildQueues(project devopsClient.Project, callback chan<- func()) {
 			prometheusAgentPoolWait.With(agentPoolWaitLabels).Observe(waitDuration)
 		}
 	}
-}
-
-
-func collectReleases(project devopsClient.Project, callback chan<- func()) {
-	// todo
 }
 
 func collectAgentQueues(project devopsClient.Project, callback chan<- func(), callbackAgentPools chan<- devopsClient.AgentQueue) {
