@@ -7,6 +7,21 @@ import (
 	"encoding/json"
 )
 
+type BuildDefinitionList struct {
+	Count int `json:"count"`
+	List []BuildDefinition `json:"value"`
+}
+
+type BuildDefinition struct {
+	Id int64
+	Name string
+	Path string
+	Revision int64
+	QueueStatus string
+	BuildNameFormat string
+	Links Links `json:"_links"`
+}
+
 type BuildList struct {
 	Count int `json:"count"`
 	List []Build `json:"value"`
@@ -18,12 +33,7 @@ type Build struct {
 	BuildNumberRevision int64 `json:"buildNumberRevision"`
 	Quality string `json:"quality"`
 
-	Definition struct {
-		Id int64
-		Name string
-		Path string
-		Revision int64
-	}
+	Definition BuildDefinition
 
 	Project Project
 
@@ -38,6 +48,8 @@ type Build struct {
 	FinishTime time.Time
 	Uri string
 	Url string
+	SourceBranch string
+	SourceVersion string
 
 	RequestedBy IdentifyRef
 	RequestedFor IdentifyRef
@@ -49,8 +61,50 @@ func (b *Build) QueueDuration() time.Duration {
 	return b.StartTime.Sub(b.QueueTime)
 }
 
+func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefinitionList, error error) {
+	url := fmt.Sprintf(
+		"%v/_apis/build/definitions?api-version=4.1&$top=9999",
+		url.QueryEscape(project),
+	)
+	response, err := c.restDev().R().Get(url)
+
+	if err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
 
 func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error error) {
+	url := fmt.Sprintf(
+		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
+		url.QueryEscape(project),
+		url.QueryEscape("10"),
+	)
+	response, err := c.restDev().R().Get(url)
+
+	if err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, error error) {
 	url := fmt.Sprintf(
 		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),

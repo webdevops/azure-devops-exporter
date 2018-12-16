@@ -22,16 +22,27 @@ var (
 	Logger             *DaemonLogger
 	ErrorLogger        *DaemonLogger
 	AzureDevopsClient  *AzureDevops.AzureDevopsClient
+
+	collectorGeneralList    map[string]*CollectorGeneral
+	collectorProjectList    map[string]*CollectorProject
+	collectorAgentPoolList    map[string]*CollectorAgentPool
 )
 
 var opts struct {
 	// general settings
-	Verbose     []bool `            long:"verbose" short:"v"                    env:"VERBOSE"                                        description:"Verbose mode"`
+	Verbose     []bool `            long:"verbose" short:"v"                    env:"VERBOSE"                       description:"Verbose mode"`
 
 	// server settings
-	ServerBind  string `            long:"bind"                                 env:"SERVER_BIND"                                    description:"Server address"                               default:":8080"`
-	ScrapeTime  time.Duration `     long:"scrape-time"                          env:"SCRAPE_TIME"                                    description:"Scrape time (time.duration)"                  default:"15m"`
-	ScrapeTimeQueues time.Duration `long:"scrape-time-queues"                   env:"SCRAPE_TIME_QUEUES"                             description:"Scrape time for agent queues (time.duration)" default:"30s"`
+	ServerBind  string `            long:"bind"                                 env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
+
+	// scrape time settings
+	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Scrape time (time.duration)"                       default:"15m"`
+	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"   default:"15s"`
+	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for general metrics (time.duration)"`
+	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for general metrics (time.duration)"`
+	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for quota metrics  (time.duration)"`
+	ScrapeTimeLatestBuild  *time.Duration `long:"scrape-time-latest-build"     env:"SCRAPE_TIME_LATEST_BUILD"       description:"Scrape time for general metrics (time.duration)"`
+	ScrapeTimeAgentPool *time.Duration `   long:"scrape-time-agentpool"        env:"SCRAPE_TIME_AGENTPOOL"          description:"Scrape time for agent queues (time.duration)"      default:"30s"`
 
 	// azure settings
 	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
@@ -55,8 +66,7 @@ func main() {
 
 	Logger.Messsage("Starting metrics collection")
 	Logger.Messsage("  scape time: %v", opts.ScrapeTime)
-	setupMetricsCollection()
-	startMetricsCollection()
+	initMetricCollector()
 
 	Logger.Messsage("Starting http server on %s", opts.ServerBind)
 	startHttpServer()
@@ -78,6 +88,31 @@ func initArgparser() {
 			os.Exit(1)
 		}
 	}
+
+	// scrape time
+	if opts.ScrapeTimeGeneral == nil {
+		opts.ScrapeTimeGeneral = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimePullRequest == nil {
+		opts.ScrapeTimePullRequest = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeBuild == nil {
+		opts.ScrapeTimeBuild = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeRelease == nil {
+		opts.ScrapeTimeRelease = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeAgentPool == nil {
+		opts.ScrapeTimeAgentPool = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeLatestBuild == nil {
+		opts.ScrapeTimeLatestBuild = &opts.ScrapeTime
+	}
 }
 
 // Init and build Azure authorzier
@@ -85,6 +120,83 @@ func initAzureConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
 	AzureDevopsClient.SetOrganization(opts.AzureDevopsOrganisation)
 	AzureDevopsClient.SetAccessToken(opts.AzureDevopsAccessToken)
+}
+
+func initMetricCollector() {
+	var collectorName string
+	collectorGeneralList = map[string]*CollectorGeneral{}
+	collectorProjectList = map[string]*CollectorProject{}
+	collectorAgentPoolList = map[string]*CollectorAgentPool{}
+
+	projectList, err := AzureDevopsClient.ListProjects()
+
+	if err != nil {
+		panic(err)
+	}
+
+	collectorName = "General"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorGeneral{})
+		collectorGeneralList[collectorName].AzureDevOpsProjects = &projectList
+		collectorGeneralList[collectorName].Run(*opts.ScrapeTimeGeneral)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "Project"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
+		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeGeneral)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "PullRequest"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
+		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimePullRequest)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "LatestBuild"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
+		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLatestBuild)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "Build"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
+		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeBuild)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "Release"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
+		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRelease)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "AgentPool"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
+		collectorAgentPoolList[collectorName].AzureDevOpsProjects = &projectList
+		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
+		collectorAgentPoolList[collectorName].Run(*opts.ScrapeTimeAgentPool)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
 }
 
 // start and handle prometheus handler

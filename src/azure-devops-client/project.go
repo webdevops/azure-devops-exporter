@@ -20,6 +20,8 @@ type Project struct {
 	WellFormed string `json:"wellFormed"`
 	Revision int64 `json:"revision"`
 	Visibility string `json:"visibility"`
+
+	RepositoryList RepositoryList
 }
 
 func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
@@ -38,6 +40,10 @@ func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
 	if err != nil {
 		error = err
 		return
+	}
+
+	for key, project := range list.List {
+		list.List[key].RepositoryList, _ = c.ListRepositories(project.Name)
 	}
 
 	return
