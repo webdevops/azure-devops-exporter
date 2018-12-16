@@ -41,7 +41,7 @@ var opts struct {
 	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for general metrics (time.duration)"`
 	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for general metrics (time.duration)"`
 	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for quota metrics  (time.duration)"`
-	ScrapeTimeLatestBuild  *time.Duration `long:"scrape-time-latest-build"     env:"SCRAPE_TIME_LATEST_BUILD"       description:"Scrape time for general metrics (time.duration)"`
+	ScrapeTimeLatestBuild  *time.Duration `long:"scrape-time-latest-build"     env:"SCRAPE_TIME_LATEST_BUILD"       description:"Scrape time for general metrics (time.duration)"   default:"30s"`
 	ScrapeTimeAgentPool *time.Duration `   long:"scrape-time-agentpool"        env:"SCRAPE_TIME_AGENTPOOL"          description:"Scrape time for agent queues (time.duration)"      default:"30s"`
 
 	// azure settings
