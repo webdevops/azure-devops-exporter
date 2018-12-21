@@ -13,7 +13,7 @@ type MetricsCollectorRepository struct {
 
 	prometheus struct {
 		repository *prometheus.GaugeVec
-		repositoryCommits *prometheus.GaugeVec
+		repositoryStats *prometheus.GaugeVec
 	}
 }
 
@@ -29,21 +29,21 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 	)
 
 
-	m.prometheus.repositoryCommits = prometheus.NewGaugeVec(
+	m.prometheus.repositoryStats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "azure_devops_repository_commits",
+			Name: "azure_devops_repository_stats",
 			Help: "Azure DevOps repository",
 		},
-		[]string{"projectID", "repositoryID"},
+		[]string{"projectID", "repositoryID", "type"},
 	)
 
 	prometheus.MustRegister(m.prometheus.repository)
-	prometheus.MustRegister(m.prometheus.repositoryCommits)
+	prometheus.MustRegister(m.prometheus.repositoryStats)
 }
 
 func (m *MetricsCollectorRepository) Reset() {
 	m.prometheus.repository.Reset()
-	m.prometheus.repositoryCommits.Reset()
+	m.prometheus.repositoryStats.Reset()
 }
 
 func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
@@ -62,7 +62,7 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<
 
 func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	repositoryMetric := MetricCollectorList{}
-	repositoryCommitsMetric := MetricCollectorList{}
+	repositoryStatsMetric := MetricCollectorList{}
 
 	repositoryMetric.Add(
 		prometheus.Labels{
@@ -73,28 +73,36 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 		1,
 	)
 
-	callback <- func() {
-		repositoryMetric.GaugeSet(m.prometheus.repository)
+	if repository.Size > 0 {
+		repositoryStatsMetric.Add(
+			prometheus.Labels{
+				"projectID": project.Id,
+				"repositoryID": repository.Id,
+				"type": "size",
+			},
+			float64(repository.Size),
+		)
 	}
 
+	// get commit delta list
 	fromTime := time.Now().Add(- *m.CollectorReference.GetScrapeTime())
 	commitList, err := AzureDevopsClient.ListCommits(project.Name, repository.Id, fromTime)
-
-	if err != nil {
+	if err == nil {
+		repositoryStatsMetric.Add(
+			prometheus.Labels{
+				"projectID": project.Id,
+				"repositoryID": repository.Id,
+				"type": "commits",
+			},
+			float64(commitList.Count),
+		)
+	} else {
 		ErrorLogger.Messsage("project[%v]call[ListCommits]: %v", project.Name, err)
-		return
 	}
 
-	repositoryCommitsMetric.Add(
-		prometheus.Labels{
-			"projectID": project.Id,
-			"repositoryID": repository.Id,
-		},
-		float64(commitList.Count),
-	)
-
 	callback <- func() {
-		repositoryCommitsMetric.GaugeSet(m.prometheus.repositoryCommits)
+		repositoryMetric.GaugeSet(m.prometheus.repository)
+		repositoryStatsMetric.GaugeSet(m.prometheus.repositoryStats)
 	}
 }
 

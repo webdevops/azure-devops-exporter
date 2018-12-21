@@ -13,13 +13,14 @@ type RepositoryList struct {
 }
 
 type Repository struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
-	Url string `json:"url"`
-	State string `json:"state"`
-	WellFormed string `json:"wellFormed"`
-	Revision int64 `json:"revision"`
-	Visibility string `json:"visibility"`
+	Id string
+	Name string
+	Url string
+	State string
+	WellFormed string
+	Revision int64
+	Visibility string
+	Size int64
 
 	Links Links `json:"_links"`
 }
@@ -47,7 +48,7 @@ type RepositoryCommit struct {
 
 func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/git/repositories?api-version=4.1",
+		"%v/_apis/git/repositories?api-version=5.0-preview.1",
 		url.QueryEscape(project),
 	)
 	response, err := c.restDev().R().Get(url)
