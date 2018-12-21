@@ -61,7 +61,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			Name: "azure_devops_agentpool_agent_info",
 			Help: "Azure DevOps agentpool",
 		},
-		[]string{"agentPoolID", "agentPoolAgentID", "agentPoolAgentName", "agentPoolAgentVersion", "provisioningState", "maxParallelism", "agentPoolAgentOs", "enabled"},
+		[]string{"agentPoolID", "agentPoolAgentID", "agentPoolAgentName", "agentPoolAgentVersion", "provisioningState", "maxParallelism", "agentPoolAgentOs", "enabled", "status"},
 	)
 
 	m.prometheus.agentPoolAgentStatus = prometheus.NewGaugeVec(
@@ -130,6 +130,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 			"maxParallelism": int64ToString(agentPoolAgent.MaxParallelism),
 			"agentPoolAgentOs": agentPoolAgent.OsDescription,
 			"enabled": boolToString(agentPoolAgent.Enabled),
+			"status": agentPoolAgent.Status,
 		}
 
 		agentPoolAgentMetric.Add(infoLabels, 1)
