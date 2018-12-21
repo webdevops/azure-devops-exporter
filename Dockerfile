@@ -11,8 +11,6 @@ WORKDIR /go/src/azure-devops-exporter/src
 COPY ./src /go/src/azure-devops-exporter/src
 RUN mkdir /app/ \
     && cp -a /tmp/app/vendor ./vendor/ \
-    && cp -a entrypoint.sh /app/ \
-    && chmod 555 /app/entrypoint.sh \
     && go build -o /app/azure-devops-exporter
 
 #############################################
@@ -24,4 +22,5 @@ RUN apk add --no-cache \
     	ca-certificates
 COPY --from=build /app/ /app/
 USER 1000
-ENTRYPOINT ["/app/entrypoint.sh"]
+
+CMD ["/app/azure-devops-exporter"]
