@@ -66,7 +66,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
 		if err != nil {
-			ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+			ErrorLogger.Messsage("project[%v]call[ListReleases]: %v", project.Name, err)
 			return
 		}
 

@@ -46,7 +46,7 @@ func (m *MetricsCollectorLatestBuild) Reset() {
 func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListLatestBuilds(project.Name)
 	if err != nil {
-		ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+		ErrorLogger.Messsage("project[%v]call[ListLatestBuilds]: %v", project.Name, err)
 		return
 	}
 

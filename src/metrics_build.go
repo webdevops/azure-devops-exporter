@@ -63,7 +63,7 @@ func (m *MetricsCollectorBuild) Collect(ctx context.Context, callback chan<- fun
 func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuildDefinitions(project.Name)
 	if err != nil {
-		ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+		ErrorLogger.Messsage("project[%v]call[ListBuildDefinitions]: %v", project.Name, err)
 		return
 	}
 
@@ -88,7 +88,7 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuilds(project.Name)
 	if err != nil {
-		ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+		ErrorLogger.Messsage("project[%v]call[ListBuilds]: %v", project.Name, err)
 		return
 	}
 

@@ -53,7 +53,7 @@ func (m *MetricsCollectorPullRequest) Collect(ctx context.Context, callback chan
 func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	list, err := AzureDevopsClient.ListPullrequest(project.Name, repository.Id)
 	if err != nil {
-		ErrorLogger.Messsage("project[%v]: %v", project.Name, err)
+		ErrorLogger.Messsage("project[%v]call[ListPullrequest] %v", project.Name, err)
 		return
 	}
 
