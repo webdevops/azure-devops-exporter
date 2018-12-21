@@ -13,19 +13,18 @@ import (
 const (
 	Author  = "webdevops.io"
 	Version = "0.3.1"
-	AZURE_RESOURCEGROUP_TAG_PREFIX = "tag_"
 )
 
 var (
-	argparser          *flags.Parser
-	args               []string
-	Logger             *DaemonLogger
-	ErrorLogger        *DaemonLogger
-	AzureDevopsClient  *AzureDevops.AzureDevopsClient
+	argparser         *flags.Parser
+	args              []string
+	Logger            *DaemonLogger
+	ErrorLogger       *DaemonLogger
+	AzureDevopsClient *AzureDevops.AzureDevopsClient
 
-	collectorGeneralList    map[string]*CollectorGeneral
-	collectorProjectList    map[string]*CollectorProject
-	collectorAgentPoolList    map[string]*CollectorAgentPool
+	collectorGeneralList   map[string]*CollectorGeneral
+	collectorProjectList   map[string]*CollectorProject
+	collectorAgentPoolList map[string]*CollectorAgentPool
 )
 
 var opts struct {
