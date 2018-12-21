@@ -30,13 +30,13 @@ var (
 
 var opts struct {
 	// general settings
-	Verbose     []bool `            long:"verbose" short:"v"                    env:"VERBOSE"                       description:"Verbose mode"`
+	Verbose     []bool `            long:"verbose" short:"v"                   env:"VERBOSE"                       description:"Verbose mode"`
 
 	// server settings
-	ServerBind  string `            long:"bind"                                 env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
+	ServerBind  string `            long:"bind"                                env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
 
 	// scrape time settings
-	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"15m"`
+	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
 	ScrapeTimeProjects  *time.Duration `   long:"scrape-time-projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for projects metrics (time.duration)"`
 	ScrapeTimeRepository  *time.Duration ` long:"scrape-time-repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
 	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"           default:"15s"`
@@ -45,10 +45,13 @@ var opts struct {
 	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
 	ScrapeTimeLive  *time.Duration `       long:"scrape-time-live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
+	// ignore settings
+	AzureDevopsFilterProjects []string  `  long:"azure-devops-filter-project"   env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
+	AzureDevopsFilterAgentPoolId []int64 ` long:"azure-devops-filter-agentpool" env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
+
 	// azure settings
 	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
 	AzureDevopsOrganisation string `long:"azure-devops-organisation"            env:"AZURE_DEVOPS_ORGANISATION"                      description:"Azure DevOps organization" required:"true"`
-	AzureDevopsFilterAgentPoolId []int64 `long:"azure-devops-filter-agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 }
 
 func main() {
@@ -127,17 +130,36 @@ func initAzureConnection() {
 	AzureDevopsClient.SetAccessToken(opts.AzureDevopsAccessToken)
 }
 
+func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
+	rawList, err := AzureDevopsClient.ListProjects()
+
+	if err != nil {
+		panic(err)
+	}
+
+	if len(opts.AzureDevopsFilterProjects) > 0 {
+		// filter ignored azure devops projects
+		for _, project := range rawList.List {
+			if !arrayStringContains(opts.AzureDevopsFilterProjects, project.Id) {
+				list.List = append(list.List, project)
+			}
+
+			list.Count = len(list.List)
+		}
+	} else {
+		list = rawList
+	}
+
+	return
+}
+
 func initMetricCollector() {
 	var collectorName string
 	collectorGeneralList = map[string]*CollectorGeneral{}
 	collectorProjectList = map[string]*CollectorProject{}
 	collectorAgentPoolList = map[string]*CollectorAgentPool{}
 
-	projectList, err := AzureDevopsClient.ListProjects()
-
-	if err != nil {
-		panic(err)
-	}
+	projectList := getAzureDevOpsProjects()
 
 	collectorName = "General"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
@@ -213,6 +235,7 @@ func initMetricCollector() {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
 	}
 
+	// background auto update of projects
 	go func() {
 		// initial sleep
 		time.Sleep(*opts.ScrapeTimeProjects)
@@ -220,11 +243,7 @@ func initMetricCollector() {
 		for {
 			Logger.Messsage("daemon: updating project list")
 
-			projectList, err := AzureDevopsClient.ListProjects()
-
-			if err != nil {
-				panic(err)
-			}
+			projectList := getAzureDevOpsProjects()
 
 			for _, collector := range collectorGeneralList {
 				collector.SetAzureProjects(&projectList)

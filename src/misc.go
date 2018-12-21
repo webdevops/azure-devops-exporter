@@ -30,3 +30,12 @@ func arrayInt64Contains(s []int64, e int64) bool {
 func int64ToString(v int64) string {
 	return strconv.FormatInt(v, 10)
 }
+
+func arrayStringContains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
