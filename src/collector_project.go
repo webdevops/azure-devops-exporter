@@ -8,35 +8,35 @@ import (
 )
 
 type CollectorProject struct {
+	CollectorBase
+
 	Processor CollectorProcessorProjectInterface
 	Name string
-	ScrapeTime  *time.Duration
-	AzureDevOpsProjects *devopsClient.ProjectList
 }
 
-func (m *CollectorProject) Run(scrapeTime time.Duration) {
-	m.ScrapeTime = &scrapeTime
+func (c *CollectorProject) Run(scrapeTime time.Duration) {
+	c.SetScrapeTime(scrapeTime)
 
-	m.Processor.Setup(m)
+	c.Processor.Setup(c)
 	go func() {
 		for {
 			go func() {
-				m.Collect()
+				c.Collect()
 			}()
-			Logger.Verbose("collector[%s]: sleeping %v", m.Name, m.ScrapeTime.String())
-			time.Sleep(*m.ScrapeTime)
+			Logger.Verbose("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
+			time.Sleep(*c.GetScrapeTime())
 		}
 	}()
 }
 
-func (m *CollectorProject) Collect() {
+func (c *CollectorProject) Collect() {
 	var wg sync.WaitGroup
 	var wgCallback sync.WaitGroup
 
-	if m.AzureDevOpsProjects == nil {
+	if c.GetAzureProjects() == nil {
 		Logger.Messsage(
 			"collector[%s]: no projects found, skipping",
-			m.Name,
+			c.Name,
 		)
 		return
 	}
@@ -47,14 +47,14 @@ func (m *CollectorProject) Collect() {
 
 	Logger.Messsage(
 		"collector[%s]: starting metrics collection",
-		m.Name,
+		c.Name,
 	)
 
-	for _, project := range m.AzureDevOpsProjects.List {
+	for _, project := range c.GetAzureProjects().List {
 		wg.Add(1)
 		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 			defer wg.Done()
-			m.Processor.Collect(ctx, callbackChannel, project)
+			c.Processor.Collect(ctx, callbackChannel, project)
 		}(ctx, callbackChannel, project)
 	}
 
@@ -68,7 +68,7 @@ func (m *CollectorProject) Collect() {
 		}
 
 		// reset metric values
-		m.Processor.Reset()
+		c.Processor.Reset()
 
 		// process callbacks (set metrics)
 		for _, callback := range callbackList {
@@ -83,6 +83,6 @@ func (m *CollectorProject) Collect() {
 
 	Logger.Verbose(
 		"collector[%s]: finished metrics collection",
-		m.Name,
+		c.Name,
 	)
 }

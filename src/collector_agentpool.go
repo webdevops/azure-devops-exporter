@@ -4,33 +4,32 @@ import (
 	"context"
 	"sync"
 	"time"
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
 )
 
 type CollectorAgentPool struct {
+	CollectorBase
+
 	Processor CollectorProcessorAgentPoolInterface
 	Name string
-	ScrapeTime  *time.Duration
-	AzureDevOpsProjects *devopsClient.ProjectList
 	AgentPoolIdList []int64
 }
 
-func (m *CollectorAgentPool) Run(scrapeTime time.Duration) {
-	m.ScrapeTime = &scrapeTime
+func (c *CollectorAgentPool) Run(scrapeTime time.Duration) {
+	c.SetScrapeTime(scrapeTime)
 
-	m.Processor.Setup(m)
+	c.Processor.Setup(c)
 	go func() {
 		for {
 			go func() {
-				m.Collect()
+				c.Collect()
 			}()
-			Logger.Verbose("collector[%s]: sleeping %v", m.Name, m.ScrapeTime.String())
-			time.Sleep(*m.ScrapeTime)
+			Logger.Verbose("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
+			time.Sleep(*c.GetScrapeTime())
 		}
 	}()
 }
 
-func (m *CollectorAgentPool) Collect() {
+func (c *CollectorAgentPool) Collect() {
 	var wg sync.WaitGroup
 	var wgCallback sync.WaitGroup
 
@@ -40,13 +39,13 @@ func (m *CollectorAgentPool) Collect() {
 
 	Logger.Messsage(
 		"collector[%s]: starting metrics collection",
-		m.Name,
+		c.Name,
 	)
 
 	wg.Add(1)
 	go func(ctx context.Context, callback chan<- func()) {
 		defer wg.Done()
-		m.Processor.Collect(ctx, callbackChannel)
+		c.Processor.Collect(ctx, callbackChannel)
 	}(ctx, callbackChannel)
 
 	// collect metrics (callbacks) and proceses them
@@ -59,7 +58,7 @@ func (m *CollectorAgentPool) Collect() {
 		}
 
 		// reset metric values
-		m.Processor.Reset()
+		c.Processor.Reset()
 
 		// process callbacks (set metrics)
 		for _, callback := range callbackList {
@@ -74,6 +73,6 @@ func (m *CollectorAgentPool) Collect() {
 
 	Logger.Verbose(
 		"collector[%s]: finished metrics collection",
-		m.Name,
+		c.Name,
 	)
 }

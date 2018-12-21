@@ -104,7 +104,7 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<-
 		m.collectAgentQueues(ctx, callback, agentPoolId)
 	}
 
-	for _, project := range m.CollectorReference.AzureDevOpsProjects.List {
+	for _, project := range m.CollectorReference.GetAzureProjects().List {
 		m.collectBuildQueue(ctx, callback, project)
 	}
 }
@@ -162,7 +162,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 }
 
 func (m *MetricsCollectorAgentPool) collectBuildQueue(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(- *m.CollectorReference.ScrapeTime)
+	minTime := time.Now().Add(- *m.CollectorReference.GetScrapeTime())
 
 	buildList, err := AzureDevopsClient.ListBuildHistory(project.Name, minTime)
 	if err != nil {

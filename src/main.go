@@ -37,6 +37,7 @@ var opts struct {
 
 	// scrape time settings
 	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"15m"`
+	ScrapeTimeProjects  *time.Duration `   long:"scrape-time-projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for projects metrics (time.duration)"`
 	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"           default:"15s"`
 	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
 	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
@@ -93,6 +94,10 @@ func initArgparser() {
 		opts.ScrapeTimeGeneral = &opts.ScrapeTime
 	}
 
+	if opts.ScrapeTimeProjects == nil {
+		opts.ScrapeTimeProjects = &opts.ScrapeTime
+	}
+
 	if opts.ScrapeTimePullRequest == nil {
 		opts.ScrapeTimePullRequest = &opts.ScrapeTime
 	}
@@ -104,7 +109,7 @@ func initArgparser() {
 	if opts.ScrapeTimeRelease == nil {
 		opts.ScrapeTimeRelease = &opts.ScrapeTime
 	}
-	
+
 	if opts.ScrapeTimeLive == nil {
 		opts.ScrapeTimeLive = &opts.ScrapeTime
 	}
@@ -132,7 +137,7 @@ func initMetricCollector() {
 	collectorName = "General"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorGeneral{})
-		collectorGeneralList[collectorName].AzureDevOpsProjects = &projectList
+		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
 		collectorGeneralList[collectorName].Run(*opts.ScrapeTimeGeneral)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -141,7 +146,7 @@ func initMetricCollector() {
 	collectorName = "Project"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
-		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeGeneral)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -150,7 +155,7 @@ func initMetricCollector() {
 	collectorName = "PullRequest"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
-		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimePullRequest)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -159,7 +164,7 @@ func initMetricCollector() {
 	collectorName = "LatestBuild"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
-		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -168,7 +173,7 @@ func initMetricCollector() {
 	collectorName = "Build"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
-		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeBuild)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -177,7 +182,7 @@ func initMetricCollector() {
 	collectorName = "Release"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
-		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRelease)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
@@ -186,12 +191,42 @@ func initMetricCollector() {
 	collectorName = "AgentPool"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
-		collectorAgentPoolList[collectorName].AzureDevOpsProjects = &projectList
+		collectorAgentPoolList[collectorName].SetAzureProjects(&projectList)
 		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
 		collectorAgentPoolList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
 	}
+
+	go func() {
+		// initial sleep
+		time.Sleep(*opts.ScrapeTimeProjects)
+
+		for {
+			Logger.Messsage("daemon: updating project list")
+
+			projectList, err := AzureDevopsClient.ListProjects()
+
+			if err != nil {
+				panic(err)
+			}
+
+			for _, collector := range collectorGeneralList {
+				collector.SetAzureProjects(&projectList)
+			}
+
+			for _, collector := range collectorProjectList {
+				collector.SetAzureProjects(&projectList)
+			}
+
+			for _, collector := range collectorAgentPoolList {
+				collector.SetAzureProjects(&projectList)
+			}
+
+			Logger.Messsage("daemon: found %v projects", projectList.Count)
+			time.Sleep(*opts.ScrapeTimeProjects)
+		}
+	}()
 }
 
 // start and handle prometheus handler
