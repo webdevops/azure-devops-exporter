@@ -38,6 +38,7 @@ var opts struct {
 	// scrape time settings
 	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"15m"`
 	ScrapeTimeProjects  *time.Duration `   long:"scrape-time-projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for projects metrics (time.duration)"`
+	ScrapeTimeRepository  *time.Duration ` long:"scrape-time-repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
 	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"           default:"15s"`
 	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
 	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
@@ -98,6 +99,10 @@ func initArgparser() {
 		opts.ScrapeTimeProjects = &opts.ScrapeTime
 	}
 
+	if opts.ScrapeTimeRepository == nil {
+		opts.ScrapeTimeRepository = &opts.ScrapeTime
+	}
+
 	if opts.ScrapeTimePullRequest == nil {
 		opts.ScrapeTimePullRequest = &opts.ScrapeTime
 	}
@@ -146,6 +151,16 @@ func initMetricCollector() {
 	collectorName = "Project"
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeGeneral)
+	} else {
+		Logger.Messsage("collector[%s]: disabled", collectorName)
+	}
+
+
+	collectorName = "Repository"
+	if opts.ScrapeTimeGeneral.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeGeneral)
 	} else {

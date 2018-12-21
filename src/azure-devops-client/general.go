@@ -1,5 +1,7 @@
 package AzureDevopsClient
 
+import "time"
+
 type IdentifyRef struct {
 	Descriptor string
 	DisplayName string
@@ -32,4 +34,10 @@ type Links struct {
 	Source Link
 	Timeline Link
 	Badge Link
+}
+
+type Author struct {
+	Name string
+	Email string
+	Date time.Time
 }
