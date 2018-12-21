@@ -1,24 +1,24 @@
 package AzureDevopsClient
 
 import (
-	"fmt"
-	"time"
-	"net/url"
 	"encoding/json"
+	"fmt"
+	"net/url"
+	"time"
 )
 
 type ReleaseList struct {
-	Count int `json:"count"`
-	List []Release `json:"value"`
+	Count int       `json:"count"`
+	List  []Release `json:"value"`
 }
 
 type Release struct {
-	Id int64 `json:"id"`
+	Id   int64 `json:"id"`
 	Name string
 
 	Definition struct {
-		Id int64
-		Name string
+		Id    int64
+		Name  string
 		Links Links `json:"_links"`
 	} `json:"releaseDefinition"`
 
@@ -26,17 +26,17 @@ type Release struct {
 
 	Queue AgentPoolQueue
 
-	Reason string
-	Result string
-	Status string
-	QueueTime time.Time
+	Reason        string
+	Result        bool
+	Status        string
+	QueueTime     time.Time
 	QueuePosition string
-	StartTime time.Time
-	FinishTime time.Time
-	Uri string
-	Url string
+	StartTime     time.Time
+	FinishTime    time.Time
+	Uri           string
+	Url           string
 
-	RequestedBy IdentifyRef
+	RequestedBy  IdentifyRef
 	RequestedFor IdentifyRef
 
 	Links Links `json:"_links"`
@@ -45,7 +45,6 @@ type Release struct {
 func (r *Release) QueueDuration() time.Duration {
 	return r.StartTime.Sub(r.QueueTime)
 }
-
 
 func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
 	url := fmt.Sprintf(
