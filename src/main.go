@@ -36,13 +36,12 @@ var opts struct {
 	ServerBind  string `            long:"bind"                                 env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
 
 	// scrape time settings
-	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Scrape time (time.duration)"                       default:"15m"`
-	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"   default:"15s"`
-	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for general metrics (time.duration)"`
-	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for general metrics (time.duration)"`
-	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for quota metrics  (time.duration)"`
-	ScrapeTimeLatestBuild  *time.Duration `long:"scrape-time-latest-build"     env:"SCRAPE_TIME_LATEST_BUILD"       description:"Scrape time for general metrics (time.duration)"   default:"30s"`
-	ScrapeTimeAgentPool *time.Duration `   long:"scrape-time-agentpool"        env:"SCRAPE_TIME_AGENTPOOL"          description:"Scrape time for agent queues (time.duration)"      default:"30s"`
+	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"15m"`
+	ScrapeTimeGeneral  *time.Duration `    long:"scrape-time-general"          env:"SCRAPE_TIME_GENERAL"            description:"Scrape time for general metrics (time.duration)"           default:"15s"`
+	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
+	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
+	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
+	ScrapeTimeLive  *time.Duration `       long:"scrape-time-live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// azure settings
 	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
@@ -105,13 +104,9 @@ func initArgparser() {
 	if opts.ScrapeTimeRelease == nil {
 		opts.ScrapeTimeRelease = &opts.ScrapeTime
 	}
-
-	if opts.ScrapeTimeAgentPool == nil {
-		opts.ScrapeTimeAgentPool = &opts.ScrapeTime
-	}
-
-	if opts.ScrapeTimeLatestBuild == nil {
-		opts.ScrapeTimeLatestBuild = &opts.ScrapeTime
+	
+	if opts.ScrapeTimeLive == nil {
+		opts.ScrapeTimeLive = &opts.ScrapeTime
 	}
 }
 
@@ -165,7 +160,7 @@ func initMetricCollector() {
 	if opts.ScrapeTimeGeneral.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
 		collectorProjectList[collectorName].AzureDevOpsProjects = &projectList
-		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLatestBuild)
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
 	}
@@ -193,7 +188,7 @@ func initMetricCollector() {
 		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
 		collectorAgentPoolList[collectorName].AzureDevOpsProjects = &projectList
 		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
-		collectorAgentPoolList[collectorName].Run(*opts.ScrapeTimeAgentPool)
+		collectorAgentPoolList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
 	}
