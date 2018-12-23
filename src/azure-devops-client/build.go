@@ -1,37 +1,37 @@
 package AzureDevopsClient
 
 import (
-	"fmt"
-	"time"
-	"net/url"
 	"encoding/json"
+	"fmt"
+	"net/url"
+	"time"
 )
 
 type BuildDefinitionList struct {
-	Count int `json:"count"`
-	List []BuildDefinition `json:"value"`
+	Count int               `json:"count"`
+	List  []BuildDefinition `json:"value"`
 }
 
 type BuildDefinition struct {
-	Id int64
-	Name string
-	Path string
-	Revision int64
-	QueueStatus string
+	Id              int64
+	Name            string
+	Path            string
+	Revision        int64
+	QueueStatus     string
 	BuildNameFormat string
-	Links Links `json:"_links"`
+	Links           Links `json:"_links"`
 }
 
 type BuildList struct {
-	Count int `json:"count"`
-	List []Build `json:"value"`
+	Count int     `json:"count"`
+	List  []Build `json:"value"`
 }
 
 type Build struct {
-	Id int64 `json:"id"`
-	BuildNumber string `json:"buildNumber"`
-	BuildNumberRevision int64 `json:"buildNumberRevision"`
-	Quality string `json:"quality"`
+	Id                  int64  `json:"id"`
+	BuildNumber         string `json:"buildNumber"`
+	BuildNumberRevision int64  `json:"buildNumberRevision"`
+	Quality             string `json:"quality"`
 
 	Definition BuildDefinition
 
@@ -39,19 +39,19 @@ type Build struct {
 
 	Queue AgentPoolQueue
 
-	Reason string
-	Result string
-	Status string
-	QueueTime time.Time
+	Reason        string
+	Result        string
+	Status        string
+	QueueTime     time.Time
 	QueuePosition string
-	StartTime time.Time
-	FinishTime time.Time
-	Uri string
-	Url string
-	SourceBranch string
+	StartTime     time.Time
+	FinishTime    time.Time
+	Uri           string
+	Url           string
+	SourceBranch  string
 	SourceVersion string
 
-	RequestedBy IdentifyRef
+	RequestedBy  IdentifyRef
 	RequestedFor IdentifyRef
 
 	Links Links `json:"_links"`
@@ -147,4 +147,3 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 
 	return
 }
-

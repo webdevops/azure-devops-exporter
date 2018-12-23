@@ -21,7 +21,9 @@ func (m *MetricsCollectorGeneral) Setup(collector *CollectorGeneral) {
 			Name: "azure_devops_stats",
 			Help: "Azure DevOps statistics",
 		},
-		[]string{"type"},
+		[]string{
+			"type",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.stats)
@@ -42,5 +44,3 @@ func (m *MetricsCollectorGeneral) Collect(ctx context.Context, callback chan<- f
 		statsMetrics.GaugeSet(m.prometheus.stats)
 	}
 }
-
-

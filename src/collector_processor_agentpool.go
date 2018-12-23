@@ -15,9 +15,9 @@ type CollectorProcessorAgentPool struct {
 	CollectorReference *CollectorAgentPool
 }
 
-func NewCollectorAgentPool(name string, processor CollectorProcessorAgentPoolInterface) (*CollectorAgentPool) {
+func NewCollectorAgentPool(name string, processor CollectorProcessorAgentPoolInterface) *CollectorAgentPool {
 	collector := CollectorAgentPool{
-		Name: name,
+		Name:      name,
 		Processor: processor,
 	}
 

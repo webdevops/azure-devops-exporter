@@ -1,16 +1,16 @@
 package main
 
 import (
+	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
 )
 
 type MetricsCollectorPullRequest struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		pullRequest *prometheus.GaugeVec
+		pullRequest       *prometheus.GaugeVec
 		pullRequestStatus *prometheus.GaugeVec
 	}
 }
@@ -23,7 +23,16 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			Name: "azure_devops_pullrequest_info",
 			Help: "Azure DevOps pullrequest",
 		},
-		[]string{"projectID", "repositoryID", "pullrequestID", "pullrequestTitle", "sourceBranch", "targetBranch", "status", "creator"},
+		[]string{
+			"projectID",
+			"repositoryID",
+			"pullrequestID",
+			"pullrequestTitle",
+			"sourceBranch",
+			"targetBranch",
+			"status",
+			"creator",
+		},
 	)
 
 	m.prometheus.pullRequestStatus = prometheus.NewGaugeVec(
@@ -31,7 +40,12 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			Name: "azure_devops_pullrequest_status",
 			Help: "Azure DevOps pullrequest",
 		},
-		[]string{"projectID", "repositoryID", "pullrequestID", "type"},
+		[]string{
+			"projectID",
+			"repositoryID",
+			"pullrequestID",
+			"type",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.pullRequest)

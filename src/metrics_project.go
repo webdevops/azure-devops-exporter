@@ -1,16 +1,16 @@
 package main
 
 import (
+	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
 )
 
 type MetricsCollectorProject struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		project *prometheus.GaugeVec
+		project    *prometheus.GaugeVec
 		repository *prometheus.GaugeVec
 	}
 }
@@ -23,7 +23,10 @@ func (m *MetricsCollectorProject) Setup(collector *CollectorProject) {
 			Name: "azure_devops_project_info",
 			Help: "Azure DevOps project",
 		},
-		[]string{"projectID", "projectName"},
+		[]string{
+			"projectID",
+			"projectName",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.project)
@@ -49,4 +52,3 @@ func (m *MetricsCollectorProject) collectProject(ctx context.Context, callback c
 		projectMetric.GaugeSet(m.prometheus.project)
 	}
 }
-

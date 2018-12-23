@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"context"
 	"sync"
 	"time"
 )
@@ -11,7 +11,7 @@ type CollectorProject struct {
 	CollectorBase
 
 	Processor CollectorProcessorProjectInterface
-	Name string
+	Name      string
 }
 
 func (c *CollectorProject) Run(scrapeTime time.Duration) {

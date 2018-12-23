@@ -10,7 +10,7 @@ type MetricsCollectorLatestBuild struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		build *prometheus.GaugeVec
+		build       *prometheus.GaugeVec
 		buildStatus *prometheus.GaugeVec
 	}
 }
@@ -23,7 +23,21 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			Name: "azure_devops_build_latest_info",
 			Help: "Azure DevOps build (latest)",
 		},
-		[]string{"projectID", "buildDefinitionID", "buildID", "agentPoolID", "requestedBy", "buildNumber", "buildName", "sourceBranch", "sourceVersion", "status", "reason", "result", "url"},
+		[]string{
+			"projectID",
+			"buildDefinitionID",
+			"buildID",
+			"agentPoolID",
+			"requestedBy",
+			"buildNumber",
+			"buildName",
+			"sourceBranch",
+			"sourceVersion",
+			"status",
+			"reason",
+			"result",
+			"url",
+		},
 	)
 
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
@@ -31,7 +45,12 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			Name: "azure_devops_build_latest_status",
 			Help: "Azure DevOps build (latest)",
 		},
-		[]string{"projectID", "buildID", "buildNumber", "type"},
+		[]string{
+			"projectID",
+			"buildID",
+			"buildNumber",
+			"type",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.build)
@@ -58,16 +77,16 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"projectID":         project.Id,
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildID":           int64ToString(build.Id),
-			"buildNumber":        build.BuildNumber,
-			"buildName":          build.Definition.Name,
-			"agentPoolID":        int64ToString(build.Queue.Pool.Id),
-			"requestedBy":        build.RequestedBy.DisplayName,
-			"sourceBranch":       build.SourceBranch,
-			"sourceVersion":      build.SourceVersion,
-			"status":             build.Status,
-			"reason":             build.Reason,
-			"result":             build.Result,
-			"url":                build.Links.Web.Href,
+			"buildNumber":       build.BuildNumber,
+			"buildName":         build.Definition.Name,
+			"agentPoolID":       int64ToString(build.Queue.Pool.Id),
+			"requestedBy":       build.RequestedBy.DisplayName,
+			"sourceBranch":      build.SourceBranch,
+			"sourceVersion":     build.SourceVersion,
+			"status":            build.Status,
+			"reason":            build.Reason,
+			"result":            build.Result,
+			"url":               build.Links.Web.Href,
 		})
 
 		buildStatusMetric.AddTime(prometheus.Labels{
@@ -83,7 +102,6 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type":        "queued",
 		}, build.QueueTime)
-
 
 		buildStatusMetric.AddTime(prometheus.Labels{
 			"projectID":   project.Id,

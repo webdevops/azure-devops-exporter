@@ -1,25 +1,25 @@
 package AzureDevopsClient
 
 import (
-	"fmt"
-	"time"
-	"net/url"
 	"encoding/json"
+	"fmt"
+	"net/url"
+	"time"
 )
 
 type PullRequestList struct {
-	Count int `json:"count"`
-	List []PullRequest `json:"value"`
+	Count int           `json:"count"`
+	List  []PullRequest `json:"value"`
 }
 
 type PullRequest struct {
-	Id int64 `json:"pullRequestId"`
+	Id           int64 `json:"pullRequestId"`
 	CodeReviewId int64 `json:"codeReviewId"`
 
-	Title string
+	Title       string
 	Description string
-	Uri string
-	Url string
+	Uri         string
+	Url         string
 
 	CreatedBy IdentifyRef
 
@@ -28,25 +28,25 @@ type PullRequest struct {
 
 	Reviewers []PullRequestReviewer
 
-	Status string `json:"status"`
+	Status       string `json:"status"`
 	CreationDate time.Time
-	ClosedDate time.Time
+	ClosedDate   time.Time
 
 	Links Links `json:"_links"`
 }
 
 type PullRequestReviewer struct {
-	Vote int64
+	Vote        int64
 	DisplayName string
 }
 
 func (v *PullRequest) GetVoteSummary() map[string]int {
 	ret := map[string]int{
-		"approved": 0,
+		"approved":            0,
 		"approvedSuggestions": 0,
-		"none": 0,
-		"waitingForAuthor": 0,
-		"rejected": 0,
+		"none":                0,
+		"waitingForAuthor":    0,
+		"rejected":            0,
 	}
 
 	for _, reviewer := range v.Reviewers {
@@ -89,4 +89,3 @@ func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list 
 
 	return
 }
-

@@ -10,11 +10,11 @@ type MetricsCollectorRelease struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		release            *prometheus.GaugeVec
-		releaseEnvironment *prometheus.GaugeVec
+		release                  *prometheus.GaugeVec
+		releaseEnvironment       *prometheus.GaugeVec
 		releaseEnvironmentStatus *prometheus.GaugeVec
 
-		releaseDefinition *prometheus.GaugeVec
+		releaseDefinition            *prometheus.GaugeVec
 		releaseDefinitionEnvironment *prometheus.GaugeVec
 	}
 }
@@ -27,7 +27,17 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			Name: "azure_devops_release_info",
 			Help: "Azure DevOps release",
 		},
-		[]string{"projectID", "releaseID", "releaseDefinitionID", "requestedBy", "releasedName", "status", "reason", "result", "url"},
+		[]string{
+			"projectID",
+			"releaseID",
+			"releaseDefinitionID",
+			"requestedBy",
+			"releasedName",
+			"status",
+			"reason",
+			"result",
+			"url",
+		},
 	)
 
 	m.prometheus.releaseEnvironment = prometheus.NewGaugeVec(
@@ -35,7 +45,15 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			Name: "azure_devops_release_environment",
 			Help: "Azure DevOps release environment",
 		},
-		[]string{"projectID", "releaseID", "environmentID", "environmentName", "status", "triggerReason", "rank"},
+		[]string{
+			"projectID",
+			"releaseID",
+			"environmentID",
+			"environmentName",
+			"status",
+			"triggerReason",
+			"rank",
+		},
 	)
 
 	m.prometheus.releaseEnvironmentStatus = prometheus.NewGaugeVec(
@@ -43,7 +61,12 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			Name: "azure_devops_release_environment_status",
 			Help: "Azure DevOps release environment status",
 		},
-		[]string{"projectID", "releaseID", "environmentID", "type"},
+		[]string{
+			"projectID",
+			"releaseID",
+			"environmentID",
+			"type",
+		},
 	)
 
 	m.prometheus.releaseDefinition = prometheus.NewGaugeVec(
@@ -51,7 +74,14 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			Name: "azure_devops_release_definition_info",
 			Help: "Azure DevOps release definition",
 		},
-		[]string{"projectID", "releaseDefinitionID", "releaseNameFormat", "releasedDefinitionName", "path", "url"},
+		[]string{
+			"projectID",
+			"releaseDefinitionID",
+			"releaseNameFormat",
+			"releasedDefinitionName",
+			"path",
+			"url",
+		},
 	)
 
 	m.prometheus.releaseDefinitionEnvironment = prometheus.NewGaugeVec(
@@ -59,7 +89,16 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			Name: "azure_devops_release_definition_environment",
 			Help: "Azure DevOps release definition environment",
 		},
-		[]string{"projectID", "releaseDefinitionID", "environmentID", "environmentName", "rank", "owner", "releaseID", "badgeUrl" },
+		[]string{
+			"projectID",
+			"releaseDefinitionID",
+			"environmentID",
+			"environmentName",
+			"rank",
+			"owner",
+			"releaseID",
+			"badgeUrl",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.release)
@@ -92,7 +131,6 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 	releaseEnvironmentMetric := MetricCollectorList{}
 	releaseEnvironmentStatusMetric := MetricCollectorList{}
 
-
 	for _, releaseDefinition := range list.List {
 		// --------------------------------------
 		// Release definition
@@ -104,23 +142,23 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 			"path":                   releaseDefinition.Path,
 			"url":                    releaseDefinition.Links.Web.Href,
 		})
-		
+
 		for _, environment := range releaseDefinition.Environments {
 			releaseDefinitionEnvironmentMetric.AddInfo(prometheus.Labels{
-				"projectID":            project.Id,
-				"releaseDefinitionID":  int64ToString(releaseDefinition.Id),
-				"environmentID":        int64ToString(environment.Id),
-				"environmentName":      environment.Name,
-				"rank":                 int64ToString(environment.Rank),
-				"owner":                environment.Owner.DisplayName,
-				"releaseID":            int64ToString(environment.CurrentRelease.Id),
-				"badgeUrl":             environment.BadgeUrl,
+				"projectID":           project.Id,
+				"releaseDefinitionID": int64ToString(releaseDefinition.Id),
+				"environmentID":       int64ToString(environment.Id),
+				"environmentName":     environment.Name,
+				"rank":                int64ToString(environment.Rank),
+				"owner":               environment.Owner.DisplayName,
+				"releaseID":           int64ToString(environment.CurrentRelease.Id),
+				"badgeUrl":            environment.BadgeUrl,
 			})
 		}
 
 		// --------------------------------------
 		// Releases
-		
+
 		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
 		if err != nil {
 			ErrorLogger.Messsage("project[%v]call[ListReleases]: %v", project.Name, err)
@@ -142,27 +180,27 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 			for _, environment := range release.Environments {
 				releaseEnvironmentMetric.AddInfo(prometheus.Labels{
-					"projectID":        project.Id,
-					"releaseID":        int64ToString(release.Id),
-					"environmentID":    int64ToString(environment.DefinitionEnvironmentId),
-					"environmentName":  environment.Name,
-					"status":           environment.Status,
-					"triggerReason":    environment.TriggerReason,
-					"rank":             int64ToString(environment.Rank),
+					"projectID":       project.Id,
+					"releaseID":       int64ToString(release.Id),
+					"environmentID":   int64ToString(environment.DefinitionEnvironmentId),
+					"environmentName": environment.Name,
+					"status":          environment.Status,
+					"triggerReason":   environment.TriggerReason,
+					"rank":            int64ToString(environment.Rank),
 				})
 
 				releaseEnvironmentStatusMetric.AddTime(prometheus.Labels{
-					"projectID":        project.Id,
-					"releaseID":        int64ToString(release.Id),
-					"environmentID":    int64ToString(environment.DefinitionEnvironmentId),
-					"type":             "created",
+					"projectID":     project.Id,
+					"releaseID":     int64ToString(release.Id),
+					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+					"type":          "created",
 				}, environment.CreatedOn)
 
 				releaseEnvironmentStatusMetric.Add(prometheus.Labels{
-					"projectID":        project.Id,
-					"releaseID":        int64ToString(release.Id),
-					"environmentID":    int64ToString(environment.DefinitionEnvironmentId),
-					"type":             "timeToDeploy",
+					"projectID":     project.Id,
+					"releaseID":     int64ToString(release.Id),
+					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+					"type":          "timeToDeploy",
 				}, environment.TimeToDeploy)
 			}
 		}

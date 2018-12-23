@@ -1,25 +1,25 @@
 package AzureDevopsClient
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"encoding/json"
 )
 
 type ProjectList struct {
-	Count int `json:"count"`
-	List []Project `json:"value"`
+	Count int       `json:"count"`
+	List  []Project `json:"value"`
 }
 
 type Project struct {
-	Id string `json:"id"`
-	Name string `json:"name"`
+	Id          string `json:"id"`
+	Name        string `json:"name"`
 	Description string `json:"description"`
-	Url string `json:"url"`
-	State string `json:"state"`
-	WellFormed string `json:"wellFormed"`
-	Revision int64 `json:"revision"`
-	Visibility string `json:"visibility"`
+	Url         string `json:"url"`
+	State       string `json:"state"`
+	WellFormed  string `json:"wellFormed"`
+	Revision    int64  `json:"revision"`
+	Visibility  string `json:"visibility"`
 
 	RepositoryList RepositoryList
 }
@@ -48,4 +48,3 @@ func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
 
 	return
 }
-

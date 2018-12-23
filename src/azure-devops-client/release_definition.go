@@ -7,14 +7,14 @@ import (
 )
 
 type ReleaseDefinitionList struct {
-	Count int `json:"count"`
-	List []ReleaseDefinition `json:"value"`
+	Count int                 `json:"count"`
+	List  []ReleaseDefinition `json:"value"`
 }
 
 type ReleaseDefinition struct {
-	Id int64 `json:"id"`
-	Name string
-	Path string
+	Id                int64 `json:"id"`
+	Name              string
+	Path              string
 	ReleaseNameFormat string
 
 	Environments []ReleaseDefinitionEnvironment
@@ -23,18 +23,17 @@ type ReleaseDefinition struct {
 }
 
 type ReleaseDefinitionEnvironment struct {
-	Id int64
+	Id   int64
 	Name string
 	Rank int64
 
-	Owner IdentifyRef
+	Owner          IdentifyRef
 	CurrentRelease struct {
-		Id int64
+		Id  int64
 		Url string
 	}
 
 	BadgeUrl string
-
 }
 
 func (c *AzureDevopsClient) ListReleaseDefinitions(project string) (list ReleaseDefinitionList, error error) {

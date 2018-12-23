@@ -15,9 +15,9 @@ type CollectorProcessorGeneral struct {
 	CollectorReference *CollectorGeneral
 }
 
-func NewCollectorGeneral(name string, processor CollectorProcessorGeneralInterface) (*CollectorGeneral) {
+func NewCollectorGeneral(name string, processor CollectorProcessorGeneralInterface) *CollectorGeneral {
 	collector := CollectorGeneral{
-		Name: name,
+		Name:      name,
 		Processor: processor,
 	}
 

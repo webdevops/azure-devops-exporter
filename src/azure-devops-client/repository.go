@@ -1,48 +1,48 @@
 package AzureDevopsClient
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
-	"encoding/json"
 	"time"
 )
 
 type RepositoryList struct {
-	Count int `json:"count"`
-	List []Repository `json:"value"`
+	Count int          `json:"count"`
+	List  []Repository `json:"value"`
 }
 
 type Repository struct {
-	Id string
-	Name string
-	Url string
-	State string
+	Id         string
+	Name       string
+	Url        string
+	State      string
 	WellFormed string
-	Revision int64
+	Revision   int64
 	Visibility string
-	Size int64
+	Size       int64
 
 	Links Links `json:"_links"`
 }
 
 type RepositoryCommitList struct {
-	Count int `json:"count"`
-	List []RepositoryCommit `json:"value"`
+	Count int                `json:"count"`
+	List  []RepositoryCommit `json:"value"`
 }
 
 type RepositoryCommit struct {
-	CommitId string
-	Author Author
-	Committer Author
-	Comment string
+	CommitId         string
+	Author           Author
+	Committer        Author
+	Comment          string
 	CommentTruncated bool
-	ChangeCounts struct {
-		Add int64
-		Edit int64
+	ChangeCounts     struct {
+		Add    int64
+		Edit   int64
 		Delete int64
 	}
 
-	Url string
+	Url       string
 	RemoteUrl string
 }
 

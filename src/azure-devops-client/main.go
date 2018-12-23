@@ -2,20 +2,20 @@ package AzureDevopsClient
 
 import (
 	"fmt"
-	"sync/atomic"
 	"github.com/go-resty/resty"
+	"sync/atomic"
 )
 
 type AzureDevopsClient struct {
 	organization *string
-	collection *string
-	accessToken *string
+	collection   *string
+	accessToken  *string
 
-	restClient *resty.Client
-	restClientDev *resty.Client
+	restClient     *resty.Client
+	restClientDev  *resty.Client
 	restClientVsrm *resty.Client
 
-	semaphore chan bool
+	semaphore   chan bool
 	concurrency int64
 
 	RequestCount uint64
@@ -55,8 +55,8 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
 		c.restClient.SetRetryCount(3)
-		c.restClient.OnBeforeRequest(c.restOnBeforeRequest);
-		c.restClient.OnAfterResponse(c.restOnAfterResponse);
+		c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
+		c.restClient.OnAfterResponse(c.restOnAfterResponse)
 	}
 
 	return c.restClient
@@ -69,8 +69,8 @@ func (c *AzureDevopsClient) restDev() *resty.Client {
 		c.restClientDev.SetHeader("Accept", "application/json")
 		c.restClientDev.SetBasicAuth("", *c.accessToken)
 		c.restClientDev.SetRetryCount(3)
-		c.restClientDev.OnBeforeRequest(c.restOnBeforeRequest);
-		c.restClientDev.OnAfterResponse(c.restOnAfterResponse);
+		c.restClientDev.OnBeforeRequest(c.restOnBeforeRequest)
+		c.restClientDev.OnAfterResponse(c.restOnAfterResponse)
 	}
 
 	return c.restClientDev

@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"context"
 )
 
 type CollectorProcessorProjectInterface interface {
@@ -16,9 +16,9 @@ type CollectorProcessorProject struct {
 	CollectorReference *CollectorProject
 }
 
-func NewCollectorProject(name string, processor CollectorProcessorProjectInterface) (*CollectorProject) {
+func NewCollectorProject(name string, processor CollectorProcessorProjectInterface) *CollectorProject {
 	collector := CollectorProject{
-		Name: name,
+		Name:      name,
 		Processor: processor,
 	}
 

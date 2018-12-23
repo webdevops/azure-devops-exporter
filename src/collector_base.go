@@ -1,16 +1,16 @@
 package main
 
 import (
+	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"sync"
 	"time"
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
 )
 
 type CollectorBase struct {
-	Name string
-	scrapeTime  *time.Duration
+	Name       string
+	scrapeTime *time.Duration
 
-	azureDevOpsProjects *devopsClient.ProjectList
+	azureDevOpsProjects      *devopsClient.ProjectList
 	azureDevOpsProjectsMutex sync.Mutex
 }
 
@@ -21,7 +21,7 @@ func (c *CollectorBase) SetScrapeTime(scrapeTime time.Duration) {
 	c.scrapeTime = &scrapeTime
 }
 
-func (c *CollectorBase) GetScrapeTime() (*time.Duration) {
+func (c *CollectorBase) GetScrapeTime() *time.Duration {
 	return c.scrapeTime
 }
 

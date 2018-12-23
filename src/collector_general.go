@@ -10,7 +10,7 @@ type CollectorGeneral struct {
 	CollectorBase
 
 	Processor CollectorProcessorGeneralInterface
-	Name string
+	Name      string
 }
 
 func (c *CollectorGeneral) Run(scrapeTime time.Duration) {

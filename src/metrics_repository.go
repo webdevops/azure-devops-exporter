@@ -12,7 +12,7 @@ type MetricsCollectorRepository struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		repository *prometheus.GaugeVec
+		repository      *prometheus.GaugeVec
 		repositoryStats *prometheus.GaugeVec
 	}
 }
@@ -25,16 +25,23 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			Name: "azure_devops_repository_info",
 			Help: "Azure DevOps repository",
 		},
-		[]string{"projectID", "repositoryID", "repositoryName"},
+		[]string{
+			"projectID",
+			"repositoryID",
+			"repositoryName",
+		},
 	)
-
 
 	m.prometheus.repositoryStats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_repository_stats",
 			Help: "Azure DevOps repository",
 		},
-		[]string{"projectID", "repositoryID", "type"},
+		[]string{
+			"projectID",
+			"repositoryID",
+			"type",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.repository)
@@ -79,13 +86,13 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 	}
 
 	// get commit delta list
-	fromTime := time.Now().Add(- *m.CollectorReference.GetScrapeTime())
+	fromTime := time.Now().Add(-*m.CollectorReference.GetScrapeTime())
 	commitList, err := AzureDevopsClient.ListCommits(project.Name, repository.Id, fromTime)
 	if err == nil {
 		repositoryStatsMetric.Add(prometheus.Labels{
-			"projectID": project.Id,
+			"projectID":    project.Id,
 			"repositoryID": repository.Id,
-			"type": "commits",
+			"type":         "commits",
 		}, float64(commitList.Count))
 	} else {
 		ErrorLogger.Messsage("project[%v]call[ListCommits]: %v", project.Name, err)
@@ -96,4 +103,3 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 		repositoryStatsMetric.GaugeSet(m.prometheus.repositoryStats)
 	}
 }
-

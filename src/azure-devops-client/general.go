@@ -3,25 +3,25 @@ package AzureDevopsClient
 import "time"
 
 type IdentifyRef struct {
-	Id string
+	Id          string
 	DisplayName string
-	ProfileUrl string
-	UniqueName string
-	Url string
-	Descriptor string
+	ProfileUrl  string
+	UniqueName  string
+	Url         string
+	Descriptor  string
 }
 
 type AgentPoolQueue struct {
-	Id int64
+	Id   int64
 	Name string
 	Pool AgentPool
-	Url string
+	Url  string
 }
 
 type AgentPool struct {
-	Id int64
+	Id       int64
 	IsHosted bool
-	Name string
+	Name     string
 }
 
 type Link struct {
@@ -29,15 +29,15 @@ type Link struct {
 }
 
 type Links struct {
-	Self Link
-	Web Link
-	Source Link
+	Self     Link
+	Web      Link
+	Source   Link
 	Timeline Link
-	Badge Link
+	Badge    Link
 }
 
 type Author struct {
-	Name string
+	Name  string
 	Email string
-	Date time.Time
+	Date  time.Time
 }

@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
+	AzureDevops "azure-devops-exporter/src/azure-devops-client"
 	"fmt"
-	"time"
-	"net/http"
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	AzureDevops "azure-devops-exporter/src/azure-devops-client"
+	"net/http"
+	"os"
+	"time"
 )
 
 const (
@@ -29,27 +29,27 @@ var (
 
 var opts struct {
 	// general settings
-	Verbose     []bool `            long:"verbose" short:"v"                   env:"VERBOSE"                       description:"Verbose mode"`
+	Verbose []bool `   long:"verbose" short:"v"                   env:"VERBOSE"                       description:"Verbose mode"`
 
 	// server settings
-	ServerBind  string `            long:"bind"                                env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
+	ServerBind string `long:"bind"                                env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
 
 	// scrape time settings
-	ScrapeTime  time.Duration `            long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
-	ScrapeTimeProjects  *time.Duration `   long:"scrape-time-projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for project metrics (time.duration)"`
-	ScrapeTimeRepository  *time.Duration ` long:"scrape-time-repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
-	ScrapeTimeBuild  *time.Duration `      long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
-	ScrapeTimeRelease  *time.Duration `    long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
-	ScrapeTimePullRequest *time.Duration ` long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
-	ScrapeTimeLive  *time.Duration `       long:"scrape-time-live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
+	ScrapeTime            time.Duration  `long:"scrape-time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
+	ScrapeTimeProjects    *time.Duration `long:"scrape-time-projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for project metrics (time.duration)"`
+	ScrapeTimeRepository  *time.Duration `long:"scrape-time-repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
+	ScrapeTimeBuild       *time.Duration `long:"scrape-time-build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
+	ScrapeTimeRelease     *time.Duration `long:"scrape-time-release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
+	ScrapeTimePullRequest *time.Duration `long:"scrape-time-pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
+	ScrapeTimeLive        *time.Duration `long:"scrape-time-live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// ignore settings
-	AzureDevopsFilterProjects []string  `   long:"azure-devops-filter-project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
-	AzureDevopsBlacklistProjects []string  `long:"azure-devops-blacklist-project" env:"AZURE_DEVOPS_BLACKLIST_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
-	AzureDevopsFilterAgentPoolId []int64 `  long:"azure-devops-filter-agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
+	AzureDevopsFilterProjects    []string `long:"azure-devops-filter-project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
+	AzureDevopsBlacklistProjects []string `long:"azure-devops-blacklist-project" env:"AZURE_DEVOPS_BLACKLIST_PROJECT" env-delim:" "   description:"Filter projects (UUIDs)"`
+	AzureDevopsFilterAgentPoolId []int64  `long:"azure-devops-filter-agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// azure settings
-	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
+	AzureDevopsAccessToken  string `long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
 	AzureDevopsOrganisation string `long:"azure-devops-organisation"            env:"AZURE_DEVOPS_ORGANISATION"                      description:"Azure DevOps organization" required:"true"`
 }
 
@@ -222,7 +222,6 @@ func initMetricCollector() {
 	} else {
 		Logger.Messsage("collector[%s]: disabled", collectorName)
 	}
-
 
 	collectorName = "Build"
 	if opts.ScrapeTimeBuild.Seconds() > 0 {

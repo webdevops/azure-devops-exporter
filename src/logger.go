@@ -1,13 +1,13 @@
 package main
 
 import (
-	"os"
-	"log"
 	"fmt"
+	"log"
+	"os"
 )
 
 const (
-	LoggerLogPrefix = ""
+	LoggerLogPrefix      = ""
 	LoggerLogPrefixError = "[ERROR] "
 )
 

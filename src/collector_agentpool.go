@@ -9,8 +9,8 @@ import (
 type CollectorAgentPool struct {
 	CollectorBase
 
-	Processor CollectorProcessorAgentPoolInterface
-	Name string
+	Processor       CollectorProcessorAgentPoolInterface
+	Name            string
 	AgentPoolIdList []int64
 }
 

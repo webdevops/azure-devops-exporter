@@ -45,45 +45,45 @@ type Release struct {
 }
 
 type ReleaseEnvironment struct {
-	Id int64
-	ReleaseId int64
+	Id                      int64
+	ReleaseId               int64
 	DefinitionEnvironmentId int64
-	Name string
-	Status string
-	Rank int64
+	Name                    string
+	Status                  string
+	Rank                    int64
 
 	TriggerReason string
 
 	DeploySteps []ReleaseEnvironmentDeployStep
 
-	CreatedOn time.Time
-	QueuedOn time.Time
+	CreatedOn      time.Time
+	QueuedOn       time.Time
 	LastModifiedOn time.Time
 
 	TimeToDeploy float64
 }
 
 type ReleaseEnvironmentDeployStep struct {
-	Id int64
-	DeploymentId int64
-	Attemt int64
-	reason string
-	Status string
+	Id              int64
+	DeploymentId    int64
+	Attemt          int64
+	reason          string
+	Status          string
 	OperationStatus string
 
 	ReleaseDeployPhases []ReleaseEnvironmentDeployStepPhase
 
-	QueuedOn time.Time
+	QueuedOn       time.Time
 	LastModifiedOn time.Time
 }
 
 type ReleaseEnvironmentDeployStepPhase struct {
-	Id int64
-	PhaseId string
-	Name string
-	Rank int64
+	Id        int64
+	PhaseId   string
+	Name      string
+	Rank      int64
 	PhaseType string
-	Status string
+	Status    string
 	StartedOn time.Time
 }
 

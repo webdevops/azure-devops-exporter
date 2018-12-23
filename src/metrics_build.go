@@ -10,7 +10,7 @@ type MetricsCollectorBuild struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		build *prometheus.GaugeVec
+		build       *prometheus.GaugeVec
 		buildStatus *prometheus.GaugeVec
 
 		buildDefinition *prometheus.GaugeVec
@@ -25,7 +25,21 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			Name: "azure_devops_build_info",
 			Help: "Azure DevOps build",
 		},
-		[]string{"projectID", "buildDefinitionID", "buildID", "agentPoolID", "requestedBy", "buildNumber", "buildName", "sourceBranch", "sourceVersion", "status", "reason", "result", "url"},
+		[]string{
+			"projectID",
+			"buildDefinitionID",
+			"buildID",
+			"agentPoolID",
+			"requestedBy",
+			"buildNumber",
+			"buildName",
+			"sourceBranch",
+			"sourceVersion",
+			"status",
+			"reason",
+			"result",
+			"url",
+		},
 	)
 
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
@@ -33,7 +47,12 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			Name: "azure_devops_build_status",
 			Help: "Azure DevOps build",
 		},
-		[]string{"projectID", "buildID", "buildNumber", "type"},
+		[]string{
+			"projectID",
+			"buildID",
+			"buildNumber",
+			"type",
+		},
 	)
 
 	m.prometheus.buildDefinition = prometheus.NewGaugeVec(
@@ -41,7 +60,13 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			Name: "azure_devops_build_definition_info",
 			Help: "Azure DevOps build definition",
 		},
-		[]string{"projectID", "buildDefinitionID", "buildNameFormat", "buildDefinitionName", "url"},
+		[]string{
+			"projectID",
+			"buildDefinitionID",
+			"buildNameFormat",
+			"buildDefinitionName",
+			"url",
+		},
 	)
 
 	prometheus.MustRegister(m.prometheus.build)
@@ -128,10 +153,10 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 		}, build.QueueTime)
 
 		buildStatusMetric.AddTime(prometheus.Labels{
-			"projectID":     project.Id,
-			"buildID": int64ToString(build.Id),
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type": "finished",
+			"type":        "finished",
 		}, build.FinishTime)
 	}
 
