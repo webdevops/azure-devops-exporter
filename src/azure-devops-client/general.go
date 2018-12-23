@@ -3,12 +3,12 @@ package AzureDevopsClient
 import "time"
 
 type IdentifyRef struct {
-	Descriptor string
-	DisplayName string
 	Id string
+	DisplayName string
 	ProfileUrl string
 	UniqueName string
 	Url string
+	Descriptor string
 }
 
 type AgentPoolQueue struct {

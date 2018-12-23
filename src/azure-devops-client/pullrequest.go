@@ -21,11 +21,7 @@ type PullRequest struct {
 	Uri string
 	Url string
 
-	CreatedBy struct {
-		Id string
-		DisplayName string
-		UniqueName string
-	}
+	CreatedBy IdentifyRef
 
 	SourceRefName string
 	TargetRefName string
