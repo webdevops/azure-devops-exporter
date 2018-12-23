@@ -44,8 +44,9 @@ var opts struct {
 	ScrapeTimeLive  *time.Duration `       long:"scrape-time-live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// ignore settings
-	AzureDevopsFilterProjects []string  `  long:"azure-devops-filter-project"   env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
-	AzureDevopsFilterAgentPoolId []int64 ` long:"azure-devops-filter-agentpool" env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
+	AzureDevopsFilterProjects []string  `   long:"azure-devops-filter-project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
+	AzureDevopsBlacklistProjects []string  `long:"azure-devops-blacklist-project" env:"AZURE_DEVOPS_BLACKLIST_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
+	AzureDevopsFilterAgentPoolId []int64 `  long:"azure-devops-filter-agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// azure settings
 	AzureDevopsAccessToken string ` long:"azure-devops-access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"                      description:"Azure DevOps access token" required:"true"`
@@ -131,17 +132,29 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 		panic(err)
 	}
 
+	list = rawList
+
+	// whitelist
 	if len(opts.AzureDevopsFilterProjects) > 0 {
-		// filter ignored azure devops projects
+		rawList = list
+		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
-			if !arrayStringContains(opts.AzureDevopsFilterProjects, project.Id) {
+			if arrayStringContains(opts.AzureDevopsFilterProjects, project.Id) {
 				list.List = append(list.List, project)
 			}
-
-			list.Count = len(list.List)
 		}
-	} else {
-		list = rawList
+	}
+
+	// blacklist
+	if len(opts.AzureDevopsBlacklistProjects) > 0 {
+		// filter ignored azure devops projects
+		rawList = list
+		list = AzureDevops.ProjectList{}
+		for _, project := range rawList.List {
+			if !arrayStringContains(opts.AzureDevopsBlacklistProjects, project.Id) {
+				list.List = append(list.List, project)
+			}
+		}
 	}
 
 	return
