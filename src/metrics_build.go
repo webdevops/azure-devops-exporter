@@ -11,8 +11,9 @@ type MetricsCollectorBuild struct {
 
 	prometheus struct {
 		build *prometheus.GaugeVec
-		buildDefinition *prometheus.GaugeVec
 		buildStatus *prometheus.GaugeVec
+
+		buildDefinition *prometheus.GaugeVec
 	}
 }
 
@@ -27,14 +28,6 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 		[]string{"projectID", "buildDefinitionID", "buildID", "agentPoolID", "requestedBy", "buildNumber", "buildName", "sourceBranch", "sourceVersion", "status", "reason", "result", "url"},
 	)
 
-	m.prometheus.buildDefinition = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
-			Name: "azure_devops_build_definition",
-			Help: "Azure DevOps build definition",
-		},
-		[]string{"projectID", "buildDefinitionID", "buildNameFormat", "buildDefinitionName", "url"},
-	)
-
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_build_status",
@@ -43,9 +36,17 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 		[]string{"projectID", "buildID", "buildNumber", "type"},
 	)
 
+	m.prometheus.buildDefinition = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_build_definition_info",
+			Help: "Azure DevOps build definition",
+		},
+		[]string{"projectID", "buildDefinitionID", "buildNameFormat", "buildDefinitionName", "url"},
+	)
+
 	prometheus.MustRegister(m.prometheus.build)
-	prometheus.MustRegister(m.prometheus.buildDefinition)
 	prometheus.MustRegister(m.prometheus.buildStatus)
+	prometheus.MustRegister(m.prometheus.buildDefinition)
 }
 
 func (m *MetricsCollectorBuild) Reset() {
@@ -119,7 +120,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "started",
 		}
-		statusStartedValue := float64(build.StartTime.Unix())
+		statusStartedValue := timeToFloat64(build.StartTime)
 		if statusStartedValue > 0 {
 			buildStatusMetric.Add(statusStartedLabels, statusStartedValue)
 		}
@@ -130,7 +131,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "queued",
 		}
-		statusQueuedValue := float64(build.QueueTime.Unix())
+		statusQueuedValue := timeToFloat64(build.QueueTime)
 		if statusQueuedValue > 0 {
 			buildStatusMetric.Add(statusQueuedLabels, statusQueuedValue)
 		}
@@ -141,7 +142,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "finished",
 		}
-		statusFinishedValue := float64(build.FinishTime.Unix())
+		statusFinishedValue := timeToFloat64(build.FinishTime)
 		if statusFinishedValue > 0 {
 			buildStatusMetric.Add(statuFinishedLabels, statusFinishedValue)
 		}

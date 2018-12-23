@@ -14,6 +14,7 @@ type ReleaseDefinitionList struct {
 type ReleaseDefinition struct {
 	Id int64 `json:"id"`
 	Name string
+	Path string
 	ReleaseNameFormat string
 
 	Environments []ReleaseDefinitionEnvironment
@@ -38,7 +39,7 @@ type ReleaseDefinitionEnvironment struct {
 
 func (c *AzureDevopsClient) ListReleaseDefinitions(project string) (list ReleaseDefinitionList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/release/definitions?api-version=5.0-preview.3&isDeleted=false&$top=100&isDeleted=false&$expand=2",
+		"%v/_apis/release/definitions?api-version=5.0-preview.3&isDeleted=false&$top=100&$expand=2",
 		url.QueryEscape(project),
 	)
 	response, err := c.restVsrm().R().Get(url)

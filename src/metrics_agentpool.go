@@ -139,7 +139,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 			"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
 			"type": "created",
 		}
-		agentPoolAgentStatusMetric.Add(statusCreatedLabels, float64(agentPoolAgent.CreatedOn.Unix()))
+		agentPoolAgentStatusMetric.Add(statusCreatedLabels, timeToFloat64(agentPoolAgent.CreatedOn))
 
 		if agentPoolAgent.AssignedRequest.RequestId > 0 {
 			jobLabels :=prometheus.Labels{
@@ -150,7 +150,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 				"definitionName": agentPoolAgent.AssignedRequest.Definition.Name,
 				"scopeID": agentPoolAgent.AssignedRequest.ScopeId,
 			}
-			agentPoolAgentJobMetric.Add(jobLabels, float64(agentPoolAgent.AssignedRequest.AssignTime.Unix()))
+			agentPoolAgentJobMetric.Add(jobLabels, timeToFloat64(agentPoolAgent.AssignedRequest.AssignTime))
 		}
 	}
 

@@ -36,10 +36,55 @@ type Release struct {
 	Uri           string
 	Url           string
 
+	Environments []ReleaseEnvironment
+
 	RequestedBy  IdentifyRef
 	RequestedFor IdentifyRef
 
 	Links Links `json:"_links"`
+}
+
+type ReleaseEnvironment struct {
+	Id int64
+	ReleaseId int64
+	DefinitionEnvironmentId int64
+	Name string
+	Status string
+	Rank int64
+
+	TriggerReason string
+
+	DeploySteps []ReleaseEnvironmentDeployStep
+
+	CreatedOn time.Time
+	QueuedOn time.Time
+	LastModifiedOn time.Time
+
+	TimeToDeploy float64
+}
+
+type ReleaseEnvironmentDeployStep struct {
+	Id int64
+	DeploymentId int64
+	Attemt int64
+	reason string
+	Status string
+	OperationStatus string
+
+	ReleaseDeployPhases []ReleaseEnvironmentDeployStepPhase
+
+	QueuedOn time.Time
+	LastModifiedOn time.Time
+}
+
+type ReleaseEnvironmentDeployStepPhase struct {
+	Id int64
+	PhaseId string
+	Name string
+	Rank int64
+	PhaseType string
+	Status string
+	StartedOn time.Time
 }
 
 func (r *Release) QueueDuration() time.Duration {
@@ -48,7 +93,7 @@ func (r *Release) QueueDuration() time.Duration {
 
 func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=4.1-preview.6&isDeleted=false&expand=94&$top=100&latestAttemptsOnly=true&definitionIdFilter=%s",
+		"%v/_apis/release/releases?api-version=4.1-preview.6&isDeleted=false&$expand=94&$top=100&latestAttemptsOnly=true&definitionIdFilter=%s",
 		url.QueryEscape(project),
 		url.QueryEscape(string(releaseDefinitionId)),
 	)

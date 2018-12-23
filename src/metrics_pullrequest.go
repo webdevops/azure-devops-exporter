@@ -79,7 +79,7 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 			"pullrequestID": int64ToString(pullRequest.Id),
 			"type": "created",
 		}
-		statusCreateValue := float64(pullRequest.CreationDate.Unix())
+		statusCreateValue := timeToFloat64(pullRequest.CreationDate)
 		if statusCreateValue > 0 {
 			pullRequestStatusMetric.Add(statusCreatedLabels, statusCreateValue)
 		}

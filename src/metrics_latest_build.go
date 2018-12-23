@@ -77,7 +77,7 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "started",
 		}
-		statusStartedValue := float64(build.StartTime.Unix())
+		statusStartedValue := timeToFloat64(build.StartTime)
 		if statusStartedValue > 0 {
 			buildStatusMetric.Add(statusStartedLabels, statusStartedValue)
 		}
@@ -88,7 +88,7 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "queued",
 		}
-		statusQueuedValue := float64(build.QueueTime.Unix())
+		statusQueuedValue := timeToFloat64(build.QueueTime)
 		if statusQueuedValue > 0 {
 			buildStatusMetric.Add(statusQueuedLabels, statusQueuedValue)
 		}
@@ -99,7 +99,7 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type": "finished",
 		}
-		statusFinishedValue := float64(build.FinishTime.Unix())
+		statusFinishedValue := timeToFloat64(build.FinishTime)
 		if statusFinishedValue > 0 {
 			buildStatusMetric.Add(statuFinishedLabels, statusFinishedValue)
 		}
