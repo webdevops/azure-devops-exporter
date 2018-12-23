@@ -11,6 +11,7 @@ type MetricsCollectorRelease struct {
 
 	prometheus struct {
 		release                  *prometheus.GaugeVec
+		releaseArtifact          *prometheus.GaugeVec
 		releaseEnvironment       *prometheus.GaugeVec
 		releaseEnvironmentStatus *prometheus.GaugeVec
 
@@ -37,6 +38,23 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"reason",
 			"result",
 			"url",
+		},
+	)
+
+	m.prometheus.releaseArtifact = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_release_artifact",
+			Help: "Azure DevOps release",
+		},
+		[]string{
+			"projectID",
+			"releaseID",
+			"sourceId",
+			"repositoryID",
+			"branch",
+			"type",
+			"alias",
+			"version",
 		},
 	)
 
@@ -102,6 +120,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 	)
 
 	prometheus.MustRegister(m.prometheus.release)
+	prometheus.MustRegister(m.prometheus.releaseArtifact)
 	prometheus.MustRegister(m.prometheus.releaseEnvironment)
 	prometheus.MustRegister(m.prometheus.releaseEnvironmentStatus)
 	prometheus.MustRegister(m.prometheus.releaseDefinition)
@@ -110,6 +129,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 
 func (m *MetricsCollectorRelease) Reset() {
 	m.prometheus.release.Reset()
+	m.prometheus.releaseArtifact.Reset()
 	m.prometheus.releaseEnvironment.Reset()
 	m.prometheus.releaseEnvironmentStatus.Reset()
 
@@ -128,6 +148,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 	releaseDefinitionEnvironmentMetric := MetricCollectorList{}
 
 	releaseMetric := MetricCollectorList{}
+	releaseArtifactMetric := MetricCollectorList{}
 	releaseEnvironmentMetric := MetricCollectorList{}
 	releaseEnvironmentStatusMetric := MetricCollectorList{}
 
@@ -178,6 +199,19 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 				"url":                 release.Links.Web.Href,
 			})
 
+			for _, artifact := range release.Artifacts {
+				releaseArtifactMetric.AddInfo(prometheus.Labels{
+					"projectID":       project.Id,
+					"releaseID":       int64ToString(release.Id),
+					"sourceId":        artifact.SourceId,
+					"repositoryID":    artifact.DefinitionReference.Repository.Name,
+					"branch":          artifact.DefinitionReference.Branch.Name,
+					"type":            artifact.Type,
+					"alias":           artifact.Alias,
+					"version":         artifact.DefinitionReference.Version.Name,
+				})
+			}
+
 			for _, environment := range release.Environments {
 				releaseEnvironmentMetric.AddInfo(prometheus.Labels{
 					"projectID":       project.Id,
@@ -211,6 +245,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		releaseDefinitionEnvironmentMetric.GaugeSet(m.prometheus.releaseDefinitionEnvironment)
 
 		releaseMetric.GaugeSet(m.prometheus.release)
+		releaseArtifactMetric.GaugeSet(m.prometheus.releaseArtifact)
 		releaseEnvironmentMetric.GaugeSet(m.prometheus.releaseEnvironment)
 		releaseEnvironmentStatusMetric.GaugeSet(m.prometheus.releaseEnvironmentStatus)
 	}

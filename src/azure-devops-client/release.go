@@ -36,12 +36,46 @@ type Release struct {
 	Uri           string
 	Url           string
 
+	Artifacts []ReleaseArtifact
 	Environments []ReleaseEnvironment
 
 	RequestedBy  IdentifyRef
 	RequestedFor IdentifyRef
 
 	Links Links `json:"_links"`
+}
+
+type ReleaseArtifact struct {
+	SourceId string
+	Type string
+	Alias string
+
+	DefinitionReference struct {
+		Definition struct {
+			Id string
+			Name string
+		}
+
+		Project struct {
+			Id string
+			Name string
+		}
+
+		Repository struct {
+			Id string
+			Name string
+		}
+
+		Version struct {
+			Id string
+			Name string
+		}
+
+		Branch struct {
+			Id string
+			Name string
+		}
+	}
 }
 
 type ReleaseEnvironment struct {
