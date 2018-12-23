@@ -1,16 +1,17 @@
 package main
 
 import (
-	"context"
-	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"context"
+
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type MetricsCollectorRelease struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		release *prometheus.GaugeVec
+		release           *prometheus.GaugeVec
 		releaseDefinition *prometheus.GaugeVec
 	}
 }
@@ -55,14 +56,13 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 	for _, releaseDefinition := range list.List {
 		infoLabels := prometheus.Labels{
-			"projectID": project.Id,
-			"releaseDefinitionID": int64ToString(releaseDefinition.Id),
-			"releaseNameFormat": releaseDefinition.ReleaseNameFormat,
+			"projectID":              project.Id,
+			"releaseDefinitionID":    int64ToString(releaseDefinition.Id),
+			"releaseNameFormat":      releaseDefinition.ReleaseNameFormat,
 			"releasedDefinitionName": releaseDefinition.Name,
-			"url": releaseDefinition.Links.Web.Href,
+			"url":                    releaseDefinition.Links.Web.Href,
 		}
 		releaseDefinitionMetric.Add(infoLabels, 1)
-
 
 		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
 		if err != nil {
@@ -72,15 +72,15 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 		for _, release := range releaseList.List {
 			infoLabels := prometheus.Labels{
-				"projectID": project.Id,
-				"releaseID": int64ToString(release.Id),
+				"projectID":           project.Id,
+				"releaseID":           int64ToString(release.Id),
 				"releaseDefinitionID": int64ToString(release.Definition.Id),
-				"requestedBy": release.RequestedBy.DisplayName,
-				"releasedName": release.Name,
-				"status": release.Status,
-				"reason": release.Reason,
-				"result": release.Result,
-				"url": release.Links.Web.Href,
+				"requestedBy":         release.RequestedBy.DisplayName,
+				"releasedName":        release.Name,
+				"status":              release.Status,
+				"reason":              release.Reason,
+				"result":              boolToString(release.Result),
+				"url":                 release.Links.Web.Href,
 			}
 
 			releaseMetric.Add(infoLabels, 1)
