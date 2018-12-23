@@ -127,10 +127,10 @@ func (r *Release) QueueDuration() time.Duration {
 
 func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=4.1-preview.6&isDeleted=false&$expand=94&$top=%v&latestAttemptsOnly=true&definitionIdFilter=%s",
+		"%v/_apis/release/releases?api-version=5.0-preview.8&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
 		url.QueryEscape(project),
+		url.QueryEscape(int64ToString(releaseDefinitionId)),
 		url.QueryEscape(int64ToString(c.LimitReleasesPerDefinition)),
-		url.QueryEscape(string(releaseDefinitionId)),
 	)
 	response, err := c.restVsrm().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
