@@ -53,7 +53,7 @@ var opts struct {
 	AzureDevopsOrganisation string `long:"azure-devops-organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
 
 	RequestConcurrencyLimit int64 `long:"request-concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
-	RequestRetries          int   `           long:"request-retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
+	RequestRetries          int   `long:"request-retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
 
 	LimitBuildsPerDefinition          int64 `long:"limit-builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"    default:"10"`
 	LimitReleasesPerDefinition        int64 `long:"limit-releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"  default:"100"`
