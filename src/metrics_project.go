@@ -40,11 +40,10 @@ func (m *MetricsCollectorProject) Collect(ctx context.Context, callback chan<- f
 func (m *MetricsCollectorProject) collectProject(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	projectMetric := MetricCollectorList{}
 
-	infoLabels := prometheus.Labels{
-		"projectID": project.Id,
+	projectMetric.AddInfo(prometheus.Labels{
+		"projectID":   project.Id,
 		"projectName": project.Name,
-	}
-	projectMetric.Add(infoLabels, 1)
+	})
 
 	callback <- func() {
 		projectMetric.GaugeSet(m.prometheus.project)

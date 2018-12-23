@@ -54,55 +54,43 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 	buildStatusMetric := MetricCollectorList{}
 
 	for _, build := range list.List {
-		infoLabels := prometheus.Labels{
-			"projectID": project.Id,
+		buildMetric.AddInfo(prometheus.Labels{
+			"projectID":         project.Id,
 			"buildDefinitionID": int64ToString(build.Definition.Id),
-			"buildID": int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
-			"buildName": build.Definition.Name,
-			"agentPoolID": int64ToString(build.Queue.Pool.Id),
-			"requestedBy": build.RequestedBy.DisplayName,
-			"sourceBranch": build.SourceBranch,
-			"sourceVersion": build.SourceVersion,
-			"status": build.Status,
-			"reason": build.Reason,
-			"result": build.Result,
-			"url": build.Links.Web.Href,
-		}
-		buildMetric.Add(infoLabels, 1)
+			"buildID":           int64ToString(build.Id),
+			"buildNumber":        build.BuildNumber,
+			"buildName":          build.Definition.Name,
+			"agentPoolID":        int64ToString(build.Queue.Pool.Id),
+			"requestedBy":        build.RequestedBy.DisplayName,
+			"sourceBranch":       build.SourceBranch,
+			"sourceVersion":      build.SourceVersion,
+			"status":             build.Status,
+			"reason":             build.Reason,
+			"result":             build.Result,
+			"url":                build.Links.Web.Href,
+		})
 
-		statusStartedLabels := prometheus.Labels{
-			"projectID":     project.Id,
-			"buildID": int64ToString(build.Id),
+		buildStatusMetric.AddTime(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type": "started",
-		}
-		statusStartedValue := timeToFloat64(build.StartTime)
-		if statusStartedValue > 0 {
-			buildStatusMetric.Add(statusStartedLabels, statusStartedValue)
-		}
+			"type":        "started",
+		}, build.StartTime)
 
-		statusQueuedLabels := prometheus.Labels{
-			"projectID":     project.Id,
-			"buildID": int64ToString(build.Id),
+		buildStatusMetric.AddTime(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type": "queued",
-		}
-		statusQueuedValue := timeToFloat64(build.QueueTime)
-		if statusQueuedValue > 0 {
-			buildStatusMetric.Add(statusQueuedLabels, statusQueuedValue)
-		}
+			"type":        "queued",
+		}, build.QueueTime)
 
-		statuFinishedLabels := prometheus.Labels{
-			"projectID":     project.Id,
-			"buildID": int64ToString(build.Id),
+
+		buildStatusMetric.AddTime(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type": "finished",
-		}
-		statusFinishedValue := timeToFloat64(build.FinishTime)
-		if statusFinishedValue > 0 {
-			buildStatusMetric.Add(statuFinishedLabels, statusFinishedValue)
-		}
+			"type":        "finished",
+		}, build.FinishTime)
 	}
 
 	callback <- func() {

@@ -64,38 +64,29 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 	repositoryMetric := MetricCollectorList{}
 	repositoryStatsMetric := MetricCollectorList{}
 
-	repositoryMetric.Add(
-		prometheus.Labels{
-			"projectID": project.Id,
-			"repositoryID": repository.Id,
-			"repositoryName": repository.Name,
-		},
-		1,
-	)
+	repositoryMetric.AddInfo(prometheus.Labels{
+		"projectID":      project.Id,
+		"repositoryID":   repository.Id,
+		"repositoryName": repository.Name,
+	})
 
 	if repository.Size > 0 {
-		repositoryStatsMetric.Add(
-			prometheus.Labels{
-				"projectID": project.Id,
-				"repositoryID": repository.Id,
-				"type": "size",
-			},
-			float64(repository.Size),
-		)
+		repositoryStatsMetric.Add(prometheus.Labels{
+			"projectID":    project.Id,
+			"repositoryID": repository.Id,
+			"type":         "size",
+		}, float64(repository.Size))
 	}
 
 	// get commit delta list
 	fromTime := time.Now().Add(- *m.CollectorReference.GetScrapeTime())
 	commitList, err := AzureDevopsClient.ListCommits(project.Name, repository.Id, fromTime)
 	if err == nil {
-		repositoryStatsMetric.Add(
-			prometheus.Labels{
-				"projectID": project.Id,
-				"repositoryID": repository.Id,
-				"type": "commits",
-			},
-			float64(commitList.Count),
-		)
+		repositoryStatsMetric.Add(prometheus.Labels{
+			"projectID": project.Id,
+			"repositoryID": repository.Id,
+			"type": "commits",
+		}, float64(commitList.Count))
 	} else {
 		ErrorLogger.Messsage("project[%v]call[ListCommits]: %v", project.Name, err)
 	}

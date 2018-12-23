@@ -175,7 +175,7 @@ func (m *MetricsCollectorAgentPool) collectBuildQueue(ctx context.Context, callb
 
 		agentPoolBuildLabels := prometheus.Labels{
 			"agentPoolID": int64ToString(build.Queue.Pool.Id),
-			"result": build.Result,
+			"result":      build.Result,
 		}
 
 		agentPoolWaitLabels := prometheus.Labels{

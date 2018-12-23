@@ -61,28 +61,23 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 	pullRequestStatusMetric := MetricCollectorList{}
 
 	for _, pullRequest := range list.List {
-		infoLabels := prometheus.Labels{
-			"projectID":     project.Id,
-			"repositoryID":  repository.Id,
-			"pullrequestID": int64ToString(pullRequest.Id),
+		pullRequestMetric.AddInfo(prometheus.Labels{
+			"projectID":        project.Id,
+			"repositoryID":     repository.Id,
+			"pullrequestID":    int64ToString(pullRequest.Id),
 			"pullrequestTitle": pullRequest.Title,
-			"status": pullRequest.Status,
-			"creator": pullRequest.CreatedBy.DisplayName,
-			"sourceBranch": pullRequest.SourceRefName,
-			"targetBranch": pullRequest.TargetRefName,
-		}
-		pullRequestMetric.Add(infoLabels, 1)
+			"status":           pullRequest.Status,
+			"creator":          pullRequest.CreatedBy.DisplayName,
+			"sourceBranch":     pullRequest.SourceRefName,
+			"targetBranch":     pullRequest.TargetRefName,
+		})
 
-		statusCreatedLabels := prometheus.Labels{
+		pullRequestStatusMetric.AddTime(prometheus.Labels{
 			"projectID":     project.Id,
 			"repositoryID":  repository.Id,
 			"pullrequestID": int64ToString(pullRequest.Id),
-			"type": "created",
-		}
-		statusCreateValue := timeToFloat64(pullRequest.CreationDate)
-		if statusCreateValue > 0 {
-			pullRequestStatusMetric.Add(statusCreatedLabels, statusCreateValue)
-		}
+			"type":          "created",
+		}, pullRequest.CreationDate)
 	}
 
 	callback <- func() {

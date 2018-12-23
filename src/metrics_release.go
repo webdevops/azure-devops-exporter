@@ -96,28 +96,26 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 	for _, releaseDefinition := range list.List {
 		// --------------------------------------
 		// Release definition
-		infoLabels := prometheus.Labels{
+		releaseDefinitionMetric.AddInfo(prometheus.Labels{
 			"projectID":              project.Id,
 			"releaseDefinitionID":    int64ToString(releaseDefinition.Id),
 			"releaseNameFormat":      releaseDefinition.ReleaseNameFormat,
 			"releasedDefinitionName": releaseDefinition.Name,
 			"path":                   releaseDefinition.Path,
 			"url":                    releaseDefinition.Links.Web.Href,
-		}
-		releaseDefinitionMetric.Add(infoLabels, 1)
+		})
 		
 		for _, environment := range releaseDefinition.Environments {
-			envLabels := prometheus.Labels{
-				"projectID":                        project.Id,
-				"releaseDefinitionID":              int64ToString(releaseDefinition.Id),
-				"environmentID":                    int64ToString(environment.Id),
-				"environmentName":                  environment.Name,
-				"rank":                             int64ToString(environment.Rank),
-				"owner":                            environment.Owner.DisplayName,
-				"releaseID":                        int64ToString(environment.CurrentRelease.Id),
-				"badgeUrl":                         environment.BadgeUrl,
-			}
-			releaseDefinitionEnvironmentMetric.Add(envLabels, 1)
+			releaseDefinitionEnvironmentMetric.AddInfo(prometheus.Labels{
+				"projectID":            project.Id,
+				"releaseDefinitionID":  int64ToString(releaseDefinition.Id),
+				"environmentID":        int64ToString(environment.Id),
+				"environmentName":      environment.Name,
+				"rank":                 int64ToString(environment.Rank),
+				"owner":                environment.Owner.DisplayName,
+				"releaseID":            int64ToString(environment.CurrentRelease.Id),
+				"badgeUrl":             environment.BadgeUrl,
+			})
 		}
 
 		// --------------------------------------

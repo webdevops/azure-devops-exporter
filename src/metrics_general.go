@@ -34,10 +34,9 @@ func (m *MetricsCollectorGeneral) Reset() {
 func (m *MetricsCollectorGeneral) Collect(ctx context.Context, callback chan<- func()) {
 	statsMetrics := MetricCollectorList{}
 
-	requestStatsLabels := prometheus.Labels{
+	statsMetrics.Add(prometheus.Labels{
 		"type": "requests",
-	}
-	statsMetrics.Add(requestStatsLabels, AzureDevopsClient.GetRequestCount())
+	}, AzureDevopsClient.GetRequestCount())
 
 	callback <- func() {
 		statsMetrics.GaugeSet(m.prometheus.stats)
