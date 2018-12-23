@@ -30,6 +30,10 @@ func (m *MetricCollectorList) AddTime(labels prometheus.Labels, value time.Time)
 	}
 }
 
+func (m *MetricCollectorList) AddDuration(labels prometheus.Labels, value time.Duration) {
+	m.list = append(m.list, MetricCollectorRow{labels: labels, value: value.Seconds()})
+}
+
 func (m *MetricCollectorList) AddIfNotZero(labels prometheus.Labels, value float64) {
 	if value != 0 {
 		m.list = append(m.list, MetricCollectorRow{labels: labels, value: value})

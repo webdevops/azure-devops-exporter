@@ -11,7 +11,6 @@ type CollectorProject struct {
 	CollectorBase
 
 	Processor CollectorProcessorProjectInterface
-	Name      string
 }
 
 func (c *CollectorProject) Run(scrapeTime time.Duration) {
@@ -45,10 +44,7 @@ func (c *CollectorProject) Collect() {
 
 	callbackChannel := make(chan func())
 
-	Logger.Messsage(
-		"collector[%s]: starting metrics collection",
-		c.Name,
-	)
+	c.collectionStart()
 
 	for _, project := range c.GetAzureProjects().List {
 		wg.Add(1)
@@ -81,8 +77,5 @@ func (c *CollectorProject) Collect() {
 	close(callbackChannel)
 	wgCallback.Wait()
 
-	Logger.Verbose(
-		"collector[%s]: finished metrics collection",
-		c.Name,
-	)
+	c.collectionFinish()
 }

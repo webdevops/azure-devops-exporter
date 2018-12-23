@@ -10,7 +10,6 @@ type CollectorAgentPool struct {
 	CollectorBase
 
 	Processor       CollectorProcessorAgentPoolInterface
-	Name            string
 	AgentPoolIdList []int64
 }
 
@@ -37,10 +36,7 @@ func (c *CollectorAgentPool) Collect() {
 
 	callbackChannel := make(chan func())
 
-	Logger.Messsage(
-		"collector[%s]: starting metrics collection",
-		c.Name,
-	)
+	c.collectionStart()
 
 	wg.Add(1)
 	go func(ctx context.Context, callback chan<- func()) {
@@ -71,8 +67,5 @@ func (c *CollectorAgentPool) Collect() {
 	close(callbackChannel)
 	wgCallback.Wait()
 
-	Logger.Verbose(
-		"collector[%s]: finished metrics collection",
-		c.Name,
-	)
+	c.collectionFinish()
 }

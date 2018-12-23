@@ -18,7 +18,9 @@ type CollectorProcessorProject struct {
 
 func NewCollectorProject(name string, processor CollectorProcessorProjectInterface) *CollectorProject {
 	collector := CollectorProject{
-		Name:      name,
+		CollectorBase: CollectorBase{
+			Name:      name,
+		},
 		Processor: processor,
 	}
 

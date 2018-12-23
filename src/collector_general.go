@@ -10,7 +10,6 @@ type CollectorGeneral struct {
 	CollectorBase
 
 	Processor CollectorProcessorGeneralInterface
-	Name      string
 }
 
 func (c *CollectorGeneral) Run(scrapeTime time.Duration) {
@@ -44,10 +43,7 @@ func (c *CollectorGeneral) Collect() {
 
 	callbackChannel := make(chan func())
 
-	Logger.Messsage(
-		"collector[%s]: starting metrics collection",
-		c.Name,
-	)
+	c.collectionStart()
 
 	wg.Add(1)
 	go func() {
@@ -78,8 +74,6 @@ func (c *CollectorGeneral) Collect() {
 	close(callbackChannel)
 	wgCallback.Wait()
 
-	Logger.Verbose(
-		"collector[%s]: finished metrics collection",
-		c.Name,
-	)
+	c.collectionFinish()
 }
+

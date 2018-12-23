@@ -17,7 +17,9 @@ type CollectorProcessorAgentPool struct {
 
 func NewCollectorAgentPool(name string, processor CollectorProcessorAgentPoolInterface) *CollectorAgentPool {
 	collector := CollectorAgentPool{
-		Name:      name,
+		CollectorBase: CollectorBase{
+			Name:      name,
+		},
 		Processor: processor,
 	}
 
