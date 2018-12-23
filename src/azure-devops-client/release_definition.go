@@ -38,12 +38,12 @@ type ReleaseDefinitionEnvironment struct {
 
 func (c *AzureDevopsClient) ListReleaseDefinitions(project string) (list ReleaseDefinitionList, error error) {
 	url := fmt.Sprintf(
-		"%v/_apis/release/definitions?api-version=5.0-preview.3&isDeleted=false&$top=100&$expand=2",
+		"%v/_apis/release/definitions?api-version=5.0-preview.3&isDeleted=false&$top=%v&$expand=2",
 		url.QueryEscape(project),
+		url.QueryEscape(int64ToString(c.LimitReleaseDefinitionsPerProject)),
 	)
 	response, err := c.restVsrm().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

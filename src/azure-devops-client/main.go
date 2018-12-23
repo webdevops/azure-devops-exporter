@@ -2,6 +2,7 @@ package AzureDevopsClient
 
 import (
 	"fmt"
+	"errors"
 	"github.com/go-resty/resty"
 	"sync/atomic"
 )
@@ -19,6 +20,11 @@ type AzureDevopsClient struct {
 	concurrency int64
 
 	RequestCount uint64
+	RequestRetries int
+
+	LimitBuildsPerDefinition int64
+	LimitReleasesPerDefinition int64
+	LimitReleaseDefinitionsPerProject int64
 }
 
 func NewAzureDevopsClient() *AzureDevopsClient {
@@ -32,12 +38,32 @@ func (c *AzureDevopsClient) Init() {
 	collection := "DefaultCollection"
 	c.collection = &collection
 	c.RequestCount = 0
+	c.SetRetries(3)
 	c.SetConcurrency(10)
+
+	c.LimitBuildsPerDefinition = 10
+	c.LimitReleasesPerDefinition = 100
+	c.LimitReleaseDefinitionsPerProject = 100
 }
 
-func (c *AzureDevopsClient) SetConcurrency(concurrency int64) {
-	c.concurrency = concurrency
+func (c *AzureDevopsClient) SetConcurrency(v int64) {
+	c.concurrency = v
 	c.semaphore = make(chan bool, c.concurrency)
+}
+func (c *AzureDevopsClient) SetRetries(v int) {
+	c.RequestRetries = v
+
+	if c.restClient != nil {
+		c.restClient.SetRetryCount(c.RequestRetries)
+	}
+
+	if c.restClientDev != nil {
+		c.restClientDev.SetRetryCount(c.RequestRetries)
+	}
+
+	if c.restClientVsrm != nil {
+		c.restClientVsrm.SetRetryCount(c.RequestRetries)
+	}
 }
 
 func (c *AzureDevopsClient) SetOrganization(url string) {
@@ -54,7 +80,7 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 		c.restClient.SetHostURL(fmt.Sprintf("https://%v.visualstudio.com/", *c.organization))
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
-		c.restClient.SetRetryCount(3)
+		c.restClient.SetRetryCount(c.RequestRetries)
 		c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClient.OnAfterResponse(c.restOnAfterResponse)
 	}
@@ -68,7 +94,7 @@ func (c *AzureDevopsClient) restDev() *resty.Client {
 		c.restClientDev.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
 		c.restClientDev.SetHeader("Accept", "application/json")
 		c.restClientDev.SetBasicAuth("", *c.accessToken)
-		c.restClientDev.SetRetryCount(3)
+		c.restClientDev.SetRetryCount(c.RequestRetries)
 		c.restClientDev.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClientDev.OnAfterResponse(c.restOnAfterResponse)
 	}
@@ -82,7 +108,7 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 		c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		c.restClientVsrm.SetHeader("Accept", "application/json")
 		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
-		c.restClientVsrm.SetRetryCount(3)
+		c.restClientVsrm.SetRetryCount(c.RequestRetries)
 		c.restClientVsrm.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClientVsrm.OnAfterResponse(c.restOnAfterResponse)
 	}
@@ -104,4 +130,22 @@ func (c *AzureDevopsClient) restOnAfterResponse(client *resty.Client, response *
 func (c *AzureDevopsClient) GetRequestCount() float64 {
 	requestCount := atomic.LoadUint64(&c.RequestCount)
 	return float64(requestCount)
+}
+
+func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) (error) {
+	if err != nil {
+		return err
+	}
+
+	if response != nil {
+		// check status code
+		statusCode := response.StatusCode()
+		if statusCode != 200 {
+			return errors.New(fmt.Sprintf("Response status code is %v (expected 200)", statusCode))
+		}
+	} else {
+		return errors.New("Response is nil")
+	}
+
+	return nil
 }

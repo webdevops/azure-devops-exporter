@@ -67,8 +67,7 @@ func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefi
 		url.QueryEscape(project),
 	)
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
@@ -86,11 +85,10 @@ func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error er
 	url := fmt.Sprintf(
 		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),
-		url.QueryEscape("10"),
+		url.QueryEscape(int64ToString(c.LimitBuildsPerDefinition)),
 	)
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
@@ -111,8 +109,7 @@ func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, er
 		url.QueryEscape("1"),
 	)
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
@@ -133,8 +130,7 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 	)
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

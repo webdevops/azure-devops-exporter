@@ -31,8 +31,7 @@ func (c *AzureDevopsClient) ListAgentQueues(project string) (list AgentQueueList
 		url.QueryEscape(project),
 	)
 	response, err := c.rest().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
@@ -89,8 +88,7 @@ func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPo
 		fmt.Sprintf("%d", agentPoolId),
 	)
 	response, err := c.rest().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

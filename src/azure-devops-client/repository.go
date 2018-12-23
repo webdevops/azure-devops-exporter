@@ -52,12 +52,10 @@ func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryLis
 		url.QueryEscape(project),
 	)
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
-
 	err = json.Unmarshal(response.Body(), &list)
 	if err != nil {
 		error = err
@@ -75,8 +73,7 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 	)
 
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

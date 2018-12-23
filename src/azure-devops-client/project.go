@@ -30,8 +30,7 @@ func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
 		url.QueryEscape(*c.collection),
 	)
 	response, err := c.rest().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

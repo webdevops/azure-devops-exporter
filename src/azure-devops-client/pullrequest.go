@@ -75,8 +75,7 @@ func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list 
 	)
 
 	response, err := c.restDev().R().Get(url)
-
-	if err != nil {
+	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}

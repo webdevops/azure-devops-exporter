@@ -22,8 +22,8 @@ func (c *CollectorAgentPool) Run(scrapeTime time.Duration) {
 			go func() {
 				c.Collect()
 			}()
-			Logger.Verbose("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
-			time.Sleep(*c.GetScrapeTime())
+
+			c.sleepUntilNextCollection()
 		}
 	}()
 }

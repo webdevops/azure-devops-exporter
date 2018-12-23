@@ -59,5 +59,9 @@ func (c *CollectorBase) collectionFinish() () {
 		c.Name,
 		c.LastScrapeDuration,
 	)
+}
 
+func (c *CollectorBase) sleepUntilNextCollection() () {
+	Logger.Verbose("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
+	time.Sleep(*c.GetScrapeTime())
 }
