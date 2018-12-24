@@ -10,10 +10,11 @@ type MetricsCollectorRelease struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		release                  *prometheus.GaugeVec
-		releaseArtifact          *prometheus.GaugeVec
-		releaseEnvironment       *prometheus.GaugeVec
-		releaseEnvironmentStatus *prometheus.GaugeVec
+		release                    *prometheus.GaugeVec
+		releaseArtifact            *prometheus.GaugeVec
+		releaseEnvironment         *prometheus.GaugeVec
+		releaseEnvironmentApproval *prometheus.GaugeVec
+		releaseEnvironmentStatus   *prometheus.GaugeVec
 
 		releaseDefinition            *prometheus.GaugeVec
 		releaseDefinitionEnvironment *prometheus.GaugeVec
@@ -87,6 +88,26 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 		},
 	)
 
+	m.prometheus.releaseEnvironmentApproval = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_release_approval",
+			Help: "Azure DevOps release approval",
+		},
+		[]string{
+			"projectID",
+			"releaseID",
+			"environmentID",
+			"approvalType",
+			"status",
+			"isAutomated",
+			"trialNumber",
+			"attempt",
+			"rank",
+			"approver",
+			"approvedBy",
+		},
+	)
+
 	m.prometheus.releaseDefinition = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_release_definition_info",
@@ -122,6 +143,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 	prometheus.MustRegister(m.prometheus.release)
 	prometheus.MustRegister(m.prometheus.releaseArtifact)
 	prometheus.MustRegister(m.prometheus.releaseEnvironment)
+	prometheus.MustRegister(m.prometheus.releaseEnvironmentApproval)
 	prometheus.MustRegister(m.prometheus.releaseEnvironmentStatus)
 	prometheus.MustRegister(m.prometheus.releaseDefinition)
 	prometheus.MustRegister(m.prometheus.releaseDefinitionEnvironment)
@@ -131,6 +153,7 @@ func (m *MetricsCollectorRelease) Reset() {
 	m.prometheus.release.Reset()
 	m.prometheus.releaseArtifact.Reset()
 	m.prometheus.releaseEnvironment.Reset()
+	m.prometheus.releaseEnvironmentApproval.Reset()
 	m.prometheus.releaseEnvironmentStatus.Reset()
 
 	m.prometheus.releaseDefinition.Reset()
@@ -150,6 +173,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 	releaseMetric := MetricCollectorList{}
 	releaseArtifactMetric := MetricCollectorList{}
 	releaseEnvironmentMetric := MetricCollectorList{}
+	releaseEnvironmentApprovalMetric := MetricCollectorList{}
 	releaseEnvironmentStatusMetric := MetricCollectorList{}
 
 	for _, releaseDefinition := range list.List {
@@ -236,6 +260,48 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
 					"type":          "timeToDeploy",
 				}, environment.TimeToDeploy)
+
+				for _, approval := range environment.PreDeployApprovals {
+					// skip automated approvals
+					if approval.IsAutomated {
+						continue
+					}
+
+					releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
+						"projectID":     project.Id,
+						"releaseID":     int64ToString(release.Id),
+						"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+						"approvalType":  approval.ApprovalType,
+						"status":        approval.Status,
+						"isAutomated":   boolToString(approval.IsAutomated),
+						"trialNumber":   int64ToString(approval.TrialNumber),
+						"attempt":       int64ToString(approval.Attempt),
+						"rank":          int64ToString(approval.Rank),
+						"approver":      approval.Approver.DisplayName,
+						"approvedBy":    approval.ApprovedBy.DisplayName,
+					}, approval.CreatedOn)
+				}
+
+				for _, approval := range environment.PostDeployApprovals {
+					// skip automated approvals
+					if approval.IsAutomated {
+						continue
+					}
+
+					releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
+						"projectID":     project.Id,
+						"releaseID":     int64ToString(release.Id),
+						"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+						"approvalType":  approval.ApprovalType,
+						"status":        approval.Status,
+						"isAutomated":   boolToString(approval.IsAutomated),
+						"trialNumber":   int64ToString(approval.TrialNumber),
+						"attempt":       int64ToString(approval.Attempt),
+						"rank":          int64ToString(approval.Rank),
+						"approver":      approval.Approver.DisplayName,
+						"approvedBy":    approval.ApprovedBy.DisplayName,
+					}, approval.CreatedOn)
+				}
 			}
 		}
 	}
@@ -247,6 +313,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		releaseMetric.GaugeSet(m.prometheus.release)
 		releaseArtifactMetric.GaugeSet(m.prometheus.releaseArtifact)
 		releaseEnvironmentMetric.GaugeSet(m.prometheus.releaseEnvironment)
+		releaseEnvironmentApprovalMetric.GaugeSet(m.prometheus.releaseEnvironmentApproval)
 		releaseEnvironmentStatusMetric.GaugeSet(m.prometheus.releaseEnvironmentStatus)
 	}
 }

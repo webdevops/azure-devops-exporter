@@ -90,6 +90,9 @@ type ReleaseEnvironment struct {
 
 	DeploySteps []ReleaseEnvironmentDeployStep
 
+	PreDeployApprovals []ReleaseEnvironmentApproval
+	PostDeployApprovals []ReleaseEnvironmentApproval
+
 	CreatedOn      time.Time
 	QueuedOn       time.Time
 	LastModifiedOn time.Time
@@ -119,6 +122,25 @@ type ReleaseEnvironmentDeployStepPhase struct {
 	PhaseType string
 	Status    string
 	StartedOn time.Time
+}
+
+type ReleaseEnvironmentApproval struct {
+	Id int64
+	Revision int64
+	ApprovalType string
+	Status string
+	Comments string
+	IsAutomated bool
+	IsNotificationOn bool
+	TrialNumber int64
+	Attempt int64
+	Rank int64
+
+	Approver IdentifyRef
+	ApprovedBy IdentifyRef
+
+	CreatedOn time.Time
+	ModifiedOn time.Time
 }
 
 func (r *Release) QueueDuration() time.Duration {
