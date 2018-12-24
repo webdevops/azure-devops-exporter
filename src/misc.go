@@ -7,9 +7,9 @@ import (
 
 func boolToString(b bool) string {
 	if b {
-		return "1"
+		return "true"
 	}
-	return "0"
+	return "false"
 }
 
 func boolToFloat64(b bool) float64 {
