@@ -132,12 +132,46 @@ func (m *MetricsCollectorAgentPool) Reset() {
 }
 
 func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<- func()) {
+	for _, project := range m.CollectorReference.azureDevOpsProjects.List {
+		m.collectAgentInfo(ctx, callback, project)
+	}
+
 	for _, agentPoolId := range m.CollectorReference.AgentPoolIdList {
 		m.collectAgentQueues(ctx, callback, agentPoolId)
 	}
 
 	for _, project := range m.CollectorReference.GetAzureProjects().List {
 		m.collectBuildQueue(ctx, callback, project)
+	}
+}
+
+func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+	list, err := AzureDevopsClient.ListAgentQueues(project.Name)
+	if err != nil {
+		ErrorLogger.Messsage("agentpool[%v]call[ListAgentQueues]: %v", project.Name)
+		return
+	}
+
+	agentPoolInfoMetric := MetricCollectorList{}
+	agentPoolSizeMetric := MetricCollectorList{}
+
+
+	for _, agentQueue := range list.List {
+		agentPoolInfoMetric.Add(prometheus.Labels{
+			"agentPoolID": int64ToString(agentQueue.Pool.Id),
+			"agentPoolName": agentQueue.Name,
+			"isHosted": boolToString(agentQueue.Pool.IsHosted),
+			"agentPoolType": agentQueue.Pool.PoolType,
+		}, 1)
+
+		agentPoolSizeMetric.Add(prometheus.Labels{
+			"agentPoolID": int64ToString(agentQueue.Pool.Id),
+		},float64(agentQueue.Pool.Size))
+	}
+
+	callback <- func() {
+		agentPoolInfoMetric.GaugeSet(m.prometheus.agentPool)
+		agentPoolSizeMetric.GaugeSet(m.prometheus.agentPoolSize)
 	}
 }
 

@@ -30,7 +30,7 @@ func (c *AzureDevopsClient) ListAgentQueues(project string) (list AgentQueueList
 		"%v/_apis/distributedtask/queues",
 		url.QueryEscape(project),
 	)
-	response, err := c.rest().R().Get(url)
+	response, err := c.restDev().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
