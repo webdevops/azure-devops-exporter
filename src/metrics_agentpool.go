@@ -3,6 +3,7 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"time"
 )
@@ -147,7 +148,7 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<-
 func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListAgentQueues(project.Name)
 	if err != nil {
-		ErrorLogger.Messsage("agentpool[%v]call[ListAgentQueues]: %v", project.Name)
+		LoggerError.Println(fmt.Sprintf("agentpool[%v]call[ListAgentQueues]: %v", project.Name))
 		return
 	}
 
@@ -177,7 +178,7 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callba
 func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolAgents(agentPoolId)
 	if err != nil {
-		ErrorLogger.Messsage("agentpool[%v]call[ListAgentPoolAgents]: %v", agentPoolId, err)
+		LoggerError.Println(fmt.Sprintf("agentpool[%v]call[ListAgentPoolAgents]: %v", agentPoolId, err))
 		return
 	}
 
@@ -231,7 +232,7 @@ func (m *MetricsCollectorAgentPool) collectBuildQueue(ctx context.Context, callb
 
 	buildList, err := AzureDevopsClient.ListBuildHistory(project.Name, minTime)
 	if err != nil {
-		ErrorLogger.Messsage("project[%v]call[ListBuildHistory]: %v", project.Name, err)
+		LoggerError.Println(fmt.Sprintf("project[%v]call[ListBuildHistory]: %v", project.Name, err))
 		return
 	}
 

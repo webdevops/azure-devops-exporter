@@ -2,6 +2,7 @@ package main
 
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"fmt"
 	"sync"
 	"time"
 )
@@ -44,24 +45,26 @@ func (c *CollectorBase) GetAzureProjects() (projects *devopsClient.ProjectList) 
 func (c *CollectorBase) collectionStart() () {
 	c.collectionStartTime = time.Now()
 
-	Logger.Messsage(
+	LoggerMessage.Println(fmt.Sprintf(
 		"collector[%s]: starting metrics collection",
 		c.Name,
-	)
+	))
 }
 
 func (c *CollectorBase) collectionFinish() () {
 	duration := time.Now().Sub(c.collectionStartTime)
 	c.LastScrapeDuration = &duration
 
-	Logger.Messsage(
+	LoggerMessage.Println(fmt.Sprintf(
 		"collector[%s]: finished metrics collection (duration: %v)",
 		c.Name,
 		c.LastScrapeDuration,
-	)
+	))
 }
 
 func (c *CollectorBase) sleepUntilNextCollection() () {
-	Logger.Verbose("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
+	if LoggerVerbose != nil {
+		LoggerVerbose.Println(fmt.Sprintf("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String()))
+	}
 	time.Sleep(*c.GetScrapeTime())
 }

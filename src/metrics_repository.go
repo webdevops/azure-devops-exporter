@@ -3,6 +3,7 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"sync"
 	"time"
@@ -108,7 +109,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 			"repositoryID": repository.Id,
 		}, float64(commitList.Count))
 	} else {
-		ErrorLogger.Messsage("project[%v]call[ListCommits]: %v", project.Name, err)
+		LoggerError.Println(fmt.Sprintf("project[%v]call[ListCommits]: %v", project.Name, err))
 	}
 
 	callback <- func() {
