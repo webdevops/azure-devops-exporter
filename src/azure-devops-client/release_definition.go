@@ -37,6 +37,9 @@ type ReleaseDefinitionEnvironment struct {
 }
 
 func (c *AzureDevopsClient) ListReleaseDefinitions(project string) (list ReleaseDefinitionList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/release/definitions?api-version=5.0-preview.3&isDeleted=false&$top=%v&$expand=2",
 		url.QueryEscape(project),

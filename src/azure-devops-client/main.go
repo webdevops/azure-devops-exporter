@@ -116,14 +116,20 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	return c.restClientVsrm
 }
 
-func (c *AzureDevopsClient) restOnBeforeRequest(client *resty.Client, request *resty.Request) (err error) {
+func (c *AzureDevopsClient) concurrencyLock() {
 	c.semaphore <- true
+}
+
+func (c *AzureDevopsClient) concurrencyUnlock() {
+	<-c.semaphore
+}
+
+func (c *AzureDevopsClient) restOnBeforeRequest(client *resty.Client, request *resty.Request) (err error) {
 	atomic.AddUint64(&c.RequestCount, 1)
 	return
 }
 
 func (c *AzureDevopsClient) restOnAfterResponse(client *resty.Client, response *resty.Response) (err error) {
-	<-c.semaphore
 	return
 }
 

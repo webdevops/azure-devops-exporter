@@ -68,6 +68,9 @@ func (v *PullRequest) GetVoteSummary() map[string]int {
 }
 
 func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list PullRequestList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/git/repositories/%v/pullrequests?api-version=4.1&searchCriteria.status=active",
 		url.QueryEscape(project),

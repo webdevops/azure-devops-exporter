@@ -62,6 +62,9 @@ func (b *Build) QueueDuration() time.Duration {
 }
 
 func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefinitionList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/build/definitions?api-version=4.1&$top=9999",
 		url.QueryEscape(project),
@@ -82,6 +85,9 @@ func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefi
 }
 
 func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),
@@ -103,6 +109,9 @@ func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error er
 }
 
 func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),
@@ -124,6 +133,9 @@ func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, er
 }
 
 func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) (list BuildList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/build/builds?api-version=4.1&minTime=%s",
 		url.QueryEscape(project),

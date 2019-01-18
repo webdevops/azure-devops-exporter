@@ -26,6 +26,9 @@ type AgentQueue struct {
 }
 
 func (c *AzureDevopsClient) ListAgentQueues(project string) (list AgentQueueList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/distributedtask/queues",
 		url.QueryEscape(project),
@@ -83,6 +86,9 @@ type AgentPoolAgent struct {
 }
 
 func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPoolAgentList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=false&includeAssignedRequest=true",
 		fmt.Sprintf("%d", agentPoolId),

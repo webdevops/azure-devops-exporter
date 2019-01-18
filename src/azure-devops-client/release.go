@@ -148,6 +148,9 @@ func (r *Release) QueueDuration() time.Duration {
 }
 
 func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/release/releases?api-version=5.0-preview.8&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
 		url.QueryEscape(project),

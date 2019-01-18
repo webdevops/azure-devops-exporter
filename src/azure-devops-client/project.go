@@ -25,6 +25,9 @@ type Project struct {
 }
 
 func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/projects",
 		url.QueryEscape(*c.collection),

@@ -47,6 +47,9 @@ type RepositoryCommit struct {
 }
 
 func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"%v/_apis/git/repositories?api-version=5.0-preview.1",
 		url.QueryEscape(project),
@@ -66,6 +69,9 @@ func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryLis
 }
 
 func (c *AzureDevopsClient) ListCommits(project string, repository string, fromDate time.Time) (list RepositoryCommitList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
 	url := fmt.Sprintf(
 		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=5.0-preview.1",
 		url.QueryEscape(repository),
