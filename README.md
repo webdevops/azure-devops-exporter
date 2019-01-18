@@ -64,6 +64,7 @@ Metrics
 | `azure_devops_release_definition_environment`   | release       | Release definition environment list                                                  |
 | `azure_devops_repository_info`                  | repository    | Repository informations                                                              |
 | `azure_devops_repository_stats`                 | repository    | Repository stats                                                                     |
+| `azure_devops_repository_commits`               | repository    | Repository commit counter                                                            |
 
 
 Usage

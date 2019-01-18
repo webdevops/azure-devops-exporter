@@ -51,3 +51,9 @@ func (m *MetricCollectorList) GaugeSet(gauge *prometheus.GaugeVec) {
 		gauge.With(metric.labels).Set(metric.value)
 	}
 }
+
+func (m *MetricCollectorList) CounterAdd(counter *prometheus.CounterVec) {
+	for _, metric := range m.list {
+		counter.With(metric.labels).Add(metric.value)
+	}
+}

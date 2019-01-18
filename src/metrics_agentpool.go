@@ -13,7 +13,7 @@ type MetricsCollectorAgentPool struct {
 	prometheus struct {
 		agentPool            *prometheus.GaugeVec
 		agentPoolSize        *prometheus.GaugeVec
-		agentPoolBuilds      *prometheus.GaugeVec
+		agentPoolBuilds      *prometheus.CounterVec
 		agentPoolWait        *prometheus.SummaryVec
 		agentPoolAgent       *prometheus.GaugeVec
 		agentPoolAgentStatus *prometheus.GaugeVec
@@ -47,8 +47,8 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 		},
 	)
 
-	m.prometheus.agentPoolBuilds = prometheus.NewGaugeVec(
-		prometheus.GaugeOpts{
+	m.prometheus.agentPoolBuilds = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
 			Name: "azure_devops_agentpool_builds",
 			Help: "Azure DevOps agentpool",
 		},
@@ -124,7 +124,6 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 func (m *MetricsCollectorAgentPool) Reset() {
 	m.prometheus.agentPool.Reset()
 	m.prometheus.agentPoolSize.Reset()
-	m.prometheus.agentPoolBuilds.Reset()
 	m.prometheus.agentPoolWait.Reset()
 	m.prometheus.agentPoolAgent.Reset()
 	m.prometheus.agentPoolAgentStatus.Reset()
