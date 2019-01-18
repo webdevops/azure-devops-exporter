@@ -19,10 +19,7 @@ func (c *CollectorAgentPool) Run(scrapeTime time.Duration) {
 	c.Processor.Setup(c)
 	go func() {
 		for {
-			go func() {
-				c.Collect()
-			}()
-
+			c.Collect()
 			c.sleepUntilNextCollection()
 		}
 	}()
