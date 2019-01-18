@@ -54,7 +54,7 @@ func (c *CollectorBase) collectionFinish() () {
 	duration := time.Now().Sub(c.collectionStartTime)
 	c.LastScrapeDuration = &duration
 
-	Logger.Verbose(
+	Logger.Messsage(
 		"collector[%s]: finished metrics collection (duration: %v)",
 		c.Name,
 		c.LastScrapeDuration,
