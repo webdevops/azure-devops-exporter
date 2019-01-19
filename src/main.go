@@ -85,7 +85,13 @@ func main() {
 	initAzureConnection()
 
 	LoggerMessage.Println("Starting metrics collection")
-	LoggerMessage.Println(fmt.Sprintf("  scape time: %v", opts.ScrapeTime))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Default]: %v", opts.ScrapeTime))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Live]: %v", opts.ScrapeTimeLive))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Project]: %v", opts.ScrapeTimeProjects))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Repository]: %v", opts.ScrapeTimeRepository))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[PullRequest]: %v", opts.ScrapeTimePullRequest))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Build]: %v", opts.ScrapeTimeBuild))
+	LoggerMessage.Println(fmt.Sprintf("set scape interval[Release]: %v", opts.ScrapeTimeRelease))
 	initMetricCollector()
 
 	LoggerMessage.Println(fmt.Sprintf("Starting http server on %s", opts.ServerBind))
