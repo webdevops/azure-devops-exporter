@@ -16,6 +16,7 @@ type MetricsCollectorRepository struct {
 		repository        *prometheus.GaugeVec
 		repositoryStats   *prometheus.GaugeVec
 		repositoryCommits *prometheus.CounterVec
+		repositoryPushes  *prometheus.CounterVec
 	}
 }
 
@@ -56,10 +57,21 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryID",
 		},
 	)
+	m.prometheus.repositoryPushes = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Name: "azure_devops_repository_pushes",
+			Help: "Azure DevOps repository pushes",
+		},
+		[]string{
+			"projectID",
+			"repositoryID",
+		},
+	)
 
 	prometheus.MustRegister(m.prometheus.repository)
 	prometheus.MustRegister(m.prometheus.repositoryStats)
 	prometheus.MustRegister(m.prometheus.repositoryCommits)
+	prometheus.MustRegister(m.prometheus.repositoryPushes)
 }
 
 func (m *MetricsCollectorRepository) Reset() {
@@ -82,9 +94,12 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<
 }
 
 func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+	fromTime := time.Now().Add(-*m.CollectorReference.GetScrapeTime())
+
 	repositoryMetric := MetricCollectorList{}
 	repositoryStatsMetric := MetricCollectorList{}
 	repositoryCommitsMetric := MetricCollectorList{}
+	repositoryPushesMetric := MetricCollectorList{}
 
 	repositoryMetric.AddInfo(prometheus.Labels{
 		"projectID":      project.Id,
@@ -101,7 +116,6 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 	}
 
 	// get commit delta list
-	fromTime := time.Now().Add(-*m.CollectorReference.GetScrapeTime())
 	commitList, err := AzureDevopsClient.ListCommits(project.Name, repository.Id, fromTime)
 	if err == nil {
 		repositoryCommitsMetric.Add(prometheus.Labels{
@@ -112,9 +126,21 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 		LoggerError.Println(fmt.Sprintf("project[%v]call[ListCommits]: %v", project.Name, err))
 	}
 
+	// get pushes delta list
+	pushList, err := AzureDevopsClient.ListPushes(project.Name, repository.Id, fromTime)
+	if err == nil {
+		repositoryPushesMetric.Add(prometheus.Labels{
+			"projectID":    project.Id,
+			"repositoryID": repository.Id,
+		}, float64(pushList.Count))
+	} else {
+		LoggerError.Println(fmt.Sprintf("project[%v]call[ListCommits]: %v", project.Name, err))
+	}
+
 	callback <- func() {
 		repositoryMetric.GaugeSet(m.prometheus.repository)
 		repositoryStatsMetric.GaugeSet(m.prometheus.repositoryStats)
 		repositoryCommitsMetric.CounterAdd(m.prometheus.repositoryCommits)
+		repositoryPushesMetric.CounterAdd(m.prometheus.repositoryPushes)
 	}
 }

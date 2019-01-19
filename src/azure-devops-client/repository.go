@@ -46,6 +46,15 @@ type RepositoryCommit struct {
 	RemoteUrl string
 }
 
+type RepositoryPushList struct {
+	Count int                `json:"count"`
+	List  []RepositoryPush   `json:"value"`
+}
+
+type RepositoryPush struct {
+	PushId           int64
+}
+
 func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryList, error error) {
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
@@ -74,6 +83,31 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 
 	url := fmt.Sprintf(
 		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=5.0-preview.1",
+		url.QueryEscape(repository),
+		url.QueryEscape(fromDate.Format(time.RFC3339)),
+	)
+
+	response, err := c.restDev().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+func (c *AzureDevopsClient) ListPushes(project string, repository string, fromDate time.Time) (list RepositoryPushList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"_apis/git/repositories/%s/pushes?searchCriteria.fromDate=%s&api-version=5.0-preview.1",
 		url.QueryEscape(repository),
 		url.QueryEscape(fromDate.Format(time.RFC3339)),
 	)
