@@ -19,6 +19,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `SCRAPE_TIME_REPOSITORY`              | not set, default see `SCRAPE_TIME`  | Interval for repository metrics                                          |
 | `SCRAPE_TIME_BUILD`                   | not set, default see `SCRAPE_TIME`  | Interval for build metrics                                               |
 | `SCRAPE_TIME_RELEASE`                 | not set, default see `SCRAPE_TIME`  | Interval for release metrics                                             |
+| `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                             |
 | `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
 | `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
 | `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
@@ -66,6 +67,8 @@ Metrics
 | `azure_devops_repository_stats`                 | repository    | Repository stats                                                                     |
 | `azure_devops_repository_commits`               | repository    | Repository commit counter                                                            |
 | `azure_devops_repository_pushes`                | repository    | Repository push counter                                                              |
+| `azure_devops_deployment_info`                  | deployment    | Release deployment informations                                                      |
+| `azure_devops_deployment_status`                | deployment    | Release deployment status informations                                               |
 
 
 Usage

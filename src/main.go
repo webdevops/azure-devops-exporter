@@ -13,7 +13,7 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.4.3"
+	Version = "0.5.0"
 )
 
 var (
@@ -41,6 +41,7 @@ var opts struct {
 	ScrapeTimeRepository  *time.Duration `long:"scrape.time.repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
 	ScrapeTimeBuild       *time.Duration `long:"scrape.time.build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
 	ScrapeTimeRelease     *time.Duration `long:"scrape.time.release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
+	ScrapeTimeDeployment  *time.Duration `long:"scrape.time.deployment"       env:"SCRAPE_TIME_DEPLOYMENT"         description:"Scrape time for deployment metrics (time.duration)"`
 	ScrapeTimePullRequest *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
 	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
@@ -56,9 +57,10 @@ var opts struct {
 	RequestConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
 	RequestRetries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
 
-	LimitBuildsPerDefinition          int64 `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"    default:"10"`
-	LimitReleasesPerDefinition        int64 `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"  default:"100"`
-	LimitReleaseDefinitionsPerProject int64 `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"    default:"100"`
+	LimitBuildsPerDefinition          int64 `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"      default:"10"`
+	LimitReleasesPerDefinition        int64 `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"    default:"100"`
+	LimitDeploymentPerDefinition      int64 `long:"limit.deployments-per-definition"      env:"LIMIT_DEPLOYMENTS_PER_DEFINITION"      description:"Limit deployments per definition" default:"100"`
+	LimitReleaseDefinitionsPerProject int64 `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"      default:"100"`
 }
 
 func main() {
@@ -83,6 +85,7 @@ func main() {
 	Logger.Infof("set scape interval[PullRequest]: %v", scrapeIntervalStatus(opts.ScrapeTimePullRequest))
 	Logger.Infof("set scape interval[Build]: %v", scrapeIntervalStatus(opts.ScrapeTimeBuild))
 	Logger.Infof("set scape interval[Release]: %v", scrapeIntervalStatus(opts.ScrapeTimeRelease))
+	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
 	initMetricCollector()
 
 	Logger.Infof("Starting http server on %s", opts.ServerBind)
@@ -127,6 +130,10 @@ func initArgparser() {
 		opts.ScrapeTimeRelease = &opts.ScrapeTime
 	}
 
+	if opts.ScrapeTimeDeployment == nil {
+		opts.ScrapeTimeDeployment = &opts.ScrapeTime
+	}
+
 	if opts.ScrapeTimeLive == nil {
 		opts.ScrapeTimeLive = &opts.ScrapeTime
 	}
@@ -142,6 +149,7 @@ func initAzureConnection() {
 
 	AzureDevopsClient.LimitBuildsPerDefinition = opts.LimitBuildsPerDefinition
 	AzureDevopsClient.LimitReleasesPerDefinition = opts.LimitReleasesPerDefinition
+	AzureDevopsClient.LimitDeploymentPerDefinition = opts.LimitDeploymentPerDefinition
 	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.LimitReleaseDefinitionsPerProject
 }
 
@@ -261,32 +269,43 @@ func initMetricCollector() {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
+	collectorName = "Deployment"
+	if opts.ScrapeTimeDeployment.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRelease)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
+
 	// background auto update of projects
-	go func() {
-		// initial sleep
-		time.Sleep(*opts.ScrapeTimeProjects)
-
-		for {
-			Logger.Info("daemon: updating project list")
-
-			projectList := getAzureDevOpsProjects()
-
-			for _, collector := range collectorGeneralList {
-				collector.SetAzureProjects(&projectList)
-			}
-
-			for _, collector := range collectorProjectList {
-				collector.SetAzureProjects(&projectList)
-			}
-
-			for _, collector := range collectorAgentPoolList {
-				collector.SetAzureProjects(&projectList)
-			}
-
-			Logger.Infof("daemon: found %v projects", projectList.Count)
+	if opts.ScrapeTimeProjects.Seconds() > 0 {
+		go func() {
+			// initial sleep
 			time.Sleep(*opts.ScrapeTimeProjects)
-		}
-	}()
+
+			for {
+				Logger.Info("daemon: updating project list")
+
+				projectList := getAzureDevOpsProjects()
+
+				for _, collector := range collectorGeneralList {
+					collector.SetAzureProjects(&projectList)
+				}
+
+				for _, collector := range collectorProjectList {
+					collector.SetAzureProjects(&projectList)
+				}
+
+				for _, collector := range collectorAgentPoolList {
+					collector.SetAzureProjects(&projectList)
+				}
+
+				Logger.Infof("daemon: found %v projects", projectList.Count)
+				time.Sleep(*opts.ScrapeTimeProjects)
+			}
+		}()
+	}
 }
 
 // start and handle prometheus handler

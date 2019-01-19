@@ -96,14 +96,13 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 	buildDefinitonMetric := MetricCollectorList{}
 
 	for _, buildDefinition := range list.List {
-		infoLabels := prometheus.Labels{
+		buildDefinitonMetric.Add(prometheus.Labels{
 			"projectID":           project.Id,
 			"buildDefinitionID":   int64ToString(buildDefinition.Id),
 			"buildNameFormat":     buildDefinition.BuildNameFormat,
 			"buildDefinitionName": buildDefinition.Name,
 			"url":                 buildDefinition.Links.Web.Href,
-		}
-		buildDefinitonMetric.Add(infoLabels, 1)
+		}, 1)
 	}
 
 	callback <- func() {
@@ -142,13 +141,6 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"projectID":   project.Id,
 			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type":        "started",
-		}, build.StartTime)
-
-		buildStatusMetric.AddTime(prometheus.Labels{
-			"projectID":   project.Id,
-			"buildID":     int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
 			"type":        "queued",
 		}, build.QueueTime)
 
@@ -156,8 +148,22 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"projectID":   project.Id,
 			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
+			"type":        "started",
+		}, build.StartTime)
+
+		buildStatusMetric.AddTime(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
+			"buildNumber": build.BuildNumber,
 			"type":        "finished",
 		}, build.FinishTime)
+
+		buildStatusMetric.AddDuration(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
+			"buildNumber": build.BuildNumber,
+			"type":        "timeToBuild",
+		}, build.FinishTime.Sub(build.StartTime))
 	}
 
 	callback <- func() {
