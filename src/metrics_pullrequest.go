@@ -3,7 +3,6 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -68,7 +67,7 @@ func (m *MetricsCollectorPullRequest) Collect(ctx context.Context, callback chan
 func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	list, err := AzureDevopsClient.ListPullrequest(project.Name, repository.Id)
 	if err != nil {
-		LoggerError.Println(fmt.Sprintf("project[%v]call[ListPullrequest] %v", project.Name, err))
+		Logger.Errorf("project[%v]call[ListPullrequest] %v", project.Name, err)
 		return
 	}
 

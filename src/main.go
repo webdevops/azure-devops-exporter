@@ -13,19 +13,14 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.4.2"
-
-	LoggerLogPrefix      = ""
-	LoggerLogPrefixError = "[ERROR] "
+	Version = "0.4.3"
 )
 
 var (
 	argparser         *flags.Parser
 	args              []string
 	Verbose           bool
-	LoggerMessage     *log.Logger
-	LoggerVerbose     *log.Logger
-	LoggerError       *log.Logger
+	Logger            *DaemonLogger
 	AzureDevopsClient *AzureDevops.AzureDevopsClient
 
 	collectorGeneralList   map[string]*CollectorGeneral
@@ -72,29 +67,25 @@ func main() {
 	// set verbosity
 	Verbose = len(opts.Verbose) >= 1
 
-	LoggerMessage = log.New(os.Stdout, LoggerLogPrefix,  log.Lshortfile)
-	LoggerError = log.New(os.Stderr, LoggerLogPrefixError,  log.Lshortfile)
+	Logger = NewLogger(log.Lshortfile, Verbose)
+	defer Logger.Close()
 
-	if Verbose {
-		LoggerVerbose = log.New(os.Stdout, LoggerLogPrefix, log.Lshortfile)
-	}
+	Logger.Infof("Init Azure DevOps exporter v%s (written by %v)", Version, Author)
 
-	LoggerMessage.Printf(fmt.Sprintf("Init Azure DevOps exporter v%s (written by %v)", Version, Author))
-
-	LoggerMessage.Println("Init Azure connection")
+	Logger.Infof("Init Azure connection")
 	initAzureConnection()
 
-	LoggerMessage.Println("Starting metrics collection")
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Default]: %v", opts.ScrapeTime))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Live]: %v", opts.ScrapeTimeLive))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Project]: %v", opts.ScrapeTimeProjects))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Repository]: %v", opts.ScrapeTimeRepository))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[PullRequest]: %v", opts.ScrapeTimePullRequest))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Build]: %v", opts.ScrapeTimeBuild))
-	LoggerMessage.Println(fmt.Sprintf("set scape interval[Release]: %v", opts.ScrapeTimeRelease))
+	Logger.Info("Starting metrics collection")
+	Logger.Infof("set scape interval[Default]: %v", scrapeIntervalStatus(&opts.ScrapeTime))
+	Logger.Infof("set scape interval[Live]: %v", scrapeIntervalStatus(opts.ScrapeTimeLive))
+	Logger.Infof("set scape interval[Project]: %v", scrapeIntervalStatus(opts.ScrapeTimeProjects))
+	Logger.Infof("set scape interval[Repository]: %v", scrapeIntervalStatus(opts.ScrapeTimeRepository))
+	Logger.Infof("set scape interval[PullRequest]: %v", scrapeIntervalStatus(opts.ScrapeTimePullRequest))
+	Logger.Infof("set scape interval[Build]: %v", scrapeIntervalStatus(opts.ScrapeTimeBuild))
+	Logger.Infof("set scape interval[Release]: %v", scrapeIntervalStatus(opts.ScrapeTimeRelease))
 	initMetricCollector()
 
-	LoggerMessage.Println(fmt.Sprintf("Starting http server on %s", opts.ServerBind))
+	Logger.Infof("Starting http server on %s", opts.ServerBind)
 	startHttpServer()
 }
 
@@ -203,7 +194,7 @@ func initMetricCollector() {
 		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
 		collectorGeneralList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Project"
@@ -212,7 +203,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "AgentPool"
@@ -222,7 +213,7 @@ func initMetricCollector() {
 		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
 		collectorAgentPoolList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "LatestBuild"
@@ -231,7 +222,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeLive)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Repository"
@@ -240,7 +231,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRepository)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "PullRequest"
@@ -249,7 +240,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimePullRequest)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Build"
@@ -258,7 +249,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeBuild)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Release"
@@ -267,7 +258,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRelease)
 	} else {
-		LoggerMessage.Println(fmt.Sprintf("collector[%s]: disabled", collectorName))
+		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	// background auto update of projects
@@ -276,7 +267,7 @@ func initMetricCollector() {
 		time.Sleep(*opts.ScrapeTimeProjects)
 
 		for {
-			LoggerMessage.Println("daemon: updating project list")
+			Logger.Info("daemon: updating project list")
 
 			projectList := getAzureDevOpsProjects()
 
@@ -292,7 +283,7 @@ func initMetricCollector() {
 				collector.SetAzureProjects(&projectList)
 			}
 
-			LoggerMessage.Println("daemon: found %v projects", projectList.Count)
+			Logger.Infof("daemon: found %v projects", projectList.Count)
 			time.Sleep(*opts.ScrapeTimeProjects)
 		}
 	}()
@@ -301,5 +292,5 @@ func initMetricCollector() {
 // start and handle prometheus handler
 func startHttpServer() {
 	http.Handle("/metrics", promhttp.Handler())
-	LoggerError.Fatal(http.ListenAndServe(opts.ServerBind, nil))
+	Logger.Error(http.ListenAndServe(opts.ServerBind, nil))
 }

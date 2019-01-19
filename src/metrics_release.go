@@ -3,7 +3,6 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -164,7 +163,7 @@ func (m *MetricsCollectorRelease) Reset() {
 func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Name)
 	if err != nil {
-		LoggerError.Println(fmt.Sprintf("project[%v]call[ListReleaseDefinitions]: %v", project.Name, err))
+		Logger.Errorf("project[%v]call[ListReleaseDefinitions]: %v", project.Name, err)
 		return
 	}
 
@@ -207,7 +206,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
 		if err != nil {
-			LoggerError.Println(fmt.Sprintf("project[%v]call[ListReleases]: %v", project.Name, err))
+			Logger.Errorf("project[%v]call[ListReleases]: %v", project.Name, err)
 			return
 		}
 

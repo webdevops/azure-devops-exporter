@@ -3,7 +3,6 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -66,7 +65,7 @@ func (m *MetricsCollectorLatestBuild) Reset() {
 func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListLatestBuilds(project.Name)
 	if err != nil {
-		LoggerError.Println(fmt.Sprintf("project[%v]call[ListLatestBuilds]: %v", project.Name, err))
+		Logger.Errorf("project[%v]call[ListLatestBuilds]: %v", project.Name, err)
 		return
 	}
 

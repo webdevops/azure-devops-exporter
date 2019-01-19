@@ -3,7 +3,6 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -31,10 +30,7 @@ func (c *CollectorProject) Collect() {
 	var wgCallback sync.WaitGroup
 
 	if c.GetAzureProjects() == nil {
-		LoggerMessage.Println(fmt.Sprintf(
-			"collector[%s]: no projects found, skipping",
-			c.Name,
-		))
+		Logger.Infof("collector[%s]: no projects found, skipping", c.Name)
 		return
 	}
 

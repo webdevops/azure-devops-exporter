@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"sync"
 	"time"
 )
@@ -30,10 +29,7 @@ func (c *CollectorGeneral) Collect() {
 	var wgCallback sync.WaitGroup
 
 	if c.GetAzureProjects() == nil {
-		LoggerMessage.Println(fmt.Sprintf(
-			"collector[%s]: no projects found, skipping",
-			c.Name,
-		))
+		Logger.Infof("collector[%s]: no projects found, skipping", c.Name)
 		return
 	}
 

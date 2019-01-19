@@ -3,7 +3,6 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -90,7 +89,7 @@ func (m *MetricsCollectorBuild) Collect(ctx context.Context, callback chan<- fun
 func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuildDefinitions(project.Name)
 	if err != nil {
-		LoggerError.Println(fmt.Sprintf("project[%v]call[ListBuildDefinitions]: %v", project.Name, err))
+		Logger.Errorf("project[%v]call[ListBuildDefinitions]: %v", project.Name, err)
 		return
 	}
 
@@ -115,7 +114,7 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuilds(project.Name)
 	if err != nil {
-		LoggerError.Println(fmt.Sprintf("project[%v]call[ListBuilds]: %v", project.Name, err))
+		Logger.Errorf("project[%v]call[ListBuilds]: %v", project.Name, err)
 		return
 	}
 
