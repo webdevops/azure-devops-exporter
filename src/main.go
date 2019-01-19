@@ -13,7 +13,7 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.4.1"
+	Version = "0.4.2"
 
 	LoggerLogPrefix      = ""
 	LoggerLogPrefixError = "[ERROR] "
