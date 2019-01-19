@@ -138,6 +138,10 @@ func (c *AzureDevopsClient) GetRequestCount() float64 {
 	return float64(requestCount)
 }
 
+func (c *AzureDevopsClient) GetCurrentConcurrency() float64 {
+	return float64(len(c.semaphore))
+}
+
 func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) (error) {
 	if err != nil {
 		return err

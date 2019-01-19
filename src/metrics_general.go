@@ -47,6 +47,11 @@ func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Cont
 		"type": "requests",
 	}, AzureDevopsClient.GetRequestCount())
 
+	statsMetrics.Add(prometheus.Labels{
+		"name": "dev.azure.com",
+		"type": "concurrency",
+	}, AzureDevopsClient.GetCurrentConcurrency())
+
 	callback <- func() {
 		statsMetrics.GaugeSet(m.prometheus.stats)
 	}
