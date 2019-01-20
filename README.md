@@ -19,7 +19,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `SCRAPE_TIME_REPOSITORY`              | not set, default see `SCRAPE_TIME`  | Interval for repository metrics                                          |
 | `SCRAPE_TIME_BUILD`                   | not set, default see `SCRAPE_TIME`  | Interval for build metrics                                               |
 | `SCRAPE_TIME_RELEASE`                 | not set, default see `SCRAPE_TIME`  | Interval for release metrics                                             |
-| `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                             |
+| `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                          |
 | `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
 | `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
 | `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
@@ -32,6 +32,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `REQUEST_RETRIES`                     | `3`                                 | API request retries in case of failure                                   |
 | `LIMIT_BUILDS_PER_DEFINITION`         | `10`                                | Fetched builds per definition                                            |
 | `LIMIT_RELEASES_PER_DEFINITION`       | `100`                               | Fetched releases per definition                                          |
+| `LIMIT_DEPLOYMENTS_PER_DEFINITION`    | `100`                               | Fetched deployments per definition                                       |
 | `LIMIT_RELEASEDEFINITION_PER_PROJECT` | `100`                               | Fetched builds per definition                                            |
 
 
@@ -76,7 +77,7 @@ Usage
 
 ```
 Usage:
-  src [OPTIONS]
+  azure-devops-exporter [OPTIONS]
 
 Application Options:
   -v, --verbose                               Verbose mode [$VERBOSE]
@@ -86,6 +87,7 @@ Application Options:
       --scrape.time.repository=               Scrape time for repository metrics (time.duration) [$SCRAPE_TIME_REPOSITORY]
       --scrape.time.build=                    Scrape time for build metrics (time.duration) [$SCRAPE_TIME_BUILD]
       --scrape.time.release=                  Scrape time for release metrics (time.duration) [$SCRAPE_TIME_RELEASE]
+      --scrape.time.deployment=               Scrape time for deployment metrics (time.duration) [$SCRAPE_TIME_DEPLOYMENT]
       --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
       --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
@@ -97,6 +99,7 @@ Application Options:
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
       --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
+      --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
       --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
 
 Help Options:
