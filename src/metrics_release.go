@@ -258,7 +258,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 					"projectID":     project.Id,
 					"releaseID":     int64ToString(release.Id),
 					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
-					"type":          "timeToDeploy",
+					"type":          "jobDuration",
 				}, environment.TimeToDeploy)
 
 				for _, approval := range environment.PreDeployApprovals {

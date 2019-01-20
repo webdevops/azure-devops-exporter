@@ -162,7 +162,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"projectID":   project.Id,
 			"buildID":     int64ToString(build.Id),
 			"buildNumber": build.BuildNumber,
-			"type":        "timeToBuild",
+			"type":        "jobDuration",
 		}, build.FinishTime.Sub(build.StartTime))
 	}
 

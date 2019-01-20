@@ -128,7 +128,7 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 				deploymentStatusMetric.AddDuration(prometheus.Labels{
 					"projectID":    project.Id,
 					"deploymentID": int64ToString(deployment.Id),
-					"type":         "timeToDeploy",
+					"type":         "jobDuration",
 				}, completedOn.Sub(*startedOn))
 			}
 		}
