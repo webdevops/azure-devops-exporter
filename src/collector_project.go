@@ -21,7 +21,7 @@ func (c *CollectorProject) Run(scrapeTime time.Duration) {
 		for {
 			go func() {
 				c.Collect()
-			}
+			}()
 			c.sleepUntilNextCollection()
 		}
 	}()

@@ -20,7 +20,7 @@ func (c *CollectorGeneral) Run(scrapeTime time.Duration) {
 		for {
 			go func() {
 				c.Collect()
-			}
+			}()
 			c.sleepUntilNextCollection()
 		}
 	}()
