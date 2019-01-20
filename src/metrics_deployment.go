@@ -10,8 +10,8 @@ type MetricsCollectorDeployment struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		deployment                    *prometheus.GaugeVec
-		deploymentStatus              *prometheus.GaugeVec
+		deployment       *prometheus.GaugeVec
+		deploymentStatus *prometheus.GaugeVec
 	}
 }
 
@@ -33,7 +33,7 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 			"deploymentStatus",
 			"operationStatus",
 			"reason",
-			"url",
+			"attempt",
 			"environmentId",
 			"environmentName",
 			"approvedBy",
@@ -90,7 +90,7 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 				"deploymentStatus": deployment.DeploymentStatus,
 				"operationStatus": deployment.OperationStatus,
 				"reason": deployment.Reason,
-				"url": deployment.Links.Web.Href,
+				"attempt": int64ToString(deployment.Attempt),
 				"environmentId": int64ToString(deployment.ReleaseEnvironment.Id),
 				"environmentName": deployment.ReleaseEnvironment.Name,
 				"approvedBy": deployment.ApprovedBy(),

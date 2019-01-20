@@ -40,6 +40,8 @@ type ReleaseDeployment struct {
 	DeploymentStatus string
 	OperationStatus  string
 
+	Attempt int64
+
 	// sometimes dates are not valid here
 	QueuedOn string `json:"queuedOn,omitempty"`
 	StartedOn string `json:"startedOn,omitempty"`
