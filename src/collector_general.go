@@ -18,7 +18,9 @@ func (c *CollectorGeneral) Run(scrapeTime time.Duration) {
 	c.Processor.Setup(c)
 	go func() {
 		for {
-			c.Collect()
+			go func() {
+				c.Collect()
+			}
 			c.sleepUntilNextCollection()
 		}
 	}()
