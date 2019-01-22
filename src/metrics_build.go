@@ -65,6 +65,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"buildDefinitionID",
 			"buildNameFormat",
 			"buildDefinitionName",
+			"path",
 			"url",
 		},
 	)
@@ -101,6 +102,7 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 			"buildDefinitionID":   int64ToString(buildDefinition.Id),
 			"buildNameFormat":     buildDefinition.BuildNameFormat,
 			"buildDefinitionName": buildDefinition.Name,
+			"path":                buildDefinition.Path,
 			"url":                 buildDefinition.Links.Web.Href,
 		}, 1)
 	}
