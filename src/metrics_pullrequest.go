@@ -12,6 +12,7 @@ type MetricsCollectorPullRequest struct {
 	prometheus struct {
 		pullRequest       *prometheus.GaugeVec
 		pullRequestStatus *prometheus.GaugeVec
+		pullRequestLabel  *prometheus.GaugeVec
 	}
 }
 
@@ -38,7 +39,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 	m.prometheus.pullRequestStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_pullrequest_status",
-			Help: "Azure DevOps pullrequest",
+			Help: "Azure DevOps pullrequest status",
 		},
 		[]string{
 			"projectID",
@@ -48,13 +49,29 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 		},
 	)
 
+	m.prometheus.pullRequestLabel = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_pullrequest_label",
+			Help: "Azure DevOps pullrequest labels",
+		},
+		[]string{
+			"projectID",
+			"repositoryID",
+			"pullrequestID",
+			"label",
+			"active",
+		},
+	)
+
 	prometheus.MustRegister(m.prometheus.pullRequest)
 	prometheus.MustRegister(m.prometheus.pullRequestStatus)
+	prometheus.MustRegister(m.prometheus.pullRequestLabel)
 }
 
 func (m *MetricsCollectorPullRequest) Reset() {
 	m.prometheus.pullRequest.Reset()
 	m.prometheus.pullRequestStatus.Reset()
+	m.prometheus.pullRequestLabel.Reset()
 
 }
 
@@ -73,6 +90,7 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 
 	pullRequestMetric := MetricCollectorList{}
 	pullRequestStatusMetric := MetricCollectorList{}
+	pullRequestLabelMetric := MetricCollectorList{}
 
 	for _, pullRequest := range list.List {
 		pullRequestMetric.AddInfo(prometheus.Labels{
@@ -92,10 +110,22 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 			"pullrequestID": int64ToString(pullRequest.Id),
 			"type":          "created",
 		}, pullRequest.CreationDate)
+
+
+		for _, label := range pullRequest.Labels {
+			pullRequestLabelMetric.AddInfo(prometheus.Labels{
+				"projectID":     project.Id,
+				"repositoryID":  repository.Id,
+				"pullrequestID": int64ToString(pullRequest.Id),
+				"label":         label.Name,
+				"active":         boolToString(label.Active),
+			})
+		}
 	}
 
 	callback <- func() {
 		pullRequestMetric.GaugeSet(m.prometheus.pullRequest)
 		pullRequestStatusMetric.GaugeSet(m.prometheus.pullRequestStatus)
+		pullRequestLabelMetric.GaugeSet(m.prometheus.pullRequestLabel)
 	}
 }

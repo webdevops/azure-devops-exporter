@@ -54,6 +54,7 @@ Metrics
 | `azure_devops_build_latest_status`              | live          | Latest build status informations                                                     |
 | `azure_devops_pullrequest_info`                 | pullrequest   | Active PullRequests                                                                  |
 | `azure_devops_pullrequest_status`               | pullrequest   | Status informations (eg. created date) for active PullRequests                       |
+| `azure_devops_pullrequest_label`                | pullrequest   | Labels set on active PullRequests                                                    |
 | `azure_devops_build_info`                       | build         | Build informations                                                                   |
 | `azure_devops_build_status`                     | build         | Build status infos (queued, started, finished time)                                  |
 | `azure_devops_build_definition_info`            | build         | Build definition info                                                                |
