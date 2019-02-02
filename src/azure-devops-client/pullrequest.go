@@ -47,31 +47,51 @@ type PullRequestLabels struct {
 	Active bool
 }
 
-func (v *PullRequest) GetVoteSummary() map[string]int {
-	ret := map[string]int{
-		"approved":            0,
-		"approvedSuggestions": 0,
-		"none":                0,
-		"waitingForAuthor":    0,
-		"rejected":            0,
-	}
+type PullRequestVoteSummary struct {
+	Approved int64
+	ApprovedSuggestions int64
+	None int64
+	WaitingForAuthor int64
+	Rejected int64
+	Count int64
+}
+
+func (v *PullRequest) GetVoteSummary() PullRequestVoteSummary {
+	ret := PullRequestVoteSummary{}
 
 	for _, reviewer := range v.Reviewers {
+		ret.Count++
 		switch reviewer.Vote {
 		case 10:
-			ret["approved"]++
+			ret.Approved++
 		case 5:
-			ret["approvedSuggestions"]++
+			ret.ApprovedSuggestions++
 		case 0:
-			ret["none"]++
+			ret.None++
 		case -5:
-			ret["waitingForAuthor"]++
+			ret.WaitingForAuthor++
 		case -10:
-			ret["rejected"]++
+			ret.Rejected++
 		}
 	}
 
 	return ret
+}
+
+func (v *PullRequestVoteSummary) HumanizeString() (status string) {
+	status = "None"
+
+	if v.Rejected >= 1 {
+		status = "Rejected"
+	} else if v.WaitingForAuthor >= 1 {
+		status = "WaitingForAuthor"
+	} else if v.ApprovedSuggestions >= 1 {
+		status = "ApprovedSuggestions"
+	} else if v.Approved >= 1 {
+		status = "Approved"
+	}
+
+	return
 }
 
 func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list PullRequestList, error error) {

@@ -32,6 +32,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			"sourceBranch",
 			"targetBranch",
 			"status",
+			"voteStatus",
 			"creator",
 		},
 	)
@@ -93,12 +94,15 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 	pullRequestLabelMetric := MetricCollectorList{}
 
 	for _, pullRequest := range list.List {
+		voteSummary := pullRequest.GetVoteSummary()
+
 		pullRequestMetric.AddInfo(prometheus.Labels{
 			"projectID":        project.Id,
 			"repositoryID":     repository.Id,
 			"pullrequestID":    int64ToString(pullRequest.Id),
 			"pullrequestTitle": pullRequest.Title,
 			"status":           pullRequest.Status,
+			"voteStatus":		voteSummary.HumanizeString(),
 			"creator":          pullRequest.CreatedBy.DisplayName,
 			"sourceBranch":     pullRequest.SourceRefName,
 			"targetBranch":     pullRequest.TargetRefName,
