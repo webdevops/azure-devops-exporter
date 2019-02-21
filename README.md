@@ -12,7 +12,7 @@ Configuration
 
 Normally no configuration is needed but can be customized using environment variables.
 
-| Environment variable                  | DefaultValue                | Description                                                                      |
+| Environment variable                  | DefaultValue                        | Description                                                              |
 |---------------------------------------|-------------------------------------|--------------------------------------------------------------------------|
 | `SCRAPE_TIME`                         | `30m`                               | Interval (time.Duration) between API calls                               |
 | `SCRAPE_TIME_PROJECTS`                | not set, default see `SCRAPE_TIME`  | Interval for project metrics (list of projects for all scrapers)         |
@@ -40,7 +40,7 @@ Metrics
 -------
 
 | Metric                                          | Scraper       | Description                                                                          |
-|-------------------------------------------------|------------------------------------------------------------------------------------------------------|
+|-------------------------------------------------|---------------|--------------------------------------------------------------------------------------|
 | `azure_devops_stats`                            | live          | General scraper stats                                                                |
 | `azure_devops_agentpool_info`                   | live          | Agent Pool informations                                                              |
 | `azure_devops_agentpool_builds`                 | live          | Count of builds (by status)                                                          |
