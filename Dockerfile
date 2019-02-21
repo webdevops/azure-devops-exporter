@@ -19,7 +19,9 @@ RUN mkdir /app/ \
 FROM alpine
 RUN apk add --no-cache \
         libc6-compat \
-    	ca-certificates
+    	ca-certificates \
+    	wget \
+    	curl \
 COPY --from=build /app/ /app/
 USER 1000
 
