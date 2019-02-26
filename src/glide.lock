@@ -1,5 +1,5 @@
 hash: a0f954031175d1607bcd9738671ea951b41056867260e691cabfeb2f19aa88ea
-updated: 2019-01-19T15:39:22.318333+01:00
+updated: 2019-02-26T23:08:15.909951+01:00
 imports:
 - name: github.com/beorn7/perks
   version: 3a771d992973f24aa725d07868b467d1ddfceafb
@@ -12,15 +12,15 @@ imports:
   subpackages:
   - proto
 - name: github.com/google/logger
-  version: 324a7c096a0d1041e2766b42187908af70e4f723
+  version: b1301ce8ed2021a3ad344027d245c708e6ede041
 - name: github.com/jessevdk/go-flags
-  version: 5de817a9aa209ed35a164cb04aec82b7df1a47a6
+  version: c0795c8afcf41dd1d786bebce68636c199b3bb45
 - name: github.com/matttproud/golang_protobuf_extensions
   version: c12348ce28de40eed0136aa2b644d0ee0650e56c
   subpackages:
   - pbutil
 - name: github.com/prometheus/client_golang
-  version: 26e258bb9c9a94c26d4a46ff302ec7e855b82e10
+  version: 2daed26f633ce23fab5efc02fb3f2e803b3526c3
   subpackages:
   - prometheus
   - prometheus/internal
@@ -46,7 +46,7 @@ imports:
   subpackages:
   - publicsuffix
 - name: golang.org/x/sys
-  version: 11f53e03133963fb11ae0588e08b5e0b85be8be5
+  version: 775f8194d0f9e65c46913c7be783d3d95a29333c
   subpackages:
   - windows
   - windows/registry
