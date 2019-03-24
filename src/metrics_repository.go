@@ -115,7 +115,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 	}
 
 	// get commit delta list
-	commitList, err := AzureDevopsClient.ListCommits(project.Name, repository.Id, fromTime)
+	commitList, err := AzureDevopsClient.ListCommits(project.Id, repository.Id, fromTime)
 	if err == nil {
 		repositoryCommitsMetric.Add(prometheus.Labels{
 			"projectID":    project.Id,
@@ -126,7 +126,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 	}
 
 	// get pushes delta list
-	pushList, err := AzureDevopsClient.ListPushes(project.Name, repository.Id, fromTime)
+	pushList, err := AzureDevopsClient.ListPushes(project.Id, repository.Id, fromTime)
 	if err == nil {
 		repositoryPushesMetric.Add(prometheus.Labels{
 			"projectID":    project.Id,

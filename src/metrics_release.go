@@ -161,7 +161,7 @@ func (m *MetricsCollectorRelease) Reset() {
 }
 
 func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Name)
+	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
 		Logger.Errorf("project[%v]call[ListReleaseDefinitions]: %v", project.Name, err)
 		return
@@ -204,7 +204,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		// --------------------------------------
 		// Releases
 
-		releaseList, err := AzureDevopsClient.ListReleases(project.Name, releaseDefinition.Id)
+		releaseList, err := AzureDevopsClient.ListReleases(project.Id, releaseDefinition.Id)
 		if err != nil {
 			Logger.Errorf("project[%v]call[ListReleases]: %v", project.Name, err)
 			return

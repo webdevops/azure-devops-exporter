@@ -145,7 +145,7 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<-
 }
 
 func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	list, err := AzureDevopsClient.ListAgentQueues(project.Name)
+	list, err := AzureDevopsClient.ListAgentQueues(project.Id)
 	if err != nil {
 		Logger.Errorf("agentpool[%v]call[ListAgentQueues]: %v", project.Name)
 		return
@@ -229,7 +229,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 func (m *MetricsCollectorAgentPool) collectBuildQueue(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-*m.CollectorReference.GetScrapeTime())
 
-	buildList, err := AzureDevopsClient.ListBuildHistory(project.Name, minTime)
+	buildList, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
 	if err != nil {
 		Logger.Errorf("project[%v]call[ListBuildHistory]: %v", project.Name, err)
 		return

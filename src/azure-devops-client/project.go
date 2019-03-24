@@ -45,7 +45,7 @@ func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
 	}
 
 	for key, project := range list.List {
-		list.List[key].RepositoryList, _ = c.ListRepositories(project.Name)
+		list.List[key].RepositoryList, _ = c.ListRepositories(project.Id)
 	}
 
 	return
