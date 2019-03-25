@@ -147,7 +147,7 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<-
 func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListAgentQueues(project.Id)
 	if err != nil {
-		Logger.Errorf("agentpool[%v]call[ListAgentQueues]: %v", project.Name)
+		Logger.Errorf("agentpool[%v]call[ListAgentQueues]: %v", project.Name, err)
 		return
 	}
 
