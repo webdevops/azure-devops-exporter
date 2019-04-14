@@ -51,6 +51,7 @@ var opts struct {
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// azure settings
+	AzureDevopsUrl         *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
 	AzureDevopsAccessToken  string `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"    description:"Azure DevOps access token" required:"true"`
 	AzureDevopsOrganisation string `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
 
@@ -142,6 +143,10 @@ func initArgparser() {
 // Init and build Azure authorzier
 func initAzureConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
+	if opts.AzureDevopsUrl != nil {
+		AzureDevopsClient.HostUrl = opts.AzureDevopsUrl
+	}
+
 	AzureDevopsClient.SetOrganization(opts.AzureDevopsOrganisation)
 	AzureDevopsClient.SetAccessToken(opts.AzureDevopsAccessToken)
 	AzureDevopsClient.SetConcurrency(opts.RequestConcurrencyLimit)

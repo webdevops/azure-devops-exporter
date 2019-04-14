@@ -12,6 +12,8 @@ type AzureDevopsClient struct {
 	collection   *string
 	accessToken  *string
 
+	HostUrl *string
+
 	restClient     *resty.Client
 	restClientDev  *resty.Client
 	restClientVsrm *resty.Client
@@ -79,7 +81,11 @@ func (c *AzureDevopsClient) SetAccessToken(token string) {
 func (c *AzureDevopsClient) rest() *resty.Client {
 	if c.restClient == nil {
 		c.restClient = resty.New()
-		c.restClient.SetHostURL(fmt.Sprintf("https://%v.visualstudio.com/", *c.organization))
+		if c.HostUrl != nil {
+			c.restClient.SetHostURL(*c.HostUrl)
+		} else {
+			c.restClient.SetHostURL(fmt.Sprintf("https://%v.visualstudio.com/", *c.organization))
+		}
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
 		c.restClient.SetRetryCount(c.RequestRetries)
@@ -93,7 +99,11 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 func (c *AzureDevopsClient) restDev() *resty.Client {
 	if c.restClientDev == nil {
 		c.restClientDev = resty.New()
-		c.restClientDev.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
+		if c.HostUrl != nil {
+			c.restClient.SetHostURL(*c.HostUrl)
+		} else {
+			c.restClientDev.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
+		}
 		c.restClientDev.SetHeader("Accept", "application/json")
 		c.restClientDev.SetBasicAuth("", *c.accessToken)
 		c.restClientDev.SetRetryCount(c.RequestRetries)
@@ -107,7 +117,11 @@ func (c *AzureDevopsClient) restDev() *resty.Client {
 func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	if c.restClientVsrm == nil {
 		c.restClientVsrm = resty.New()
-		c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
+		if c.HostUrl != nil {
+			c.restClient.SetHostURL(*c.HostUrl)
+		} else {
+			c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
+		}
 		c.restClientVsrm.SetHeader("Accept", "application/json")
 		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
 		c.restClientVsrm.SetRetryCount(c.RequestRetries)

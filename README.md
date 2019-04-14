@@ -23,7 +23,8 @@ Normally no configuration is needed but can be customized using environment vari
 | `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
 | `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
 | `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
-| `AZURE_DEVOPS_ORGANISATION`           | none                                | Azure DevOps organisation (subdomain)                                    |
+| `AZURE_DEVOPS_URL`                    | none                                | Azure DevOps url (only if on-prem)                                       |
+| `AZURE_DEVOPS_ORGANISATION`           | none                                | Azure DevOps organisation (subdomain, if hosted by microsoft)            |
 | `AZURE_DEVOPS_ACCESS_TOKEN`           | none                                | Azure DevOps access token                                                |
 | `AZURE_DEVOPS_FILTER_PROJECT`         | none                                | Whitelist project uuids                                                  |
 | `AZURE_DEVOPS_BLACKLIST_PROJECT`      | none                                | Blacklist project uuids                                                  |
