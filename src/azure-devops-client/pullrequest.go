@@ -33,6 +33,8 @@ type PullRequest struct {
 	CreationDate time.Time
 	ClosedDate   time.Time
 
+	IsDraft bool
+
 	Links Links `json:"_links"`
 }
 

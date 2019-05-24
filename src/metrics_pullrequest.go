@@ -32,6 +32,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			"sourceBranch",
 			"targetBranch",
 			"status",
+			"isDraft",
 			"voteStatus",
 			"creator",
 		},
@@ -104,6 +105,7 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 			"status":           pullRequest.Status,
 			"voteStatus":		voteSummary.HumanizeString(),
 			"creator":          pullRequest.CreatedBy.DisplayName,
+			"isDraft":          boolToString(pullRequest.IsDraft),
 			"sourceBranch":     pullRequest.SourceRefName,
 			"targetBranch":     pullRequest.TargetRefName,
 		})
