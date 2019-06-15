@@ -249,7 +249,10 @@ func (m *MetricsCollectorAgentPool) collectBuildQueue(ctx context.Context, callb
 
 		callback <- func() {
 			m.prometheus.agentPoolBuilds.With(agentPoolBuildLabels).Inc()
-			m.prometheus.agentPoolWait.With(agentPoolWaitLabels).Observe(waitDuration)
+
+			if waitDuration >= 0 {
+				m.prometheus.agentPoolWait.With(agentPoolWaitLabels).Observe(waitDuration)
+			}
 		}
 	}
 }
