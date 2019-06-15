@@ -66,8 +66,9 @@ func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefi
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/definitions?api-version=4.1&$top=9999",
+		"%v/_apis/build/definitions?api-version=%v&$top=9999",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 	)
 	response, err := c.restDev().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
@@ -89,8 +90,9 @@ func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error er
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
+		"%v/_apis/build/builds?api-version=%v&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(int64ToString(c.LimitBuildsPerDefinition)),
 	)
 	response, err := c.restDev().R().Get(url)
@@ -113,8 +115,9 @@ func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, er
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=4.1&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
+		"%v/_apis/build/builds?api-version=%v&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape("1"),
 	)
 	response, err := c.restDev().R().Get(url)
@@ -137,8 +140,9 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=4.1&minTime=%s",
+		"%v/_apis/build/builds?api-version=%v&minTime=%s",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 	)
 	response, err := c.restDev().R().Get(url)

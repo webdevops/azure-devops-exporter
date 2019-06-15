@@ -14,6 +14,8 @@ type AzureDevopsClient struct {
 
 	HostUrl *string
 
+	ApiVersion string
+
 	restClient     *resty.Client
 	restClientDev  *resty.Client
 	restClientVsrm *resty.Client
@@ -54,6 +56,7 @@ func (c *AzureDevopsClient) SetConcurrency(v int64) {
 	c.concurrency = v
 	c.semaphore = make(chan bool, c.concurrency)
 }
+
 func (c *AzureDevopsClient) SetRetries(v int) {
 	c.RequestRetries = v
 
@@ -70,6 +73,9 @@ func (c *AzureDevopsClient) SetRetries(v int) {
 	}
 }
 
+func (c *AzureDevopsClient) SetApiVersion(apiversion string) {
+	c.ApiVersion = apiversion
+}
 func (c *AzureDevopsClient) SetOrganization(url string) {
 	c.organization = &url
 }
@@ -162,12 +168,11 @@ func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) (
 	if err != nil {
 		return err
 	}
-
 	if response != nil {
 		// check status code
 		statusCode := response.StatusCode()
 		if statusCode != 200 {
-			return errors.New(fmt.Sprintf("Response status code is %v (expected 200)", statusCode))
+			return errors.New(fmt.Sprintf("Response status code is %v (expected 200), url: %v", statusCode, response.Request.URL))
 		}
 	} else {
 		return errors.New("Response is nil")

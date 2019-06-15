@@ -152,8 +152,9 @@ func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=5.0-preview.8&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
+		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(int64ToString(releaseDefinitionId)),
 		url.QueryEscape(int64ToString(c.LimitReleasesPerDefinition)),
 	)

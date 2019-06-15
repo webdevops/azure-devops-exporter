@@ -60,8 +60,9 @@ func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryLis
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/git/repositories?api-version=5.0-preview.1",
+		"%v/_apis/git/repositories?api-version=%v",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 	)
 	response, err := c.restDev().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
@@ -82,9 +83,10 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=5.0-preview.1",
+		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=%v",
 		url.QueryEscape(repository),
 		url.QueryEscape(fromDate.Format(time.RFC3339)),
+		url.QueryEscape(c.ApiVersion),
 	)
 
 	response, err := c.restDev().R().Get(url)
@@ -107,9 +109,10 @@ func (c *AzureDevopsClient) ListPushes(project string, repository string, fromDa
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"_apis/git/repositories/%s/pushes?searchCriteria.fromDate=%s&api-version=5.0-preview.1",
+		"_apis/git/repositories/%s/pushes?searchCriteria.fromDate=%s&api-version=%v",
 		url.QueryEscape(repository),
 		url.QueryEscape(fromDate.Format(time.RFC3339)),
+		url.QueryEscape(c.ApiVersion),
 	)
 
 	response, err := c.restDev().R().Get(url)

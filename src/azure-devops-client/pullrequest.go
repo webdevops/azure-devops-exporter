@@ -101,8 +101,9 @@ func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list 
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/git/repositories/%v/pullrequests?api-version=4.1&searchCriteria.status=active",
+		"%v/_apis/git/repositories/%v/pullrequests?api-version=%v&searchCriteria.status=active",
 		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(repositoryId),
 	)
 
