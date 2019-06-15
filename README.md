@@ -29,6 +29,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `AZURE_DEVOPS_FILTER_PROJECT`         | none                                | Whitelist project uuids                                                  |
 | `AZURE_DEVOPS_BLACKLIST_PROJECT`      | none                                | Blacklist project uuids                                                  |
 | `AZURE_DEVOPS_FILTER_AGENTPOOL`       | none                                | Whitelist for agentpool metrics                                          |
+| `AZURE_DEVOPS_APIVERSION`             | fixed version                       | API version used to query for Azure DevOps                               |
 | `REQUEST_CONCURRENCY`                 | `10`                                | API request concurrency (number of calls at the same time)               |
 | `REQUEST_RETRIES`                     | `3`                                 | API request retries in case of failure                                   |
 | `LIMIT_BUILDS_PER_DEFINITION`         | `10`                                | Fetched builds per definition                                            |
