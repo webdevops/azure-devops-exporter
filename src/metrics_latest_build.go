@@ -109,6 +109,13 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 			"buildNumber": build.BuildNumber,
 			"type":        "finished",
 		}, build.FinishTime)
+
+		buildStatusMetric.AddDuration(prometheus.Labels{
+			"projectID":   project.Id,
+			"buildID":     int64ToString(build.Id),
+			"buildNumber": build.BuildNumber,
+			"type":        "jobDuration",
+		}, build.FinishTime.Sub(build.StartTime))
 	}
 
 	callback <- func() {
