@@ -1,52 +1,50 @@
 hash: a0f954031175d1607bcd9738671ea951b41056867260e691cabfeb2f19aa88ea
-updated: 2019-02-26T23:08:15.909951+01:00
+updated: 2019-06-15T21:25:12.577731+02:00
 imports:
 - name: github.com/beorn7/perks
-  version: 3a771d992973f24aa725d07868b467d1ddfceafb
+  version: 234731a4f01687625231ac651d6b2776e3f3142e
   subpackages:
   - quantile
 - name: github.com/go-resty/resty
-  version: 0ecc38d58bec7c3a6c001c15e43a88e67e37ced1
+  version: fa5875c0caa5c260ab78acec5a244215a730247f
 - name: github.com/golang/protobuf
-  version: b4deda0973fb4c70b50d226b1af49f3da59f5265
+  version: b285ee9cfc6c881bb20c0d8dc73370ea9b9ec90f
   subpackages:
   - proto
 - name: github.com/google/logger
-  version: b1301ce8ed2021a3ad344027d245c708e6ede041
+  version: 03bdf7bcb2c4d98c8fdbf62f1473fb1303ca1c1d
 - name: github.com/jessevdk/go-flags
   version: c0795c8afcf41dd1d786bebce68636c199b3bb45
 - name: github.com/matttproud/golang_protobuf_extensions
-  version: c12348ce28de40eed0136aa2b644d0ee0650e56c
+  version: c182affec369e30f25d3eb8cd8a478dee585ae7d
   subpackages:
   - pbutil
 - name: github.com/prometheus/client_golang
-  version: 2daed26f633ce23fab5efc02fb3f2e803b3526c3
+  version: 2641b987480bca71fb39738eb8c8b0d577cb1d76
   subpackages:
   - prometheus
   - prometheus/internal
   - prometheus/promhttp
 - name: github.com/prometheus/client_model
-  version: 5c3871d89910bfb32f5fcab2aa4b9ec68e65a99f
+  version: fd36f4220a901265f90734c3183c5f0c91daa0b8
   subpackages:
   - go
 - name: github.com/prometheus/common
-  version: 41aa239b4cce3c56ab88fc366ae8b0a6423fa239
+  version: 6125cc8d9fa0ecb5e6acad546bc61e4f093c19b1
   subpackages:
   - expfmt
   - internal/bitbucket.org/ww/goautoneg
   - model
 - name: github.com/prometheus/procfs
-  version: 185b4288413d2a0dd0806f78c90dde719829e5ae
+  version: 1de2bc567d78f4ff415fd103412f7e5ec9e8876b
   subpackages:
-  - internal/util
-  - nfs
-  - xfs
+  - internal/fs
 - name: golang.org/x/net
-  version: 0ed95abb35c445290478a5348a7b38bb154135fd
+  version: 65e2d4e15006aab9813ff8769e768bbf4bb667a0
   subpackages:
   - publicsuffix
 - name: golang.org/x/sys
-  version: 775f8194d0f9e65c46913c7be783d3d95a29333c
+  version: 7fc4e5ec1444df20dd195ae7c3bbfcd7114d3faa
   subpackages:
   - windows
   - windows/registry
