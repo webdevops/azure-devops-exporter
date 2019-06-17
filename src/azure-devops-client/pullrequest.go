@@ -103,8 +103,8 @@ func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list 
 	url := fmt.Sprintf(
 		"%v/_apis/git/repositories/%v/pullrequests?api-version=%v&searchCriteria.status=active",
 		url.QueryEscape(project),
-		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(repositoryId),
+		url.QueryEscape(c.ApiVersion),
 	)
 
 	response, err := c.restDev().R().Get(url)
