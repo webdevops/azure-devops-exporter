@@ -13,7 +13,7 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.7.6"
+	Version = "0.7.7"
 )
 
 var (
