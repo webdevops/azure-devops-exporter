@@ -60,9 +60,8 @@ func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryLis
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/git/repositories?api-version=%v",
+		"%v/_apis/git/repositories",
 		url.QueryEscape(project),
-		url.QueryEscape(c.ApiVersion),
 	)
 	response, err := c.restDev().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
