@@ -107,7 +107,7 @@ func (c *AzureDevopsClient) ListPullrequest(project, repositoryId string) (list 
 		url.QueryEscape(c.ApiVersion),
 	)
 
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return

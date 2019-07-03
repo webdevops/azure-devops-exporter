@@ -17,7 +17,6 @@ type AzureDevopsClient struct {
 	ApiVersion string
 
 	restClient     *resty.Client
-	restClientDev  *resty.Client
 	restClientVsrm *resty.Client
 
 	semaphore   chan bool
@@ -64,10 +63,6 @@ func (c *AzureDevopsClient) SetRetries(v int) {
 		c.restClient.SetRetryCount(c.RequestRetries)
 	}
 
-	if c.restClientDev != nil {
-		c.restClientDev.SetRetryCount(c.RequestRetries)
-	}
-
 	if c.restClientVsrm != nil {
 		c.restClientVsrm.SetRetryCount(c.RequestRetries)
 	}
@@ -90,34 +85,17 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 		if c.HostUrl != nil {
 			c.restClient.SetHostURL(*c.HostUrl)
 		} else {
-			c.restClient.SetHostURL(fmt.Sprintf("https://%v.visualstudio.com/", *c.organization))
+			c.restClient.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
 		}
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
 		c.restClient.SetRetryCount(c.RequestRetries)
 		c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClient.OnAfterResponse(c.restOnAfterResponse)
+
 	}
 
 	return c.restClient
-}
-
-func (c *AzureDevopsClient) restDev() *resty.Client {
-	if c.restClientDev == nil {
-		c.restClientDev = resty.New()
-		if c.HostUrl != nil {
-			c.restClient.SetHostURL(*c.HostUrl)
-		} else {
-			c.restClientDev.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
-		}
-		c.restClientDev.SetHeader("Accept", "application/json")
-		c.restClientDev.SetBasicAuth("", *c.accessToken)
-		c.restClientDev.SetRetryCount(c.RequestRetries)
-		c.restClientDev.OnBeforeRequest(c.restOnBeforeRequest)
-		c.restClientDev.OnAfterResponse(c.restOnAfterResponse)
-	}
-
-	return c.restClientDev
 }
 
 func (c *AzureDevopsClient) restVsrm() *resty.Client {

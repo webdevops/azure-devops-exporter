@@ -70,7 +70,7 @@ func (c *AzureDevopsClient) ListBuildDefinitions(project string) (list BuildDefi
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -95,7 +95,7 @@ func (c *AzureDevopsClient) ListBuilds(project string) (list BuildList, error er
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(int64ToString(c.LimitBuildsPerDefinition)),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -120,7 +120,7 @@ func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, er
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape("1"),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -145,7 +145,7 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -171,7 +171,7 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(statusFilter),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return

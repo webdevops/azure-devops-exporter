@@ -29,8 +29,8 @@ func (c *AzureDevopsClient) ListProjects() (list ProjectList, error error) {
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/projects",
-		url.QueryEscape(*c.collection),
+		"_apis/projects?api-version=%v",
+		url.QueryEscape(c.ApiVersion),
 	)
 	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {

@@ -63,7 +63,7 @@ func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryLis
 		"%v/_apis/git/repositories",
 		url.QueryEscape(project),
 	)
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -88,7 +88,7 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 		url.QueryEscape(c.ApiVersion),
 	)
 
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -114,7 +114,7 @@ func (c *AzureDevopsClient) ListPushes(project string, repository string, fromDa
 		url.QueryEscape(c.ApiVersion),
 	)
 
-	response, err := c.restDev().R().Get(url)
+	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
