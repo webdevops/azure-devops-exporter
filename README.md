@@ -21,6 +21,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `SCRAPE_TIME_RELEASE`                 | not set, default see `SCRAPE_TIME`  | Interval for release metrics                                             |
 | `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                          |
 | `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
+| `SCRAPE_TIME_STATS`                   | not set, default see `SCRAPE_TIME`  | Interval for stats metrics                                               |
 | `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
 | `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
 | `AZURE_DEVOPS_URL`                    | none                                | Azure DevOps url (only if on-prem)                                       |
@@ -45,8 +46,6 @@ Metrics
 |-------------------------------------------------|---------------|--------------------------------------------------------------------------------------|
 | `azure_devops_stats`                            | live          | General scraper stats                                                                |
 | `azure_devops_agentpool_info`                   | live          | Agent Pool informations                                                              |
-| `azure_devops_agentpool_builds`                 | live          | Count of builds (by status)                                                          |
-| `azure_devops_agentpool_wait`                   | live          | Queue wait time per agent pool (summary vector)                                      |
 | `azure_devops_agentpool_size`                   | live          | Queue size per agent pool                                                            |
 | `azure_devops_agentpool_agent_info`             | live          | Agent information per agent pool                                                     |
 | `azure_devops_agentpool_agent_status`           | live          | Status informations (eg. created date) for each agent in a agent pool                |
@@ -73,6 +72,12 @@ Metrics
 | `azure_devops_repository_pushes`                | repository    | Repository push counter                                                              |
 | `azure_devops_deployment_info`                  | deployment    | Release deployment informations                                                      |
 | `azure_devops_deployment_status`                | deployment    | Release deployment status informations                                               |
+| `azure_devops_stats_agentpool_builds`           | stats         | Number of buildsper agentpool, project and result (counter)                          |
+| `azure_devops_stats_agentpool_builds_wait`      | stats         | Build wait time per agentpool, project and result (summary)                          |
+| `azure_devops_stats_agentpool_builds_duration`  | stats         | Build duration per agentpool, project and result (summary)                           |
+| `azure_devops_stats_project_builds`             | stats         | Number of builds per project, definition and result (counter)                        |
+| `azure_devops_stats_project_builds_wait`        | stats         | Build wait time per project, definition and result (summary)                         |
+| `azure_devops_stats_project_builds_duration`    | stats         | Build duration per project, definition and result (summary)                          |
 
 
 Usage
@@ -92,12 +97,15 @@ Application Options:
       --scrape.time.release=                  Scrape time for release metrics (time.duration) [$SCRAPE_TIME_RELEASE]
       --scrape.time.deployment=               Scrape time for deployment metrics (time.duration) [$SCRAPE_TIME_DEPLOYMENT]
       --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
+      --scrape.time.stats=                    Scrape time for stats metrics  (time.duration) [$SCRAPE_TIME_STATS]
       --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
+      --azuredevops.url=                      Azure DevOps url (empty if hosted by microsoft) [$AZURE_DEVOPS_URL]
       --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
       --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
+      --azuredevops.apiversion=               Azure DevOps API version (default: 5.0) [$AZURE_DEVOPS_APIVERSION]
       --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]

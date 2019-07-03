@@ -159,3 +159,29 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 
 	return
 }
+
+func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime time.Time, statusFilter string) (list BuildList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
+		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
+		url.QueryEscape(minTime.Format(time.RFC3339)),
+		url.QueryEscape(statusFilter),
+	)
+	response, err := c.restDev().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}

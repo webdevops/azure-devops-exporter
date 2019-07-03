@@ -14,6 +14,9 @@ type MetricsCollectorBuild struct {
 		buildStatus *prometheus.GaugeVec
 
 		buildDefinition *prometheus.GaugeVec
+
+		buildTimeProject *prometheus.SummaryVec
+		jobTimeProject *prometheus.SummaryVec
 	}
 }
 

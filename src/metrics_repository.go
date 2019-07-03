@@ -5,7 +5,6 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	"sync"
-	"time"
 )
 
 type MetricsCollectorRepository struct {
@@ -93,7 +92,7 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<
 }
 
 func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
-	fromTime := time.Now().Add(-*m.CollectorReference.GetScrapeTime())
+	fromTime := *m.CollectorReference.collectionLastTime
 
 	repositoryMetric := MetricCollectorList{}
 	repositoryStatsMetric := MetricCollectorList{}

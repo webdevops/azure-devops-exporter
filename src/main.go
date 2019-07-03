@@ -43,6 +43,7 @@ var opts struct {
 	ScrapeTimeRelease     *time.Duration `long:"scrape.time.release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
 	ScrapeTimeDeployment  *time.Duration `long:"scrape.time.deployment"       env:"SCRAPE_TIME_DEPLOYMENT"         description:"Scrape time for deployment metrics (time.duration)"`
 	ScrapeTimePullRequest *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
+	ScrapeTimeStats       *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
 	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// ignore settings
@@ -88,6 +89,7 @@ func main() {
 	Logger.Infof("set scape interval[Build]: %v", scrapeIntervalStatus(opts.ScrapeTimeBuild))
 	Logger.Infof("set scape interval[Release]: %v", scrapeIntervalStatus(opts.ScrapeTimeRelease))
 	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
+	Logger.Infof("set scape interval[Stats]: %v", scrapeIntervalStatus(opts.ScrapeTimeStats))
 	initMetricCollector()
 
 	Logger.Infof("Starting http server on %s", opts.ServerBind)
@@ -134,6 +136,10 @@ func initArgparser() {
 
 	if opts.ScrapeTimeDeployment == nil {
 		opts.ScrapeTimeDeployment = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeStats == nil {
+		opts.ScrapeTimeStats = &opts.ScrapeTime
 	}
 
 	if opts.ScrapeTimeLive == nil {
@@ -281,6 +287,15 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].Run(*opts.ScrapeTimeRelease)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "Stats"
+	if opts.ScrapeTimeStats.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].Run(*opts.ScrapeTimeStats)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
