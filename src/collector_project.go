@@ -4,7 +4,6 @@ import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
 	"sync"
-	"time"
 )
 
 type CollectorProject struct {
@@ -13,9 +12,7 @@ type CollectorProject struct {
 	Processor CollectorProcessorProjectInterface
 }
 
-func (c *CollectorProject) Run(scrapeTime time.Duration) {
-	c.SetScrapeTime(scrapeTime)
-
+func (c *CollectorProject) Run() {
 	c.Processor.Setup(c)
 	go func() {
 		for {

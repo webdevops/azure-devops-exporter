@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"sync"
-	"time"
 )
 
 type CollectorAgentPool struct {
@@ -13,9 +12,7 @@ type CollectorAgentPool struct {
 	AgentPoolIdList []int64
 }
 
-func (c *CollectorAgentPool) Run(scrapeTime time.Duration) {
-	c.SetScrapeTime(scrapeTime)
-
+func (c *CollectorAgentPool) Run() {
 	c.Processor.Setup(c)
 	go func() {
 		for {

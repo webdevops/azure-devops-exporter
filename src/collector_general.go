@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"sync"
-	"time"
 )
 
 type CollectorGeneral struct {
@@ -12,9 +11,7 @@ type CollectorGeneral struct {
 	Processor CollectorProcessorGeneralInterface
 }
 
-func (c *CollectorGeneral) Run(scrapeTime time.Duration) {
-	c.SetScrapeTime(scrapeTime)
-
+func (c *CollectorGeneral) Run() {
 	c.Processor.Setup(c)
 	go func() {
 		for {
