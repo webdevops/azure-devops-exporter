@@ -41,7 +41,7 @@ func (m *MetricsCollectorProject) Collect(ctx context.Context, callback chan<- f
 }
 
 func (m *MetricsCollectorProject) collectProject(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	projectMetric := MetricCollectorList{}
+	projectMetric := NewMetricCollectorList()
 
 	projectMetric.AddInfo(prometheus.Labels{
 		"projectID":   project.Id,

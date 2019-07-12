@@ -97,7 +97,7 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 		return
 	}
 
-	buildDefinitonMetric := MetricCollectorList{}
+	buildDefinitonMetric := NewMetricCollectorList()
 
 	for _, buildDefinition := range list.List {
 		buildDefinitonMetric.Add(prometheus.Labels{
@@ -122,8 +122,8 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 		return
 	}
 
-	buildMetric := MetricCollectorList{}
-	buildStatusMetric := MetricCollectorList{}
+	buildMetric := NewMetricCollectorList()
+	buildStatusMetric := NewMetricCollectorList()
 
 	for _, build := range list.List {
 		buildMetric.AddInfo(prometheus.Labels{

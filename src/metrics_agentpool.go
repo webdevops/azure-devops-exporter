@@ -120,8 +120,8 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callba
 		return
 	}
 
-	agentPoolInfoMetric := MetricCollectorList{}
-	agentPoolSizeMetric := MetricCollectorList{}
+	agentPoolInfoMetric := NewMetricCollectorList()
+	agentPoolSizeMetric := NewMetricCollectorList()
 
 
 	for _, agentQueue := range list.List {
@@ -150,9 +150,9 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 		return
 	}
 
-	agentPoolAgentMetric := MetricCollectorList{}
-	agentPoolAgentStatusMetric := MetricCollectorList{}
-	agentPoolAgentJobMetric := MetricCollectorList{}
+	agentPoolAgentMetric := NewMetricCollectorList()
+	agentPoolAgentStatusMetric := NewMetricCollectorList()
+	agentPoolAgentJobMetric := NewMetricCollectorList()
 
 	for _, agentPoolAgent := range list.List {
 		infoLabels := prometheus.Labels{

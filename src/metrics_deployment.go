@@ -69,8 +69,8 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 		return
 	}
 
-	deploymentMetric := MetricCollectorList{}
-	deploymentStatusMetric := MetricCollectorList{}
+	deploymentMetric := NewMetricCollectorList()
+	deploymentStatusMetric := NewMetricCollectorList()
 
 	for _, releaseDefinition := range list.List {
 		deploymentList, err := AzureDevopsClient.ListReleaseDeployments(project.Id, releaseDefinition.Id)

@@ -10,13 +10,21 @@ type MetricsCollectorStats struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		agentPoolBuildCount        *prometheus.CounterVec
-		agentPoolBuildWait  *prometheus.SummaryVec
+		agentPoolBuildCount      *prometheus.CounterVec
+		agentPoolBuildWait       *prometheus.SummaryVec
 		agentPoolBuildDuration   *prometheus.SummaryVec
 
-		projectBuildCount          *prometheus.CounterVec
-		projectBuildWait        *prometheus.SummaryVec
+		projectBuildCount        *prometheus.CounterVec
+		projectBuildWait         *prometheus.SummaryVec
 		projectBuildDuration     *prometheus.SummaryVec
+	}
+
+	session struct {
+		agentPoolBuildWait *MetricCollectorList
+		agentPoolBuildDuration *MetricCollectorList
+
+		projectBuildWait *MetricCollectorList
+		projectBuildDuration *MetricCollectorList
 	}
 }
 
@@ -110,6 +118,11 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 	prometheus.MustRegister(m.prometheus.projectBuildCount)
 	prometheus.MustRegister(m.prometheus.projectBuildWait)
 	prometheus.MustRegister(m.prometheus.projectBuildDuration)
+
+	m.session.agentPoolBuildDuration = NewMetricCollectorList()
+	m.session.projectBuildDuration = NewMetricCollectorList()
+	m.session.agentPoolBuildWait = NewMetricCollectorList()
+	m.session.projectBuildDuration = NewMetricCollectorList()
 }
 
 func (m *MetricsCollectorStats) Reset() {
@@ -146,31 +159,39 @@ func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, callback chan
 		if build.FinishTime.Second() >= 0 {
 			jobDuration := build.FinishTime.Sub(build.StartTime)
 
-			m.prometheus.agentPoolBuildDuration.With(prometheus.Labels{
+			m.session.agentPoolBuildDuration.AddDuration(prometheus.Labels{
 				"agentPoolID": int64ToString(build.Queue.Pool.Id),
 				"projectID":   build.Project.Id,
 				"result":      build.Result,
-			}).Observe(jobDuration.Seconds())
+			}, jobDuration)
 
-			m.prometheus.projectBuildDuration.With(prometheus.Labels{
+			m.session.projectBuildDuration.AddDuration(prometheus.Labels{
 				"projectID":         build.Project.Id,
 				"buildDefinitionID": int64ToString(build.Definition.Id),
 				"result":            build.Result,
-			}).Observe(jobDuration.Seconds())
+			}, jobDuration)
 		}
 
 		if waitDuration >= 0 {
-			m.prometheus.agentPoolBuildWait.With(prometheus.Labels{
+
+			m.session.agentPoolBuildWait.Add(prometheus.Labels{
 				"agentPoolID": int64ToString(build.Queue.Pool.Id),
 				"projectID":   build.Project.Id,
 				"result":      build.Result,
-			}).Observe(waitDuration)
+			}, waitDuration)
 
-			m.prometheus.projectBuildDuration.With(prometheus.Labels{
+			m.session.projectBuildDuration.Add(prometheus.Labels{
 				"projectID":         build.Project.Id,
 				"buildDefinitionID": int64ToString(build.Definition.Id),
 				"result":            build.Result,
-			}).Observe(waitDuration)
+			}, waitDuration)
+		}
+
+		callback <- func() {
+			m.session.agentPoolBuildDuration.SummarySet(m.prometheus.agentPoolBuildDuration)
+			m.session.projectBuildDuration.SummarySet(m.prometheus.projectBuildDuration)
+			m.session.agentPoolBuildWait.SummarySet(m.prometheus.agentPoolBuildWait)
+			m.session.projectBuildDuration.SummarySet(m.prometheus.projectBuildDuration)
 		}
 	}
 }

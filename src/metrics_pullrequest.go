@@ -90,9 +90,9 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 		return
 	}
 
-	pullRequestMetric := MetricCollectorList{}
-	pullRequestStatusMetric := MetricCollectorList{}
-	pullRequestLabelMetric := MetricCollectorList{}
+	pullRequestMetric := NewMetricCollectorList()
+	pullRequestStatusMetric := NewMetricCollectorList()
+	pullRequestLabelMetric := NewMetricCollectorList()
 
 	for _, pullRequest := range list.List {
 		voteSummary := pullRequest.GetVoteSummary()

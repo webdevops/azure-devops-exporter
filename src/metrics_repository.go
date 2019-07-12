@@ -94,10 +94,10 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<
 func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	fromTime := *m.CollectorReference.collectionLastTime
 
-	repositoryMetric := MetricCollectorList{}
-	repositoryStatsMetric := MetricCollectorList{}
-	repositoryCommitsMetric := MetricCollectorList{}
-	repositoryPushesMetric := MetricCollectorList{}
+	repositoryMetric := NewMetricCollectorList()
+	repositoryStatsMetric := NewMetricCollectorList()
+	repositoryCommitsMetric := NewMetricCollectorList()
+	repositoryPushesMetric := NewMetricCollectorList()
 
 	repositoryMetric.AddInfo(prometheus.Labels{
 		"projectID":      project.Id,

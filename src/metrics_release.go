@@ -167,14 +167,14 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		return
 	}
 
-	releaseDefinitionMetric := MetricCollectorList{}
-	releaseDefinitionEnvironmentMetric := MetricCollectorList{}
+	releaseDefinitionMetric := NewMetricCollectorList()
+	releaseDefinitionEnvironmentMetric := NewMetricCollectorList()
 
-	releaseMetric := MetricCollectorList{}
-	releaseArtifactMetric := MetricCollectorList{}
-	releaseEnvironmentMetric := MetricCollectorList{}
-	releaseEnvironmentApprovalMetric := MetricCollectorList{}
-	releaseEnvironmentStatusMetric := MetricCollectorList{}
+	releaseMetric := NewMetricCollectorList()
+	releaseArtifactMetric := NewMetricCollectorList()
+	releaseEnvironmentMetric := NewMetricCollectorList()
+	releaseEnvironmentApprovalMetric := NewMetricCollectorList()
+	releaseEnvironmentStatusMetric := NewMetricCollectorList()
 
 	for _, releaseDefinition := range list.List {
 		// --------------------------------------

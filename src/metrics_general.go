@@ -40,7 +40,7 @@ func (m *MetricsCollectorGeneral) Collect(ctx context.Context, callback chan<- f
 }
 
 func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Context, callback chan<- func()) {
-	statsMetrics := MetricCollectorList{}
+	statsMetrics := NewMetricCollectorList()
 
 	statsMetrics.Add(prometheus.Labels{
 		"name": "dev.azure.com",
@@ -58,7 +58,7 @@ func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Cont
 }
 
 func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, callback chan<- func()) {
-	statsMetrics := MetricCollectorList{}
+	statsMetrics := NewMetricCollectorList()
 
 	for _, collector := range collectorGeneralList {
 		if collector.LastScrapeDuration != nil {
