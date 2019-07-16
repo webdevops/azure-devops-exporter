@@ -3,7 +3,9 @@ package main
 import (
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
 	"context"
+	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
+	"time"
 )
 
 type MetricsCollectorStats struct {
@@ -31,6 +33,9 @@ type MetricsCollectorStats struct {
 func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 	m.CollectorReference = collector
 
+	summaryMaxAgeSecs := (*m.CollectorReference.scrapeTime).Seconds() * 3
+	summaryMaxAge, _ := time.ParseDuration(fmt.Sprintf("%vs", summaryMaxAgeSecs))
+
 	// ------------------------------------------
 	// AgentPool
 	// ------------------------------------------
@@ -51,6 +56,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name: "azure_devops_stats_agentpool_builds_wait",
 			Help: "Azure DevOps stats agentpool builds wait duration",
+			MaxAge: summaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -63,6 +69,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name: "azure_devops_stats_agentpool_builds_duration",
 			Help: "Azure DevOps stats agentpool builds process duration",
+			MaxAge: summaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -91,6 +98,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name: "azure_devops_stats_project_builds_wait",
 			Help: "Azure DevOps stats project builds wait duration",
+			MaxAge: summaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -103,6 +111,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name: "azure_devops_stats_project_builds_duration",
 			Help: "Azure DevOps stats project builds process duration",
+			MaxAge: summaryMaxAge,
 		},
 		[]string{
 			"projectID",
