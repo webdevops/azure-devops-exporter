@@ -13,7 +13,7 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.8.0-beta4"
+	Version = "0.8.0-beta5"
 	StatsSummaryMaxDuration = "1d"
 )
 
