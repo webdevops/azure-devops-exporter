@@ -13,7 +13,7 @@ type DaemonLogger struct {
 
 func NewLogger(flags int, verbose bool) *DaemonLogger {
 	instance := &DaemonLogger{
-		Logger: logger.Init("Verbose", true, false, ioutil.Discard),
+		Logger:  logger.Init("Verbose", true, false, ioutil.Discard),
 		verbose: verbose,
 	}
 	logger.SetFlags(flags)

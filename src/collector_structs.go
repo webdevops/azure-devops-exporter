@@ -1,11 +1,11 @@
 package main
 
 import (
+	"crypto/sha1"
 	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
 	"strings"
 	"time"
-	"crypto/sha1"
 )
 
 type MetricCollectorRow struct {
@@ -17,7 +17,7 @@ type MetricCollectorList struct {
 	list map[string]MetricCollectorRow
 }
 
-func NewMetricCollectorList() (*MetricCollectorList) {
+func NewMetricCollectorList() *MetricCollectorList {
 	ret := MetricCollectorList{}
 	ret.Init()
 	return &ret

@@ -103,7 +103,7 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 			"pullrequestID":    int64ToString(pullRequest.Id),
 			"pullrequestTitle": pullRequest.Title,
 			"status":           pullRequest.Status,
-			"voteStatus":		voteSummary.HumanizeString(),
+			"voteStatus":       voteSummary.HumanizeString(),
 			"creator":          pullRequest.CreatedBy.DisplayName,
 			"isDraft":          boolToString(pullRequest.IsDraft),
 			"sourceBranch":     pullRequest.SourceRefName,
@@ -117,14 +117,13 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 			"type":          "created",
 		}, pullRequest.CreationDate)
 
-
 		for _, label := range pullRequest.Labels {
 			pullRequestLabelMetric.AddInfo(prometheus.Labels{
 				"projectID":     project.Id,
 				"repositoryID":  repository.Id,
 				"pullrequestID": int64ToString(pullRequest.Id),
 				"label":         label.Name,
-				"active":         boolToString(label.Active),
+				"active":        boolToString(label.Active),
 			})
 		}
 	}

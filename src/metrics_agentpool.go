@@ -123,18 +123,17 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callba
 	agentPoolInfoMetric := NewMetricCollectorList()
 	agentPoolSizeMetric := NewMetricCollectorList()
 
-
 	for _, agentQueue := range list.List {
 		agentPoolInfoMetric.Add(prometheus.Labels{
-			"agentPoolID": int64ToString(agentQueue.Pool.Id),
+			"agentPoolID":   int64ToString(agentQueue.Pool.Id),
 			"agentPoolName": agentQueue.Name,
-			"isHosted": boolToString(agentQueue.Pool.IsHosted),
+			"isHosted":      boolToString(agentQueue.Pool.IsHosted),
 			"agentPoolType": agentQueue.Pool.PoolType,
 		}, 1)
 
 		agentPoolSizeMetric.Add(prometheus.Labels{
 			"agentPoolID": int64ToString(agentQueue.Pool.Id),
-		},float64(agentQueue.Pool.Size))
+		}, float64(agentQueue.Pool.Size))
 	}
 
 	callback <- func() {

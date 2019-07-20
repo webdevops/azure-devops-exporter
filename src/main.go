@@ -47,7 +47,7 @@ var opts struct {
 	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// summary options
-	StatsSummaryMaxAge    time.Duration  `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"          description:"Stats Summary metrics max age (time.duration)"             default:"1d"`
+	StatsSummaryMaxAge time.Duration `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"          description:"Stats Summary metrics max age (time.duration)"             default:"1d"`
 
 	// ignore settings
 	AzureDevopsFilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
@@ -55,10 +55,10 @@ var opts struct {
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// azure settings
-	AzureDevopsUrl         *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
-	AzureDevopsAccessToken  string `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"    description:"Azure DevOps access token" required:"true"`
-	AzureDevopsOrganisation string `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
-	AzureDevopsApiVersion   string `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"      description:"Azure DevOps API version"  default:"5.0"`
+	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
+	AzureDevopsAccessToken  string  `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"    description:"Azure DevOps access token" required:"true"`
+	AzureDevopsOrganisation string  `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
+	AzureDevopsApiVersion   string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"      description:"Azure DevOps API version"  default:"5.0"`
 
 	RequestConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
 	RequestRetries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`

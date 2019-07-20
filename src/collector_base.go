@@ -13,7 +13,7 @@ type CollectorBase struct {
 	azureDevOpsProjects      *devopsClient.ProjectList
 	azureDevOpsProjectsMutex sync.Mutex
 
-	LastScrapeDuration *time.Duration
+	LastScrapeDuration  *time.Duration
 	collectionStartTime *time.Time
 	collectionLastTime  *time.Time
 }
@@ -42,7 +42,7 @@ func (c *CollectorBase) GetAzureProjects() (projects *devopsClient.ProjectList) 
 	return
 }
 
-func (c *CollectorBase) collectionStart() () {
+func (c *CollectorBase) collectionStart() {
 	startTime := time.Now()
 	c.collectionStartTime = &startTime
 
@@ -54,7 +54,7 @@ func (c *CollectorBase) collectionStart() () {
 	Logger.Infof("collector[%s]: starting metrics collection", c.Name)
 }
 
-func (c *CollectorBase) collectionFinish() () {
+func (c *CollectorBase) collectionFinish() {
 	duration := time.Now().Sub(*c.collectionStartTime)
 	c.LastScrapeDuration = &duration
 
@@ -63,7 +63,7 @@ func (c *CollectorBase) collectionFinish() () {
 	Logger.Infof("collector[%s]: finished metrics collection (duration: %v)", c.Name, c.LastScrapeDuration)
 }
 
-func (c *CollectorBase) sleepUntilNextCollection() () {
+func (c *CollectorBase) sleepUntilNextCollection() {
 	Logger.Verbosef("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
 	time.Sleep(*c.GetScrapeTime())
 }

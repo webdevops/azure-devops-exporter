@@ -1,8 +1,8 @@
 package main
 
 import (
-	"context"
 	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	"context"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -10,13 +10,13 @@ type MetricsCollectorStats struct {
 	CollectorProcessorProject
 
 	prometheus struct {
-		agentPoolBuildCount      *prometheus.CounterVec
-		agentPoolBuildWait       *prometheus.SummaryVec
-		agentPoolBuildDuration   *prometheus.SummaryVec
+		agentPoolBuildCount    *prometheus.CounterVec
+		agentPoolBuildWait     *prometheus.SummaryVec
+		agentPoolBuildDuration *prometheus.SummaryVec
 
-		projectBuildCount        *prometheus.CounterVec
-		projectBuildWait         *prometheus.SummaryVec
-		projectBuildDuration     *prometheus.SummaryVec
+		projectBuildCount    *prometheus.CounterVec
+		projectBuildWait     *prometheus.SummaryVec
+		projectBuildDuration *prometheus.SummaryVec
 	}
 }
 
@@ -43,8 +43,8 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 
 	m.prometheus.agentPoolBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name: "azure_devops_stats_agentpool_builds_wait",
-			Help: "Azure DevOps stats agentpool builds wait duration",
+			Name:   "azure_devops_stats_agentpool_builds_wait",
+			Help:   "Azure DevOps stats agentpool builds wait duration",
 			MaxAge: summaryMaxAge,
 		},
 		[]string{
@@ -56,8 +56,8 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 
 	m.prometheus.agentPoolBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name: "azure_devops_stats_agentpool_builds_duration",
-			Help: "Azure DevOps stats agentpool builds process duration",
+			Name:   "azure_devops_stats_agentpool_builds_duration",
+			Help:   "Azure DevOps stats agentpool builds process duration",
 			MaxAge: summaryMaxAge,
 		},
 		[]string{
@@ -85,8 +85,8 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 
 	m.prometheus.projectBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name: "azure_devops_stats_project_builds_wait",
-			Help: "Azure DevOps stats project builds wait duration",
+			Name:   "azure_devops_stats_project_builds_wait",
+			Help:   "Azure DevOps stats project builds wait duration",
 			MaxAge: summaryMaxAge,
 		},
 		[]string{
@@ -98,8 +98,8 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 
 	m.prometheus.projectBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
-			Name: "azure_devops_stats_project_builds_duration",
-			Help: "Azure DevOps stats project builds process duration",
+			Name:   "azure_devops_stats_project_builds_duration",
+			Help:   "Azure DevOps stats project builds process duration",
 			MaxAge: summaryMaxAge,
 		},
 		[]string{

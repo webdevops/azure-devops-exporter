@@ -16,7 +16,7 @@ type MetricsCollectorBuild struct {
 		buildDefinition *prometheus.GaugeVec
 
 		buildTimeProject *prometheus.SummaryVec
-		jobTimeProject *prometheus.SummaryVec
+		jobTimeProject   *prometheus.SummaryVec
 	}
 }
 

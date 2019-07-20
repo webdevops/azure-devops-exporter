@@ -52,7 +52,6 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 		},
 	)
 
-
 	prometheus.MustRegister(m.prometheus.deployment)
 	prometheus.MustRegister(m.prometheus.deploymentStatus)
 }
@@ -81,19 +80,19 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 
 		for _, deployment := range deploymentList.List {
 			deploymentMetric.AddInfo(prometheus.Labels{
-				"projectID": project.Id,
-				"deploymentID": int64ToString(deployment.Id),
-				"releaseID": int64ToString(deployment.Release.Id),
+				"projectID":           project.Id,
+				"deploymentID":        int64ToString(deployment.Id),
+				"releaseID":           int64ToString(deployment.Release.Id),
 				"releaseDefinitionID": int64ToString(releaseDefinition.Id),
-				"requestedBy": deployment.RequestedBy.DisplayName,
-				"deploymentName": deployment.Name,
-				"deploymentStatus": deployment.DeploymentStatus,
-				"operationStatus": deployment.OperationStatus,
-				"reason": deployment.Reason,
-				"attempt": int64ToString(deployment.Attempt),
-				"environmentId": int64ToString(deployment.ReleaseEnvironment.Id),
-				"environmentName": deployment.ReleaseEnvironment.Name,
-				"approvedBy": deployment.ApprovedBy(),
+				"requestedBy":         deployment.RequestedBy.DisplayName,
+				"deploymentName":      deployment.Name,
+				"deploymentStatus":    deployment.DeploymentStatus,
+				"operationStatus":     deployment.OperationStatus,
+				"reason":              deployment.Reason,
+				"attempt":             int64ToString(deployment.Attempt),
+				"environmentId":       int64ToString(deployment.ReleaseEnvironment.Id),
+				"environmentName":     deployment.ReleaseEnvironment.Name,
+				"approvedBy":          deployment.ApprovedBy(),
 			})
 
 			queuedOn := deployment.QueuedOnTime()

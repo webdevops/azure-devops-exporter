@@ -180,12 +180,12 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		// --------------------------------------
 		// Release definition
 		releaseDefinitionMetric.AddInfo(prometheus.Labels{
-			"projectID":              project.Id,
-			"releaseDefinitionID":    int64ToString(releaseDefinition.Id),
-			"releaseNameFormat":      releaseDefinition.ReleaseNameFormat,
+			"projectID":             project.Id,
+			"releaseDefinitionID":   int64ToString(releaseDefinition.Id),
+			"releaseNameFormat":     releaseDefinition.ReleaseNameFormat,
 			"releaseDefinitionName": releaseDefinition.Name,
-			"path":                   releaseDefinition.Path,
-			"url":                    releaseDefinition.Links.Web.Href,
+			"path":                  releaseDefinition.Path,
+			"url":                   releaseDefinition.Links.Web.Href,
 		})
 
 		for _, environment := range releaseDefinition.Environments {
@@ -216,7 +216,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 				"releaseID":           int64ToString(release.Id),
 				"releaseDefinitionID": int64ToString(release.Definition.Id),
 				"requestedBy":         release.RequestedBy.DisplayName,
-				"releaseName":        release.Name,
+				"releaseName":         release.Name,
 				"status":              release.Status,
 				"reason":              release.Reason,
 				"result":              boolToString(release.Result),
@@ -225,14 +225,14 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 			for _, artifact := range release.Artifacts {
 				releaseArtifactMetric.AddInfo(prometheus.Labels{
-					"projectID":       project.Id,
-					"releaseID":       int64ToString(release.Id),
-					"sourceId":        artifact.SourceId,
-					"repositoryID":    artifact.DefinitionReference.Repository.Name,
-					"branch":          artifact.DefinitionReference.Branch.Name,
-					"type":            artifact.Type,
-					"alias":           artifact.Alias,
-					"version":         artifact.DefinitionReference.Version.Name,
+					"projectID":    project.Id,
+					"releaseID":    int64ToString(release.Id),
+					"sourceId":     artifact.SourceId,
+					"repositoryID": artifact.DefinitionReference.Repository.Name,
+					"branch":       artifact.DefinitionReference.Branch.Name,
+					"type":         artifact.Type,
+					"alias":        artifact.Alias,
+					"version":      artifact.DefinitionReference.Version.Name,
 				})
 			}
 

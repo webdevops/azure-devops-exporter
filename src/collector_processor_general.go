@@ -18,7 +18,7 @@ type CollectorProcessorGeneral struct {
 func NewCollectorGeneral(name string, processor CollectorProcessorGeneralInterface) *CollectorGeneral {
 	collector := CollectorGeneral{
 		CollectorBase: CollectorBase{
-			Name:      name,
+			Name: name,
 		},
 		Processor: processor,
 	}

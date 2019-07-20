@@ -19,7 +19,7 @@ type CollectorProcessorProject struct {
 func NewCollectorProject(name string, processor CollectorProcessorProjectInterface) *CollectorProject {
 	collector := CollectorProject{
 		CollectorBase: CollectorBase{
-			Name:      name,
+			Name: name,
 		},
 		Processor: processor,
 	}
