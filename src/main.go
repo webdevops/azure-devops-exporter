@@ -14,6 +14,7 @@ import (
 const (
 	Author  = "webdevops.io"
 	Version = "0.8.0-beta4"
+	StatsSummaryMaxDuration = "1d"
 )
 
 var (
@@ -45,6 +46,9 @@ var opts struct {
 	ScrapeTimePullRequest *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
 	ScrapeTimeStats       *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
 	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
+
+	// summary options
+	StatsSummaryMaxAge    time.Duration  `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"          description:"Stats Summary metrics max age (time.duration)"             default:"1d"`
 
 	// ignore settings
 	AzureDevopsFilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
