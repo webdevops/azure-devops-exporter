@@ -23,8 +23,6 @@ type MetricsCollectorStats struct {
 func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 	m.CollectorReference = collector
 
-	summaryMaxAge := opts.StatsSummaryMaxAge
-
 	// ------------------------------------------
 	// AgentPool
 	// ------------------------------------------
@@ -45,7 +43,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_wait",
 			Help:   "Azure DevOps stats agentpool builds wait duration",
-			MaxAge: summaryMaxAge,
+			MaxAge: opts.StatsSummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -58,7 +56,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_duration",
 			Help:   "Azure DevOps stats agentpool builds process duration",
-			MaxAge: summaryMaxAge,
+			MaxAge: opts.StatsSummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -87,7 +85,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_wait",
 			Help:   "Azure DevOps stats project builds wait duration",
-			MaxAge: summaryMaxAge,
+			MaxAge: opts.StatsSummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -100,7 +98,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_duration",
 			Help:   "Azure DevOps stats project builds process duration",
-			MaxAge: summaryMaxAge,
+			MaxAge: opts.StatsSummaryMaxAge,
 		},
 		[]string{
 			"projectID",
