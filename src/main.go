@@ -4,6 +4,7 @@ import (
 	AzureDevops "azure-devops-exporter/src/azure-devops-client"
 	"fmt"
 	"github.com/jessevdk/go-flags"
+	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
@@ -47,7 +48,7 @@ var opts struct {
 	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// summary options
-	StatsSummaryMaxAge time.Duration `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"          description:"Stats Summary metrics max age (time.duration)"             default:"1d"`
+	StatsSummaryMaxAge *time.Duration `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"             description:"Stats Summary metrics max age (time.duration)"`
 
 	// ignore settings
 	AzureDevopsFilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
@@ -116,6 +117,8 @@ func initArgparser() {
 		}
 	}
 
+	prometheusDefMaxAge := prometheus.DefMaxAge
+
 	// use default scrape time if null
 	if opts.ScrapeTimeProjects == nil {
 		opts.ScrapeTimeProjects = &opts.ScrapeTime
@@ -147,6 +150,10 @@ func initArgparser() {
 
 	if opts.ScrapeTimeLive == nil {
 		opts.ScrapeTimeLive = &opts.ScrapeTime
+	}
+
+	if opts.StatsSummaryMaxAge == nil {
+		opts.StatsSummaryMaxAge = &prometheusDefMaxAge
 	}
 }
 
