@@ -4,7 +4,6 @@ import (
 	AzureDevops "azure-devops-exporter/src/azure-devops-client"
 	"fmt"
 	"github.com/jessevdk/go-flags"
-	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"log"
 	"net/http"
@@ -117,8 +116,6 @@ func initArgparser() {
 		}
 	}
 
-	prometheusDefMaxAge := prometheus.DefMaxAge
-
 	// use default scrape time if null
 	if opts.ScrapeTimeProjects == nil {
 		opts.ScrapeTimeProjects = &opts.ScrapeTime
@@ -153,7 +150,7 @@ func initArgparser() {
 	}
 
 	if opts.StatsSummaryMaxAge == nil {
-		opts.StatsSummaryMaxAge = &prometheusDefMaxAge
+		opts.StatsSummaryMaxAge = opts.ScrapeTimeStats
 	}
 }
 
