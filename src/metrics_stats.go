@@ -170,7 +170,7 @@ func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, callback chan
 				"result":      build.Result,
 			}).Observe(waitDuration)
 
-			m.prometheus.projectBuildDuration.With(prometheus.Labels{
+			m.prometheus.projectBuildWait.With(prometheus.Labels{
 				"projectID":         build.Project.Id,
 				"buildDefinitionID": int64ToString(build.Definition.Id),
 				"result":            build.Result,
