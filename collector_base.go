@@ -1,7 +1,7 @@
 package main
 
 import (
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
 	"time"
 )

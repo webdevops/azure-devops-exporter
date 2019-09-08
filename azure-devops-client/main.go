@@ -3,7 +3,7 @@ package AzureDevopsClient
 import (
 	"fmt"
 	"errors"
-	"github.com/go-resty/resty"
+	"gopkg.in/resty.v1"
 	"sync/atomic"
 )
 

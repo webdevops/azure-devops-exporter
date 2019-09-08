@@ -1,7 +1,7 @@
 package main
 
 import (
-	AzureDevops "azure-devops-exporter/src/azure-devops-client"
+	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"

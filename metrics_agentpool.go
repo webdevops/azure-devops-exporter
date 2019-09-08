@@ -1,7 +1,7 @@
 package main
 
 import (
-	devopsClient "azure-devops-exporter/src/azure-devops-client"
+	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 )
@@ -59,7 +59,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolAgentOs",
 			"enabled",
 			"status",
-			"hasAssignedRequest"
+			"hasAssignedRequest",
 		},
 	)
 
@@ -165,7 +165,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 			"agentPoolAgentOs":      agentPoolAgent.OsDescription,
 			"enabled":               boolToString(agentPoolAgent.Enabled),
 			"status":                agentPoolAgent.Status,
-			"hasAssignedRequest":    boolToString(agentPoolAgent.AssignedRequest.RequestId > 0)
+			"hasAssignedRequest":    boolToString(agentPoolAgent.AssignedRequest.RequestId > 0),
 		}
 
 		agentPoolAgentMetric.Add(infoLabels, 1)
