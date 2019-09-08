@@ -27,7 +27,7 @@ type PullRequest struct {
 	TargetRefName string
 
 	Reviewers []PullRequestReviewer
-	Labels []PullRequestLabels
+	Labels    []PullRequestLabels
 
 	Status       string `json:"status"`
 	CreationDate time.Time
@@ -44,18 +44,18 @@ type PullRequestReviewer struct {
 }
 
 type PullRequestLabels struct {
-	Id string
-	Name string
+	Id     string
+	Name   string
 	Active bool
 }
 
 type PullRequestVoteSummary struct {
-	Approved int64
+	Approved            int64
 	ApprovedSuggestions int64
-	None int64
-	WaitingForAuthor int64
-	Rejected int64
-	Count int64
+	None                int64
+	WaitingForAuthor    int64
+	Rejected            int64
+	Count               int64
 }
 
 func (v *PullRequest) GetVoteSummary() PullRequestVoteSummary {

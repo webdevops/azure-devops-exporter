@@ -1,9 +1,9 @@
 package main
 
 import (
-	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorBuild struct {

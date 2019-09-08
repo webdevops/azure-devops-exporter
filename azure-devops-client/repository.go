@@ -47,12 +47,12 @@ type RepositoryCommit struct {
 }
 
 type RepositoryPushList struct {
-	Count int                `json:"count"`
-	List  []RepositoryPush   `json:"value"`
+	Count int              `json:"count"`
+	List  []RepositoryPush `json:"value"`
 }
 
 type RepositoryPush struct {
-	PushId           int64
+	PushId int64
 }
 
 func (c *AzureDevopsClient) ListRepositories(project string) (list RepositoryList, error error) {

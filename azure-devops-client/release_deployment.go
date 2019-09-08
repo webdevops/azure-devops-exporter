@@ -9,7 +9,7 @@ import (
 )
 
 type ReleaseDeploymentList struct {
-	Count int       `json:"count"`
+	Count int                 `json:"count"`
 	List  []ReleaseDeployment `json:"value"`
 }
 
@@ -24,27 +24,27 @@ type ReleaseDeployment struct {
 	} `json:"release"`
 
 	ReleaseDefinition struct {
-		Id    int64
-		Name  string
-		Path  string
+		Id   int64
+		Name string
+		Path string
 	} `json:"releaseDefinition"`
 
 	Artifacts []ReleaseArtifact
 
 	ReleaseEnvironment ReleaseDeploymentEnvironment
 
-	PreDeployApprovals []ReleaseEnvironmentApproval
+	PreDeployApprovals  []ReleaseEnvironmentApproval
 	PostDeployApprovals []ReleaseEnvironmentApproval
 
-	Reason string
+	Reason           string
 	DeploymentStatus string
 	OperationStatus  string
 
 	Attempt int64
 
 	// sometimes dates are not valid here
-	QueuedOn string `json:"queuedOn,omitempty"`
-	StartedOn string `json:"startedOn,omitempty"`
+	QueuedOn    string `json:"queuedOn,omitempty"`
+	StartedOn   string `json:"startedOn,omitempty"`
 	CompletedOn string `json:"completedOn,omitempty"`
 
 	RequestedBy  IdentifyRef
@@ -54,12 +54,11 @@ type ReleaseDeployment struct {
 }
 
 type ReleaseDeploymentEnvironment struct {
-	Id    int64
-	Name  string
+	Id   int64
+	Name string
 }
 
-
-func (d *ReleaseDeployment) ApprovedBy() (string) {
+func (d *ReleaseDeployment) ApprovedBy() string {
 	var approverList []string
 	for _, approval := range d.PreDeployApprovals {
 		if !approval.IsAutomated {
@@ -69,18 +68,18 @@ func (d *ReleaseDeployment) ApprovedBy() (string) {
 		}
 	}
 
-	return strings.Join(approverList[:],",")
+	return strings.Join(approverList[:], ",")
 }
 
-func (d *ReleaseDeployment) QueuedOnTime() (*time.Time) {
+func (d *ReleaseDeployment) QueuedOnTime() *time.Time {
 	return parseTime(d.QueuedOn)
 }
 
-func (d *ReleaseDeployment) StartedOnTime() (*time.Time) {
+func (d *ReleaseDeployment) StartedOnTime() *time.Time {
 	return parseTime(d.StartedOn)
 }
 
-func (d *ReleaseDeployment) CompletedOnTime() (*time.Time) {
+func (d *ReleaseDeployment) CompletedOnTime() *time.Time {
 	return parseTime(d.CompletedOn)
 }
 

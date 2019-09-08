@@ -36,7 +36,7 @@ type Release struct {
 	Uri           string
 	Url           string
 
-	Artifacts []ReleaseArtifact
+	Artifacts    []ReleaseArtifact
 	Environments []ReleaseEnvironment
 
 	RequestedBy  IdentifyRef
@@ -47,32 +47,32 @@ type Release struct {
 
 type ReleaseArtifact struct {
 	SourceId string
-	Type string
-	Alias string
+	Type     string
+	Alias    string
 
 	DefinitionReference struct {
 		Definition struct {
-			Id string
+			Id   string
 			Name string
 		}
 
 		Project struct {
-			Id string
+			Id   string
 			Name string
 		}
 
 		Repository struct {
-			Id string
+			Id   string
 			Name string
 		}
 
 		Version struct {
-			Id string
+			Id   string
 			Name string
 		}
 
 		Branch struct {
-			Id string
+			Id   string
 			Name string
 		}
 	}
@@ -90,7 +90,7 @@ type ReleaseEnvironment struct {
 
 	DeploySteps []ReleaseEnvironmentDeployStep
 
-	PreDeployApprovals []ReleaseEnvironmentApproval
+	PreDeployApprovals  []ReleaseEnvironmentApproval
 	PostDeployApprovals []ReleaseEnvironmentApproval
 
 	CreatedOn      time.Time
@@ -125,21 +125,21 @@ type ReleaseEnvironmentDeployStepPhase struct {
 }
 
 type ReleaseEnvironmentApproval struct {
-	Id int64
-	Revision int64
-	ApprovalType string
-	Status string
-	Comments string
-	IsAutomated bool
+	Id               int64
+	Revision         int64
+	ApprovalType     string
+	Status           string
+	Comments         string
+	IsAutomated      bool
 	IsNotificationOn bool
-	TrialNumber int64
-	Attempt int64
-	Rank int64
+	TrialNumber      int64
+	Attempt          int64
+	Rank             int64
 
-	Approver IdentifyRef
+	Approver   IdentifyRef
 	ApprovedBy IdentifyRef
 
-	CreatedOn time.Time
+	CreatedOn  time.Time
 	ModifiedOn time.Time
 }
 

@@ -1,8 +1,8 @@
 package AzureDevopsClient
 
 import (
-	"fmt"
 	"errors"
+	"fmt"
 	"gopkg.in/resty.v1"
 	"sync/atomic"
 )
@@ -22,12 +22,12 @@ type AzureDevopsClient struct {
 	semaphore   chan bool
 	concurrency int64
 
-	RequestCount uint64
+	RequestCount   uint64
 	RequestRetries int
 
-	LimitBuildsPerDefinition int64
-	LimitReleasesPerDefinition int64
-	LimitDeploymentPerDefinition int64
+	LimitBuildsPerDefinition          int64
+	LimitReleasesPerDefinition        int64
+	LimitDeploymentPerDefinition      int64
 	LimitReleaseDefinitionsPerProject int64
 }
 
@@ -142,7 +142,7 @@ func (c *AzureDevopsClient) GetCurrentConcurrency() float64 {
 	return float64(len(c.semaphore))
 }
 
-func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) (error) {
+func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) error {
 	if err != nil {
 		return err
 	}
