@@ -59,6 +59,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolAgentOs",
 			"enabled",
 			"status",
+			"hasAssignedRequest"
 		},
 	)
 
@@ -164,6 +165,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 			"agentPoolAgentOs":      agentPoolAgent.OsDescription,
 			"enabled":               boolToString(agentPoolAgent.Enabled),
 			"status":                agentPoolAgent.Status,
+			"hasAssignedRequest":    boolToString(agentPoolAgent.AssignedRequest.RequestId > 0)
 		}
 
 		agentPoolAgentMetric.Add(infoLabels, 1)
