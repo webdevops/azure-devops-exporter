@@ -36,15 +36,16 @@ var opts struct {
 	ServerBind string `long:"bind"                                env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
 
 	// scrape time settings
-	ScrapeTime            time.Duration  `long:"scrape.time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
-	ScrapeTimeProjects    *time.Duration `long:"scrape.time.projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for project metrics (time.duration)"`
-	ScrapeTimeRepository  *time.Duration `long:"scrape.time.repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
-	ScrapeTimeBuild       *time.Duration `long:"scrape.time.build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
-	ScrapeTimeRelease     *time.Duration `long:"scrape.time.release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
-	ScrapeTimeDeployment  *time.Duration `long:"scrape.time.deployment"       env:"SCRAPE_TIME_DEPLOYMENT"         description:"Scrape time for deployment metrics (time.duration)"`
-	ScrapeTimePullRequest *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
-	ScrapeTimeStats       *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
-	ScrapeTimeLive        *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
+	ScrapeTime              time.Duration  `long:"scrape.time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
+	ScrapeTimeProjects      *time.Duration `long:"scrape.time.projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for project metrics (time.duration)"`
+	ScrapeTimeRepository    *time.Duration `long:"scrape.time.repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
+	ScrapeTimeBuild         *time.Duration `long:"scrape.time.build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
+	ScrapeTimeRelease       *time.Duration `long:"scrape.time.release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
+	ScrapeTimeDeployment    *time.Duration `long:"scrape.time.deployment"       env:"SCRAPE_TIME_DEPLOYMENT"         description:"Scrape time for deployment metrics (time.duration)"`
+	ScrapeTimePullRequest   *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
+	ScrapeTimeStats         *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
+	ScrapeTimeResourceUsage *time.Duration `long:"scrape.time.resourceusage"    env:"SCRAPE_TIME_RESOURCEUSAGE"      description:"Scrape time for resourceusage metrics  (time.duration)"`
+	ScrapeTimeLive          *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// summary options
 	StatsSummaryMaxAge *time.Duration `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"             description:"Stats Summary metrics max age (time.duration)"`
@@ -93,6 +94,7 @@ func main() {
 	Logger.Infof("set scape interval[Release]: %v", scrapeIntervalStatus(opts.ScrapeTimeRelease))
 	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
 	Logger.Infof("set scape interval[Stats]: %v", scrapeIntervalStatus(opts.ScrapeTimeStats))
+	Logger.Infof("set scape interval[ResourceUsage]: %v", scrapeIntervalStatus(opts.ScrapeTimeResourceUsage))
 	initMetricCollector()
 
 	Logger.Infof("Starting http server on %s", opts.ServerBind)
@@ -143,6 +145,10 @@ func initArgparser() {
 
 	if opts.ScrapeTimeStats == nil {
 		opts.ScrapeTimeStats = &opts.ScrapeTime
+	}
+
+	if opts.ScrapeTimeResourceUsage == nil {
+		opts.ScrapeTimeResourceUsage = &opts.ScrapeTime
 	}
 
 	if opts.ScrapeTimeLive == nil {
@@ -303,6 +309,15 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
 		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "ResourceUsage"
+	if opts.ScrapeTimeStats.Seconds() > 0 {
+		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
+		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
+		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}

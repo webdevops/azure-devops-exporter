@@ -22,6 +22,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                          |
 | `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
 | `SCRAPE_TIME_STATS`                   | not set, default see `SCRAPE_TIME`  | Interval for stats metrics                                               |
+| `SCRAPE_TIME_RESOURCEUSAGE`           | not set, default see `SCRAPE_TIME`  | Interval for resourceusage metrics                                       |
 | `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
 | `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
 | `AZURE_DEVOPS_URL`                    | none                                | Azure DevOps url (only if on-prem)                                       |
@@ -78,6 +79,7 @@ Metrics
 | `azure_devops_stats_project_builds`             | stats         | Number of builds per project, definition and result (counter)                        |
 | `azure_devops_stats_project_builds_wait`        | stats         | Build wait time per project, definition and result (summary)                         |
 | `azure_devops_stats_project_builds_duration`    | stats         | Build duration per project, definition and result (summary)                          |
+| `azure_devops_resourceusage_build`              | resourceusage | Usage of limited and paid Azure DevOps resources                                     |
 
 
 Usage
@@ -98,7 +100,9 @@ Application Options:
       --scrape.time.deployment=               Scrape time for deployment metrics (time.duration) [$SCRAPE_TIME_DEPLOYMENT]
       --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
       --scrape.time.stats=                    Scrape time for stats metrics  (time.duration) [$SCRAPE_TIME_STATS]
+      --scrape.time.resourceusage=            Scrape time for resourceusage metrics  (time.duration) [$SCRAPE_TIME_RESOURCEUSAGE]
       --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
+      --stats.summary.maxage=                 Stats Summary metrics max age (time.duration) [$STATS_SUMMARY_MAX_AGE]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
