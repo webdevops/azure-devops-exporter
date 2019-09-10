@@ -172,6 +172,7 @@ func initAzureConnection() {
 	AzureDevopsClient.SetApiVersion(opts.AzureDevopsApiVersion)
 	AzureDevopsClient.SetConcurrency(opts.RequestConcurrencyLimit)
 	AzureDevopsClient.SetRetries(opts.RequestRetries)
+	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", Version))
 
 	AzureDevopsClient.LimitBuildsPerDefinition = opts.LimitBuildsPerDefinition
 	AzureDevopsClient.LimitReleasesPerDefinition = opts.LimitReleasesPerDefinition

@@ -68,9 +68,14 @@ func (c *AzureDevopsClient) SetRetries(v int) {
 	}
 }
 
+func (c *AzureDevopsClient) SetUserAgent(v string) {
+	c.rest().SetHeader("User-Agent", v)
+}
+
 func (c *AzureDevopsClient) SetApiVersion(apiversion string) {
 	c.ApiVersion = apiversion
 }
+
 func (c *AzureDevopsClient) SetOrganization(url string) {
 	c.organization = &url
 }
