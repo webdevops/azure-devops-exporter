@@ -81,8 +81,8 @@ func main() {
 
 	Logger.Infof("Init Azure DevOps exporter v%s (written by %v)", Version, Author)
 
-	Logger.Infof("Init Azure connection")
-	initAzureConnection()
+	Logger.Infof("Init AzureDevOps connection")
+	initAzureDevOpsConnection()
 
 	Logger.Info("Starting metrics collection")
 	Logger.Infof("set scape interval[Default]: %v", scrapeIntervalStatus(&opts.ScrapeTime))
@@ -161,11 +161,16 @@ func initArgparser() {
 }
 
 // Init and build Azure authorzier
-func initAzureConnection() {
+func initAzureDevOpsConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
 	if opts.AzureDevopsUrl != nil {
 		AzureDevopsClient.HostUrl = opts.AzureDevopsUrl
 	}
+
+	Logger.Infof("using organization: %v", opts.AzureDevopsOrganisation)
+	Logger.Infof("using apiversion: %v", opts.AzureDevopsApiVersion)
+	Logger.Infof("using concurrency: %v", opts.RequestConcurrencyLimit)
+	Logger.Infof("using retries: %v", opts.RequestRetries)
 
 	AzureDevopsClient.SetOrganization(opts.AzureDevopsOrganisation)
 	AzureDevopsClient.SetAccessToken(opts.AzureDevopsAccessToken)
