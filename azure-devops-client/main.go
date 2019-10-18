@@ -3,8 +3,9 @@ package AzureDevopsClient
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/resty.v1"
 	"sync/atomic"
+
+	"gopkg.in/resty.v1"
 )
 
 type AzureDevopsClient struct {
