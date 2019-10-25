@@ -10,28 +10,16 @@ type Query struct {
 	Path string `json:"path"`
 }
 
-type WorkItemList struct {
+type WorkItemInfoList struct {
 	List []WorkItemInfo `json:"workItems"`
 }
 
 type WorkItemInfo struct {
-	id  int    `json:"id"`
-	url string `json:"url"`
+	Id  int    `json:"id"`
+	Url string `json:"url"`
 }
 
-// type WorkItem struct {
-// 	// We need only these fields for bugs. Add more as needed.
-// 	Id           string `json:"id"`
-// 	Title        string `json:"title"`
-// 	Team         string `json:"team"`
-// 	Rank         string `json:"rank"`
-// 	DateCreated  string `json:"dateCreated"`
-// 	DateAccepted string `json:"dateAccepted"`
-// 	DateResolved string `json:"dateResolved"`
-// 	DateClosed   string `json:"dateClosed"`
-// }
-
-func (c *AzureDevopsClient) QueryWorkItems(queryPath, projectId string) (list WorkItemList, error error) {
+func (c *AzureDevopsClient) QueryWorkItems(queryPath, projectId string) (list WorkItemInfoList, error error) {
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
 

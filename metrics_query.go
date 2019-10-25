@@ -2,9 +2,8 @@ package main
 
 import (
 	"context"
-	"strings"
-
 	"github.com/prometheus/client_golang/prometheus"
+	"strings"
 )
 
 type MetricsCollectorQuery struct {
@@ -12,6 +11,7 @@ type MetricsCollectorQuery struct {
 
 	prometheus struct {
 		workItemCount *prometheus.GaugeVec
+		workItemData  *prometheus.GaugeVec
 	}
 }
 
@@ -20,8 +20,8 @@ func (m *MetricsCollectorQuery) Setup(collector *CollectorQuery) {
 
 	m.prometheus.workItemCount = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
-			Name: "azure_devops_query_info",
-			Help: "Azure DevOps Query",
+			Name: "azure_devops_query_result",
+			Help: "Azure DevOps Query Result",
 		},
 		[]string{
 			// We use this only for bugs. Add more fields as needed.
@@ -30,7 +30,26 @@ func (m *MetricsCollectorQuery) Setup(collector *CollectorQuery) {
 		},
 	)
 
+	m.prometheus.workItemData = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_workitem_data",
+			Help: "Azure DevOps WorkItems",
+		},
+		[]string{
+			"projectId",
+			"queryPath",
+			"id",
+			"title",
+			"path",
+			"createdDate",
+			"acceptedDate",
+			"resolvedDate",
+			"closedDate",
+		},
+	)
+
 	prometheus.MustRegister(m.prometheus.workItemCount)
+	prometheus.MustRegister(m.prometheus.workItemData)
 }
 
 func (m *MetricsCollectorQuery) Reset() {
@@ -42,13 +61,12 @@ func (m *MetricsCollectorQuery) Collect(ctx context.Context, callback chan<- fun
 		queryPair := strings.Split(query, "@")
 		m.collectQueryResults(ctx, callback, queryPair[0], queryPair[1])
 	}
-
 }
 
 func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callback chan<- func(), queryPath string, projectId string) {
 	workItemsMetric := NewMetricCollectorList()
 
-	workItemList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectId)
+	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectId)
 	if err != nil {
 		Logger.Errorf("Query[%v@%v]call[QueryWorkItems]: %v", queryPath, projectId, err)
 		return
@@ -57,9 +75,32 @@ func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callbac
 	workItemsMetric.Add(prometheus.Labels{
 		"projectId": projectId,
 		"queryPath": queryPath,
-	}, float64(len(workItemList.List)))
+	}, float64(len(workItemInfoList.List)))
+
+	workItemsDataMetric := NewMetricCollectorList()
+
+	for _, workItemInfo := range workItemInfoList.List {
+		workItem, err := AzureDevopsClient.GetWorkItem(workItemInfo.Url)
+		if err != nil {
+			Logger.Errorf("WorkItem[%v@%v]call[GetWorkItem]: %v", workItemInfo.Id, workItemInfo.Url, err)
+			return
+		}
+
+		workItemsDataMetric.AddInfo(prometheus.Labels{
+			"projectId":    projectId,
+			"queryPath":    queryPath,
+			"id":           int64ToString(workItem.Id),
+			"title":        workItem.Fields.Title,
+			"path":         workItem.Fields.Path,
+			"createdDate":  workItem.Fields.CreatedDate,
+			"acceptedDate": workItem.Fields.AcceptedDate,
+			"resolvedDate": workItem.Fields.ResolvedDate,
+			"closedDate":   workItem.Fields.ClosedDate,
+		})
+	}
 
 	callback <- func() {
 		workItemsMetric.GaugeSet(m.prometheus.workItemCount)
+		workItemsDataMetric.GaugeSet(m.prometheus.workItemData)
 	}
 }
