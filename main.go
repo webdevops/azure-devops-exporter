@@ -59,7 +59,7 @@ var opts struct {
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// query settings
-	QueriesWithProjects []string `long:"whitelist.queries"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   query-delim:"@"   description:"Pairs of query and project UUIDs"`
+	QueriesWithProjects []string `long:"whitelist.queries"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
 
 	// azure settings
 	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
@@ -126,6 +126,8 @@ func initArgparser() {
 
 	// ensure query paths and projects are splitted by '@'
 	if opts.QueriesWithProjects != nil {
+		EnsureSplitBySpace(&opts.QueriesWithProjects)
+
 		queryError := false
 		for _, query := range opts.QueriesWithProjects {
 			if strings.Count(query, "@") != 1 {
@@ -180,6 +182,15 @@ func initArgparser() {
 	}
 }
 
+func EnsureSplitBySpace(option *[]string) {
+	if len(*option) == 1 {
+		potentialCmdInput := (*option)[0]
+		if strings.Contains(potentialCmdInput, " ") {
+			*option = strings.Split(potentialCmdInput, " ")
+		}
+	}
+}
+
 // Init and build Azure authorzier
 func initAzureDevOpsConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
@@ -216,6 +227,7 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// whitelist
 	if len(opts.AzureDevopsFilterProjects) > 0 {
+		EnsureSplitBySpace(&opts.AzureDevopsFilterProjects)
 		rawList = list
 		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
@@ -227,6 +239,7 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// blacklist
 	if len(opts.AzureDevopsBlacklistProjects) > 0 {
+		EnsureSplitBySpace(&opts.AzureDevopsBlacklistProjects)
 		// filter ignored azure devops projects
 		rawList = list
 		list = AzureDevops.ProjectList{}
@@ -277,87 +290,87 @@ func initMetricCollector() {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
-	// collectorName = "AgentPool"
-	// if opts.ScrapeTimeLive.Seconds() > 0 {
-	// 	collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
-	// 	collectorAgentPoolList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
-	// 	collectorAgentPoolList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "AgentPool"
+	if opts.ScrapeTimeLive.Seconds() > 0 {
+		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
+		collectorAgentPoolList[collectorName].SetAzureProjects(&projectList)
+		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
+		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "LatestBuild"
-	// if opts.ScrapeTimeLive.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "LatestBuild"
+	if opts.ScrapeTimeLive.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "Repository"
-	// if opts.ScrapeTimeRepository.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRepository)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "Repository"
+	if opts.ScrapeTimeRepository.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRepository)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "PullRequest"
-	// if opts.ScrapeTimePullRequest.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimePullRequest)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "PullRequest"
+	if opts.ScrapeTimePullRequest.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimePullRequest)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "Build"
-	// if opts.ScrapeTimeBuild.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeBuild)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "Build"
+	if opts.ScrapeTimeBuild.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeBuild)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "Release"
-	// if opts.ScrapeTimeRelease.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "Release"
+	if opts.ScrapeTimeRelease.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "Deployment"
-	// if opts.ScrapeTimeDeployment.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "Deployment"
+	if opts.ScrapeTimeDeployment.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "Stats"
-	// if opts.ScrapeTimeStats.Seconds() > 0 {
-	// 	collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
-	// 	collectorProjectList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "Stats"
+	if opts.ScrapeTimeStats.Seconds() > 0 {
+		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
+		collectorProjectList[collectorName].SetAzureProjects(&projectList)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
-	// collectorName = "ResourceUsage"
-	// if opts.ScrapeTimeStats.Seconds() > 0 {
-	// 	collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
-	// 	collectorGeneralList[collectorName].SetAzureProjects(&projectList)
-	// 	collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
-	// } else {
-	// 	Logger.Infof("collector[%s]: disabled", collectorName)
-	// }
+	collectorName = "ResourceUsage"
+	if opts.ScrapeTimeStats.Seconds() > 0 {
+		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
+		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
+		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
 
 	for _, collector := range collectorGeneralList {
 		collector.Run()
