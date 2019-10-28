@@ -59,7 +59,7 @@ var opts struct {
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// query settings
-	QueriesWithProjects []string `long:"whitelist.queries"    env:"AZURE_DEVOPS_QUERY"    env-delim:" "   query-delim:"@"   description:"Query paths with project UUIDs"`
+	QueriesWithProjects []string `long:"whitelist.queries"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   query-delim:"@"   description:"Pairs of query and project UUIDs"`
 
 	// azure settings
 	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
@@ -129,7 +129,7 @@ func initArgparser() {
 		queryError := false
 		for _, query := range opts.QueriesWithProjects {
 			if strings.Count(query, "@") != 1 {
-				fmt.Println("Query path '%v' is malformed; should be '<query>@<project UUID>'", query)
+				fmt.Println("Query path '", query, "' is malformed; should be '<query UUID>@<project UUID>'")
 				queryError = true
 			}
 		}
