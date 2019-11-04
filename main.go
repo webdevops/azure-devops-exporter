@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	AzureDevops "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
+	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"log"
 	"net/http"
 	"os"

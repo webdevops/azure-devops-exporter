@@ -1,7 +1,7 @@
 package main
 
 import (
-	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
+	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
 	"time"
 )

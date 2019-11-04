@@ -40,7 +40,7 @@ func (c *CollectorQuery) Collect() {
 		c.Processor.Collect(ctx, callbackChannel)
 	}(ctx, callbackChannel)
 
-	// collect metrics (callbacks) and proceses them
+	// collect metrics (callbacks) and process them
 	wgCallback.Add(1)
 	go func() {
 		defer wgCallback.Done()

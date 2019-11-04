@@ -5,7 +5,6 @@ import (
 )
 
 type WorkItem struct {
-	// We need only these fields for bugs. Add more as needed.
 	Id     int64          `json:"id"`
 	Fields WorkItemFields `json:"fields"`
 }
