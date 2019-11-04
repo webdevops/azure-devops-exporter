@@ -279,7 +279,7 @@ func initMetricCollector() {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
-	collectorName = "WorkItemQueries"
+	collectorName = "Query"
 	if opts.ScrapeTimeLive.Seconds() > 0 {
 		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
 		collectorQueryList[collectorName].SetAzureProjects(&projectList)
