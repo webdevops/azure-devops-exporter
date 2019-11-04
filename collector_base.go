@@ -1,10 +1,9 @@
 package main
 
 import (
+	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
 	"sync"
 	"time"
-
-	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
 )
 
 type CollectorBase struct {

@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-
 	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
 )
 

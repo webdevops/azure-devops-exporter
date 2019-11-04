@@ -2,10 +2,9 @@ package main
 
 import (
 	"context"
-	"sync"
-
-	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
 	"github.com/prometheus/client_golang/prometheus"
+	devopsClient "github.com/keremispirli/azure-devops-exporter/tree/addQueryMetrics/azure-devops-client"
+	"sync"
 )
 
 type MetricsCollectorRepository struct {
