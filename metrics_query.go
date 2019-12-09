@@ -63,17 +63,17 @@ func (m *MetricsCollectorQuery) Collect(ctx context.Context, callback chan<- fun
 	}
 }
 
-func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callback chan<- func(), queryPath string, projectId string) {
+func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callback chan<- func(), queryPath string, projectID string) {
 	workItemsMetric := NewMetricCollectorList()
 
-	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectId)
+	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectID)
 	if err != nil {
-		Logger.Errorf("Query[%v@%v]call[QueryWorkItems]: %v", queryPath, projectId, err)
+		Logger.Errorf("Query[%v@%v]call[QueryWorkItems]: %v", queryPath, projectID, err)
 		return
 	}
 
 	workItemsMetric.Add(prometheus.Labels{
-		"projectId": projectId,
+		"projectId": projectID,
 		"queryPath": queryPath,
 	}, float64(len(workItemInfoList.List)))
 
@@ -87,7 +87,7 @@ func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callbac
 		}
 
 		workItemsDataMetric.AddInfo(prometheus.Labels{
-			"projectId":    projectId,
+			"projectId":    projectID,
 			"queryPath":    queryPath,
 			"id":           int64ToString(workItem.Id),
 			"title":        workItem.Fields.Title,

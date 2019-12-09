@@ -125,7 +125,7 @@ func initArgparser() {
 
 	// ensure query paths and projects are splitted by '@'
 	if opts.QueriesWithProjects != nil {
-		EnsureSplitBySpace(&opts.QueriesWithProjects)
+		ensureSplitBySpace(&opts.QueriesWithProjects)
 
 		queryError := false
 		for _, query := range opts.QueriesWithProjects {
@@ -181,7 +181,7 @@ func initArgparser() {
 	}
 }
 
-func EnsureSplitBySpace(option *[]string) {
+func ensureSplitBySpace(option *[]string) {
 	if len(*option) == 1 {
 		potentialCmdInput := (*option)[0]
 		if strings.Contains(potentialCmdInput, " ") {
@@ -226,7 +226,7 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// whitelist
 	if len(opts.AzureDevopsFilterProjects) > 0 {
-		EnsureSplitBySpace(&opts.AzureDevopsFilterProjects)
+		ensureSplitBySpace(&opts.AzureDevopsFilterProjects)
 		rawList = list
 		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
@@ -238,7 +238,7 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// blacklist
 	if len(opts.AzureDevopsBlacklistProjects) > 0 {
-		EnsureSplitBySpace(&opts.AzureDevopsBlacklistProjects)
+		ensureSplitBySpace(&opts.AzureDevopsBlacklistProjects)
 		// filter ignored azure devops projects
 		rawList = list
 		list = AzureDevops.ProjectList{}
@@ -397,6 +397,7 @@ func initMetricCollector() {
 				Logger.Info("daemon: updating project list")
 
 				projectList := getAzureDevOpsProjects()
+				Logger.Infof("daemon: found %v projects", projectList.Count)
 
 				for _, collector := range collectorGeneralList {
 					collector.SetAzureProjects(&projectList)
@@ -410,11 +411,7 @@ func initMetricCollector() {
 					collector.SetAzureProjects(&projectList)
 				}
 
-				for _, collector := range collectorQueryList {
-					collector.SetAzureProjects(&projectList)
-				}
-
-				Logger.Infof("daemon: found %v projects", projectList.Count)
+				Logger.Info("daemon: skipping Query collectors; they don't use projects")
 				time.Sleep(*opts.ScrapeTimeProjects)
 			}
 		}()
