@@ -59,7 +59,7 @@ var opts struct {
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
 
 	// query settings
-	QueriesWithProjects []string `long:"whitelist.queries"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
+	QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
 
 	// azure settings
 	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
@@ -127,8 +127,6 @@ func initArgparser() {
 
 	// ensure query paths and projects are splitted by '@'
 	if opts.QueriesWithProjects != nil {
-		ensureSplitBySpace(&opts.QueriesWithProjects)
-
 		queryError := false
 		for _, query := range opts.QueriesWithProjects {
 			if strings.Count(query, "@") != 1 {
@@ -183,15 +181,6 @@ func initArgparser() {
 	}
 }
 
-func ensureSplitBySpace(option *[]string) {
-	if len(*option) == 1 {
-		potentialCmdInput := (*option)[0]
-		if strings.Contains(potentialCmdInput, " ") {
-			*option = strings.Split(potentialCmdInput, " ")
-		}
-	}
-}
-
 // Init and build Azure authorzier
 func initAzureDevOpsConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
@@ -228,7 +217,6 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// whitelist
 	if len(opts.AzureDevopsFilterProjects) > 0 {
-		ensureSplitBySpace(&opts.AzureDevopsFilterProjects)
 		rawList = list
 		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
@@ -240,7 +228,6 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 
 	// blacklist
 	if len(opts.AzureDevopsBlacklistProjects) > 0 {
-		ensureSplitBySpace(&opts.AzureDevopsBlacklistProjects)
 		// filter ignored azure devops projects
 		rawList = list
 		list = AzureDevops.ProjectList{}
