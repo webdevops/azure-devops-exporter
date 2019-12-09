@@ -47,6 +47,7 @@ var opts struct {
 	ScrapeTimePullRequest   *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
 	ScrapeTimeStats         *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
 	ScrapeTimeResourceUsage *time.Duration `long:"scrape.time.resourceusage"    env:"SCRAPE_TIME_RESOURCEUSAGE"      description:"Scrape time for resourceusage metrics  (time.duration)"`
+	ScrapeTimeQuery         *time.Duration `long:"scrape.time.query"            env:"SCRAPE_TIME_QUERY"              description:"Scrape time for query results  (time.duration)"`
 	ScrapeTimeLive          *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// summary options
@@ -100,6 +101,7 @@ func main() {
 	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
 	Logger.Infof("set scape interval[Stats]: %v", scrapeIntervalStatus(opts.ScrapeTimeStats))
 	Logger.Infof("set scape interval[ResourceUsage]: %v", scrapeIntervalStatus(opts.ScrapeTimeResourceUsage))
+	Logger.Infof("set scape interval[Queries]: %v", scrapeIntervalStatus(opts.ScrapeTimeQuery))
 	initMetricCollector()
 
 	Logger.Infof("Starting http server on %s", opts.ServerBind)
@@ -172,12 +174,12 @@ func initArgparser() {
 		opts.ScrapeTimeResourceUsage = &opts.ScrapeTime
 	}
 
-	if opts.ScrapeTimeLive == nil {
-		opts.ScrapeTimeLive = &opts.ScrapeTime
-	}
-
 	if opts.StatsSummaryMaxAge == nil {
 		opts.StatsSummaryMaxAge = opts.ScrapeTimeStats
+	}
+
+	if opts.ScrapeTimeQuery == nil {
+		opts.ScrapeTimeQuery = &opts.ScrapeTime
 	}
 }
 
@@ -279,16 +281,6 @@ func initMetricCollector() {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
-	collectorName = "Query"
-	if opts.ScrapeTimeLive.Seconds() > 0 {
-		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
-		collectorQueryList[collectorName].SetAzureProjects(&projectList)
-		collectorQueryList[collectorName].QueryList = opts.QueriesWithProjects
-		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
-	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
-	}
-
 	collectorName = "AgentPool"
 	if opts.ScrapeTimeLive.Seconds() > 0 {
 		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
@@ -367,6 +359,16 @@ func initMetricCollector() {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
 		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
 		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
+
+	collectorName = "Query"
+	if opts.ScrapeTimeQuery.Seconds() > 0 {
+		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
+		collectorQueryList[collectorName].SetAzureProjects(&projectList)
+		collectorQueryList[collectorName].QueryList = opts.QueriesWithProjects
+		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
