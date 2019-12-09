@@ -77,7 +77,17 @@ func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, cal
 			}, *collector.LastScrapeDuration)
 		}
 	}
+
 	for _, collector := range collectorProjectList {
+		if collector.LastScrapeDuration != nil {
+			statsMetrics.AddDuration(prometheus.Labels{
+				"name": collector.Name,
+				"type": "collectorDuration",
+			}, *collector.LastScrapeDuration)
+		}
+	}
+
+	for _, collector := range collectorQueryList {
 		if collector.LastScrapeDuration != nil {
 			statsMetrics.AddDuration(prometheus.Labels{
 				"name": collector.Name,
