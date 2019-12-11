@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -26,6 +27,7 @@ var (
 	collectorGeneralList   map[string]*CollectorGeneral
 	collectorProjectList   map[string]*CollectorProject
 	collectorAgentPoolList map[string]*CollectorAgentPool
+	collectorQueryList     map[string]*CollectorQuery
 )
 
 var opts struct {
@@ -45,6 +47,7 @@ var opts struct {
 	ScrapeTimePullRequest   *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
 	ScrapeTimeStats         *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
 	ScrapeTimeResourceUsage *time.Duration `long:"scrape.time.resourceusage"    env:"SCRAPE_TIME_RESOURCEUSAGE"      description:"Scrape time for resourceusage metrics  (time.duration)"`
+	ScrapeTimeQuery         *time.Duration `long:"scrape.time.query"            env:"SCRAPE_TIME_QUERY"              description:"Scrape time for query results  (time.duration)"`
 	ScrapeTimeLive          *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
 
 	// summary options
@@ -54,6 +57,9 @@ var opts struct {
 	AzureDevopsFilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
 	AzureDevopsBlacklistProjects []string `long:"blacklist.project"    env:"AZURE_DEVOPS_BLACKLIST_PROJECT" env-delim:" "   description:"Filter projects (UUIDs)"`
 	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
+
+	// query settings
+	QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
 
 	// azure settings
 	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
@@ -95,6 +101,7 @@ func main() {
 	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
 	Logger.Infof("set scape interval[Stats]: %v", scrapeIntervalStatus(opts.ScrapeTimeStats))
 	Logger.Infof("set scape interval[ResourceUsage]: %v", scrapeIntervalStatus(opts.ScrapeTimeResourceUsage))
+	Logger.Infof("set scape interval[Queries]: %v", scrapeIntervalStatus(opts.ScrapeTimeQuery))
 	initMetricCollector()
 
 	Logger.Infof("Starting http server on %s", opts.ServerBind)
@@ -114,6 +121,20 @@ func initArgparser() {
 			fmt.Println(err)
 			fmt.Println()
 			argparser.WriteHelp(os.Stdout)
+			os.Exit(1)
+		}
+	}
+
+	// ensure query paths and projects are splitted by '@'
+	if opts.QueriesWithProjects != nil {
+		queryError := false
+		for _, query := range opts.QueriesWithProjects {
+			if strings.Count(query, "@") != 1 {
+				fmt.Println("Query path '", query, "' is malformed; should be '<query UUID>@<project UUID>'")
+				queryError = true
+			}
+		}
+		if queryError {
 			os.Exit(1)
 		}
 	}
@@ -151,12 +172,12 @@ func initArgparser() {
 		opts.ScrapeTimeResourceUsage = &opts.ScrapeTime
 	}
 
-	if opts.ScrapeTimeLive == nil {
-		opts.ScrapeTimeLive = &opts.ScrapeTime
-	}
-
 	if opts.StatsSummaryMaxAge == nil {
 		opts.StatsSummaryMaxAge = opts.ScrapeTimeStats
+	}
+
+	if opts.ScrapeTimeQuery == nil {
+		opts.ScrapeTimeQuery = &opts.ScrapeTime
 	}
 }
 
@@ -225,6 +246,7 @@ func initMetricCollector() {
 	collectorGeneralList = map[string]*CollectorGeneral{}
 	collectorProjectList = map[string]*CollectorProject{}
 	collectorAgentPoolList = map[string]*CollectorAgentPool{}
+	collectorQueryList = map[string]*CollectorQuery{}
 
 	projectList := getAzureDevOpsProjects()
 
@@ -328,6 +350,16 @@ func initMetricCollector() {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
+	collectorName = "Query"
+	if opts.ScrapeTimeQuery.Seconds() > 0 {
+		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
+		collectorQueryList[collectorName].SetAzureProjects(&projectList)
+		collectorQueryList[collectorName].QueryList = opts.QueriesWithProjects
+		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+	} else {
+		Logger.Infof("collector[%s]: disabled", collectorName)
+	}
+
 	for _, collector := range collectorGeneralList {
 		collector.Run()
 	}
@@ -337,6 +369,10 @@ func initMetricCollector() {
 	}
 
 	for _, collector := range collectorAgentPoolList {
+		collector.Run()
+	}
+
+	for _, collector := range collectorQueryList {
 		collector.Run()
 	}
 
@@ -350,6 +386,7 @@ func initMetricCollector() {
 				Logger.Info("daemon: updating project list")
 
 				projectList := getAzureDevOpsProjects()
+				Logger.Infof("daemon: found %v projects", projectList.Count)
 
 				for _, collector := range collectorGeneralList {
 					collector.SetAzureProjects(&projectList)
@@ -363,7 +400,7 @@ func initMetricCollector() {
 					collector.SetAzureProjects(&projectList)
 				}
 
-				Logger.Infof("daemon: found %v projects", projectList.Count)
+				Logger.Info("daemon: skipping Query collectors; they don't use projects")
 				time.Sleep(*opts.ScrapeTimeProjects)
 			}
 		}()

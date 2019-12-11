@@ -31,6 +31,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `AZURE_DEVOPS_FILTER_PROJECT`         | none                                | Whitelist project uuids                                                  |
 | `AZURE_DEVOPS_BLACKLIST_PROJECT`      | none                                | Blacklist project uuids                                                  |
 | `AZURE_DEVOPS_FILTER_AGENTPOOL`       | none                                | Whitelist for agentpool metrics                                          |
+| `AZURE_DEVOPS_QUERIES`                | none                                | Whitelist query and project uuids                                        |
 | `AZURE_DEVOPS_APIVERSION`             | fixed version                       | API version used to query for Azure DevOps                               |
 | `REQUEST_CONCURRENCY`                 | `10`                                | API request concurrency (number of calls at the same time)               |
 | `REQUEST_RETRIES`                     | `3`                                 | API request retries in case of failure                                   |
@@ -71,6 +72,7 @@ Metrics
 | `azure_devops_repository_stats`                 | repository    | Repository stats                                                                     |
 | `azure_devops_repository_commits`               | repository    | Repository commit counter                                                            |
 | `azure_devops_repository_pushes`                | repository    | Repository push counter                                                              |
+| `azure_devops_query_result`                     | live          | Latest results of given queries                                                      |
 | `azure_devops_deployment_info`                  | deployment    | Release deployment informations                                                      |
 | `azure_devops_deployment_status`                | deployment    | Release deployment status informations                                               |
 | `azure_devops_stats_agentpool_builds`           | stats         | Number of buildsper agentpool, project and result (counter)                          |
@@ -106,6 +108,7 @@ Application Options:
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
+      --whitelist.queries=                    Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [%AZURE_DEVOPS_QUERIES%]
       --azuredevops.url=                      Azure DevOps url (empty if hosted by microsoft) [$AZURE_DEVOPS_URL]
       --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
       --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
@@ -136,7 +139,7 @@ Next shift
 bottomk(1,
   min by (userName, time) (
     pagerduty_schedule_final_entry{scheduleID="$SCHEDULEID",type="startTime"}
-    * on (userID) group_left(userName) (pagerduty_user_info) 
+    * on (userID) group_left(userName) (pagerduty_user_info)
   ) - time() > 0
 )
 ```
