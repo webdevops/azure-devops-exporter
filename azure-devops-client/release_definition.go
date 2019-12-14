@@ -15,9 +15,11 @@ type ReleaseDefinition struct {
 	Id                int64 `json:"id"`
 	Name              string
 	Path              string
-	ReleaseNameFormat string
+	ReleaseNameFormat string `json:"releaseNameFormat"`
 
 	Environments []ReleaseDefinitionEnvironment
+
+	LastRelease Release `json:"lastRelease"`
 
 	Links Links `json:"_links"`
 }
@@ -31,9 +33,9 @@ type ReleaseDefinitionEnvironment struct {
 	CurrentRelease struct {
 		Id  int64
 		Url string
-	}
+	}  `json:"currentRelease"`
 
-	BadgeUrl string
+	BadgeUrl string `json:"badgeUrl"`
 }
 
 func (c *AzureDevopsClient) ListReleaseDefinitions(project string) (list ReleaseDefinitionList, error error) {

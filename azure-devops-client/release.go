@@ -14,41 +14,42 @@ type ReleaseList struct {
 
 type Release struct {
 	Id   int64 `json:"id"`
-	Name string
+	Name string `json:"name"`
 
 	Definition struct {
-		Id    int64
-		Name  string
+		Id    int64 `json:"id"`
+		Name  string `json:"name"`
 		Links Links `json:"_links"`
 	} `json:"releaseDefinition"`
 
 	Project Project `json:"projectReference"`
 
-	Queue AgentPoolQueue
+	Queue AgentPoolQueue `json:"queue"`
 
-	Reason        string
-	Result        bool
-	Status        string
-	QueueTime     time.Time
-	QueuePosition string
-	StartTime     time.Time
-	FinishTime    time.Time
-	Uri           string
-	Url           string
+	Reason        string `json:"reason"`
+	Result        bool `json:"result"`
+	Status        string `json:"status"`
+	CreatedOn     time.Time `json:"createdOn"`
+	QueueTime     time.Time `json:"queueTime"`
+	QueuePosition string `json:"queuePosition"`
+	StartTime     time.Time `json:"startTime"`
+	FinishTime    time.Time `json:"finishTime"`
+	Uri           string `json:"uri"`
+	Url           string `json:"url"`
 
-	Artifacts    []ReleaseArtifact
-	Environments []ReleaseEnvironment
+	Artifacts    []ReleaseArtifact `json:"artifacts"`
+	Environments []ReleaseEnvironment `json:"environments"`
 
-	RequestedBy  IdentifyRef
-	RequestedFor IdentifyRef
+	RequestedBy  IdentifyRef `json:"requestedBy"`
+	RequestedFor IdentifyRef `json:"requestedFor"`
 
 	Links Links `json:"_links"`
 }
 
 type ReleaseArtifact struct {
-	SourceId string
-	Type     string
-	Alias    string
+	SourceId string `json:"sourceId"`
+	Type     string `json:"type"`
+	Alias    string `json:"alias"`
 
 	DefinitionReference struct {
 		Definition struct {
@@ -75,29 +76,29 @@ type ReleaseArtifact struct {
 			Id   string
 			Name string
 		}
-	}
+	} `json:"definitionReference"`
 }
 
 type ReleaseEnvironment struct {
-	Id                      int64
-	ReleaseId               int64
-	DefinitionEnvironmentId int64
-	Name                    string
-	Status                  string
-	Rank                    int64
+	Id                      int64 `json:"id"`
+	ReleaseId               int64 `json:"releaseId"`
+	DefinitionEnvironmentId int64 `json:"definitionEnvironmentId"`
+	Name                    string `json:"name"`
+	Status                  string `json:"status"`
+	Rank                    int64 `json:"rank"`
 
-	TriggerReason string
+	TriggerReason string `json:"triggerReason"`
 
-	DeploySteps []ReleaseEnvironmentDeployStep
+	DeploySteps []ReleaseEnvironmentDeployStep `json:"deploySteps"`
 
-	PreDeployApprovals  []ReleaseEnvironmentApproval
-	PostDeployApprovals []ReleaseEnvironmentApproval
+	PreDeployApprovals  []ReleaseEnvironmentApproval `json:"preDeployApprovals"`
+	PostDeployApprovals []ReleaseEnvironmentApproval `json:"postDeployApprovals"`
 
-	CreatedOn      time.Time
-	QueuedOn       time.Time
-	LastModifiedOn time.Time
+	CreatedOn      time.Time `json:"createdOn"`
+	QueuedOn       time.Time `json:"queuedOn"`
+	LastModifiedOn time.Time `json:"lastModifiedOn"`
 
-	TimeToDeploy float64
+	TimeToDeploy float64 `json:"timeToDeploy"`
 }
 
 type ReleaseEnvironmentDeployStep struct {
@@ -121,7 +122,7 @@ type ReleaseEnvironmentDeployStepPhase struct {
 	Rank      int64
 	PhaseType string
 	Status    string
-	StartedOn time.Time
+	StartedOn time.Time `json:"startedOn"`
 }
 
 type ReleaseEnvironmentApproval struct {
@@ -132,19 +133,46 @@ type ReleaseEnvironmentApproval struct {
 	Comments         string
 	IsAutomated      bool
 	IsNotificationOn bool
-	TrialNumber      int64
-	Attempt          int64
-	Rank             int64
+	TrialNumber      int64 `json:"trialNumber"`
+	Attempt          int64 `json:"attempt"`
+	Rank             int64 `json:"rank"`
 
-	Approver   IdentifyRef
-	ApprovedBy IdentifyRef
+	Approver   IdentifyRef `json:"approver"`
+	ApprovedBy IdentifyRef `json:"approvedBy"`
 
-	CreatedOn  time.Time
-	ModifiedOn time.Time
+	CreatedOn  time.Time `json:"createdOn"`
+	ModifiedOn time.Time `json:"modifiedOn"`
 }
 
 func (r *Release) QueueDuration() time.Duration {
 	return r.StartTime.Sub(r.QueueTime)
+}
+
+func (c *AzureDevopsClient) ListLatestReleases(project string, duration time.Duration) (list ReleaseList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	minTime := time.Now().Add(- duration)
+
+	url := fmt.Sprintf(
+		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&minCreatedTime=%s",
+		url.QueryEscape(project),
+		url.QueryEscape(c.ApiVersion),
+		url.QueryEscape(minTime.Format(time.RFC3339)),
+	)
+	response, err := c.restVsrm().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
 }
 
 func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
