@@ -127,3 +127,15 @@ Help Options:
   -h, --help                                  Show this help message
 ```
 
+Prometheus queries
+------------------
+
+Last 3 failed releases per definition for one project
+```
+topk by(projectID,releaseDefinitionName,path) (3,
+  azure_devops_release_environment{projectID="XXXXXXXXXXXXXXXX", status!="succeeded", status!="inProgress"}
+  * on (projectID,releaseID,environmentID) group_left() (azure_devops_release_environment_status{type="created"})
+  * on (projectID,releaseID) group_left(releaseName, releaseDefinitionID) (azure_devops_release_info)
+  * on (projectID,releaseDefinitionID) group_left(path, releaseDefinitionName) (azure_devops_release_definition_info)
+)
+```
