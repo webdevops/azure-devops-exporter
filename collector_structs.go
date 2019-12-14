@@ -1,20 +1,13 @@
 package main
 
 import (
-	"crypto/sha1"
-	"fmt"
 	"github.com/prometheus/client_golang/prometheus"
-	"strings"
 	"time"
 )
 
 type MetricCollectorRow struct {
 	labels prometheus.Labels
 	value  float64
-}
-
-type MetricCollectorList struct {
-	list map[string]MetricCollectorRow
 }
 
 func NewMetricCollectorList() *MetricCollectorList {
@@ -24,48 +17,42 @@ func NewMetricCollectorList() *MetricCollectorList {
 }
 
 func (m *MetricCollectorList) Init() {
-	m.list = map[string]MetricCollectorRow{}
+	m.list = []MetricCollectorRow{}
 }
 
-func (m *MetricCollectorList) hashLabels(labels prometheus.Labels) string {
-	list := []string{}
-
-	for key, value := range labels {
-		list = append(list, fmt.Sprintf("%s=%s", key, value))
-	}
-
-	return fmt.Sprintf("%x", sha1.Sum([]byte(strings.Join(list, "#"))))
+type MetricCollectorList struct {
+	list []MetricCollectorRow
 }
 
 func (m *MetricCollectorList) Add(labels prometheus.Labels, value float64) {
-	m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: value}
+	m.list = append(m.list, MetricCollectorRow{labels: labels, value: value})
 }
 
 func (m *MetricCollectorList) AddInfo(labels prometheus.Labels) {
-	m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: 1}
+	m.list = append(m.list, MetricCollectorRow{labels: labels, value: 1})
 }
 
 func (m *MetricCollectorList) AddTime(labels prometheus.Labels, value time.Time) {
 	timeValue := timeToFloat64(value)
 
 	if timeValue > 0 {
-		m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: timeValue}
+		m.list = append(m.list, MetricCollectorRow{labels: labels, value: timeValue})
 	}
 }
 
 func (m *MetricCollectorList) AddDuration(labels prometheus.Labels, value time.Duration) {
-	m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: value.Seconds()}
+	m.list = append(m.list, MetricCollectorRow{labels: labels, value: value.Seconds()})
 }
 
 func (m *MetricCollectorList) AddIfNotZero(labels prometheus.Labels, value float64) {
 	if value != 0 {
-		m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: value}
+		m.list = append(m.list, MetricCollectorRow{labels: labels, value: value})
 	}
 }
 
 func (m *MetricCollectorList) AddIfGreaterZero(labels prometheus.Labels, value float64) {
 	if value > 0 {
-		m.list[m.hashLabels(labels)] = MetricCollectorRow{labels: labels, value: value}
+		m.list = append(m.list, MetricCollectorRow{labels: labels, value: value})
 	}
 }
 
@@ -80,6 +67,7 @@ func (m *MetricCollectorList) CounterAdd(counter *prometheus.CounterVec) {
 		counter.With(metric.labels).Add(metric.value)
 	}
 }
+
 func (m *MetricCollectorList) SummarySet(counter *prometheus.SummaryVec) {
 	for _, metric := range m.list {
 		counter.With(metric.labels).Observe(metric.value)
