@@ -124,22 +124,3 @@ Help Options:
   -h, --help                                  Show this help message
 ```
 
-
-Prometheus queries
-------------------
-
-Current oncall person
-```
-pagerduty_schedule_oncall{scheduleID="$SCHEDULEID",type="startTime"}
-* on (userID) group_left(userName) (pagerduty_user_info)
-```
-
-Next shift
-```
-bottomk(1,
-  min by (userName, time) (
-    pagerduty_schedule_final_entry{scheduleID="$SCHEDULEID",type="startTime"}
-    * on (userID) group_left(userName) (pagerduty_user_info)
-  ) - time() > 0
-)
-```
