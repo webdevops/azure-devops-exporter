@@ -71,6 +71,7 @@ var opts struct {
 	RequestRetries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
 
 	LimitBuildsPerDefinition          int64 `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"      default:"10"`
+	LimitReleasesPerProject           int64 `long:"limit.releases-per-project"            env:"LIMIT_RELEASES_PER_PROJECT"            description:"Limit releases per project"       default:"100"`
 	LimitReleasesPerDefinition        int64 `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"    default:"100"`
 	LimitDeploymentPerDefinition      int64 `long:"limit.deployments-per-definition"      env:"LIMIT_DEPLOYMENTS_PER_DEFINITION"      description:"Limit deployments per definition" default:"100"`
 	LimitReleaseDefinitionsPerProject int64 `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"      default:"100"`
@@ -204,6 +205,7 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.LimitReleasesPerDefinition = opts.LimitReleasesPerDefinition
 	AzureDevopsClient.LimitDeploymentPerDefinition = opts.LimitDeploymentPerDefinition
 	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.LimitReleaseDefinitionsPerProject
+	AzureDevopsClient.LimitReleasesPerProject = opts.LimitReleasesPerProject
 }
 
 func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {

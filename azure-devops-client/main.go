@@ -29,6 +29,7 @@ type AzureDevopsClient struct {
 	LimitReleasesPerDefinition        int64
 	LimitDeploymentPerDefinition      int64
 	LimitReleaseDefinitionsPerProject int64
+	LimitReleasesPerProject int64
 }
 
 func NewAzureDevopsClient() *AzureDevopsClient {
@@ -49,6 +50,7 @@ func (c *AzureDevopsClient) Init() {
 	c.LimitReleasesPerDefinition = 100
 	c.LimitDeploymentPerDefinition = 100
 	c.LimitReleaseDefinitionsPerProject = 100
+	c.LimitReleasesPerProject = 100
 }
 
 func (c *AzureDevopsClient) SetConcurrency(v int64) {
