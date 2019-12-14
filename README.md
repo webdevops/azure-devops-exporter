@@ -39,6 +39,7 @@ Normally no configuration is needed but can be customized using environment vari
 | `LIMIT_RELEASES_PER_DEFINITION`       | `100`                               | Fetched releases per definition                                          |
 | `LIMIT_DEPLOYMENTS_PER_DEFINITION`    | `100`                               | Fetched deployments per definition                                       |
 | `LIMIT_RELEASEDEFINITION_PER_PROJECT` | `100`                               | Fetched builds per definition                                            |
+| `LIMIT_RELEASE_DURATION`              | `48h`                               | Time (time.Duration) how long the exporter should look back for releases |
 
 
 Metrics

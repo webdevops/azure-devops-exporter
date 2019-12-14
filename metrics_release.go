@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	"time"
 )
 
 type MetricsCollectorRelease struct {
@@ -200,108 +201,110 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 				"badgeUrl":            environment.BadgeUrl,
 			})
 		}
+	}
 
-		// --------------------------------------
-		// Releases
 
-		releaseList, err := AzureDevopsClient.ListReleases(project.Id, releaseDefinition.Id)
-		if err != nil {
-			Logger.Errorf("project[%v]call[ListReleases]: %v", project.Name, err)
-			return
+
+	// --------------------------------------
+	// Releases
+
+	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, time.Duration(24 * time.Hour))
+	if err != nil {
+		Logger.Errorf("project[%v]call[ListReleases]: %v", project.Name, err)
+		return
+	}
+
+	for _, release := range releaseList.List {
+		releaseMetric.AddInfo(prometheus.Labels{
+			"projectID":           project.Id,
+			"releaseID":           int64ToString(release.Id),
+			"releaseDefinitionID": int64ToString(release.Definition.Id),
+			"requestedBy":         release.RequestedBy.DisplayName,
+			"releaseName":         release.Name,
+			"status":              release.Status,
+			"reason":              release.Reason,
+			"result":              boolToString(release.Result),
+			"url":                 release.Links.Web.Href,
+		})
+
+		for _, artifact := range release.Artifacts {
+			releaseArtifactMetric.AddInfo(prometheus.Labels{
+				"projectID":    project.Id,
+				"releaseID":    int64ToString(release.Id),
+				"sourceId":     artifact.SourceId,
+				"repositoryID": artifact.DefinitionReference.Repository.Name,
+				"branch":       artifact.DefinitionReference.Branch.Name,
+				"type":         artifact.Type,
+				"alias":        artifact.Alias,
+				"version":      artifact.DefinitionReference.Version.Name,
+			})
 		}
 
-		for _, release := range releaseList.List {
-			releaseMetric.AddInfo(prometheus.Labels{
-				"projectID":           project.Id,
-				"releaseID":           int64ToString(release.Id),
-				"releaseDefinitionID": int64ToString(release.Definition.Id),
-				"requestedBy":         release.RequestedBy.DisplayName,
-				"releaseName":         release.Name,
-				"status":              release.Status,
-				"reason":              release.Reason,
-				"result":              boolToString(release.Result),
-				"url":                 release.Links.Web.Href,
+		for _, environment := range release.Environments {
+			releaseEnvironmentMetric.AddInfo(prometheus.Labels{
+				"projectID":       project.Id,
+				"releaseID":       int64ToString(release.Id),
+				"environmentID":   int64ToString(environment.DefinitionEnvironmentId),
+				"environmentName": environment.Name,
+				"status":          environment.Status,
+				"triggerReason":   environment.TriggerReason,
+				"rank":            int64ToString(environment.Rank),
 			})
 
-			for _, artifact := range release.Artifacts {
-				releaseArtifactMetric.AddInfo(prometheus.Labels{
-					"projectID":    project.Id,
-					"releaseID":    int64ToString(release.Id),
-					"sourceId":     artifact.SourceId,
-					"repositoryID": artifact.DefinitionReference.Repository.Name,
-					"branch":       artifact.DefinitionReference.Branch.Name,
-					"type":         artifact.Type,
-					"alias":        artifact.Alias,
-					"version":      artifact.DefinitionReference.Version.Name,
-				})
+			releaseEnvironmentStatusMetric.AddTime(prometheus.Labels{
+				"projectID":     project.Id,
+				"releaseID":     int64ToString(release.Id),
+				"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+				"type":          "created",
+			}, environment.CreatedOn)
+
+			releaseEnvironmentStatusMetric.AddIfNotZero(prometheus.Labels{
+				"projectID":     project.Id,
+				"releaseID":     int64ToString(release.Id),
+				"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+				"type":          "jobDuration",
+			}, environment.TimeToDeploy * 60)
+
+			for _, approval := range environment.PreDeployApprovals {
+				// skip automated approvals
+				if approval.IsAutomated {
+					continue
+				}
+
+				releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
+					"projectID":     project.Id,
+					"releaseID":     int64ToString(release.Id),
+					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
+					"approvalType":  approval.ApprovalType,
+					"status":        approval.Status,
+					"isAutomated":   boolToString(approval.IsAutomated),
+					"trialNumber":   int64ToString(approval.TrialNumber),
+					"attempt":       int64ToString(approval.Attempt),
+					"rank":          int64ToString(approval.Rank),
+					"approver":      approval.Approver.DisplayName,
+					"approvedBy":    approval.ApprovedBy.DisplayName,
+				}, approval.CreatedOn)
 			}
 
-			for _, environment := range release.Environments {
-				releaseEnvironmentMetric.AddInfo(prometheus.Labels{
-					"projectID":       project.Id,
-					"releaseID":       int64ToString(release.Id),
-					"environmentID":   int64ToString(environment.DefinitionEnvironmentId),
-					"environmentName": environment.Name,
-					"status":          environment.Status,
-					"triggerReason":   environment.TriggerReason,
-					"rank":            int64ToString(environment.Rank),
-				})
+			for _, approval := range environment.PostDeployApprovals {
+				// skip automated approvals
+				if approval.IsAutomated {
+					continue
+				}
 
-				releaseEnvironmentStatusMetric.AddTime(prometheus.Labels{
+				releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
 					"projectID":     project.Id,
 					"releaseID":     int64ToString(release.Id),
 					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
-					"type":          "created",
-				}, environment.CreatedOn)
-
-				releaseEnvironmentStatusMetric.Add(prometheus.Labels{
-					"projectID":     project.Id,
-					"releaseID":     int64ToString(release.Id),
-					"environmentID": int64ToString(environment.DefinitionEnvironmentId),
-					"type":          "jobDuration",
-				}, environment.TimeToDeploy)
-
-				for _, approval := range environment.PreDeployApprovals {
-					// skip automated approvals
-					if approval.IsAutomated {
-						continue
-					}
-
-					releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
-						"projectID":     project.Id,
-						"releaseID":     int64ToString(release.Id),
-						"environmentID": int64ToString(environment.DefinitionEnvironmentId),
-						"approvalType":  approval.ApprovalType,
-						"status":        approval.Status,
-						"isAutomated":   boolToString(approval.IsAutomated),
-						"trialNumber":   int64ToString(approval.TrialNumber),
-						"attempt":       int64ToString(approval.Attempt),
-						"rank":          int64ToString(approval.Rank),
-						"approver":      approval.Approver.DisplayName,
-						"approvedBy":    approval.ApprovedBy.DisplayName,
-					}, approval.CreatedOn)
-				}
-
-				for _, approval := range environment.PostDeployApprovals {
-					// skip automated approvals
-					if approval.IsAutomated {
-						continue
-					}
-
-					releaseEnvironmentApprovalMetric.AddTime(prometheus.Labels{
-						"projectID":     project.Id,
-						"releaseID":     int64ToString(release.Id),
-						"environmentID": int64ToString(environment.DefinitionEnvironmentId),
-						"approvalType":  approval.ApprovalType,
-						"status":        approval.Status,
-						"isAutomated":   boolToString(approval.IsAutomated),
-						"trialNumber":   int64ToString(approval.TrialNumber),
-						"attempt":       int64ToString(approval.Attempt),
-						"rank":          int64ToString(approval.Rank),
-						"approver":      approval.Approver.DisplayName,
-						"approvedBy":    approval.ApprovedBy.DisplayName,
-					}, approval.CreatedOn)
-				}
+					"approvalType":  approval.ApprovalType,
+					"status":        approval.Status,
+					"isAutomated":   boolToString(approval.IsAutomated),
+					"trialNumber":   int64ToString(approval.TrialNumber),
+					"attempt":       int64ToString(approval.Attempt),
+					"rank":          int64ToString(approval.Rank),
+					"approver":      approval.Approver.DisplayName,
+					"approvedBy":    approval.ApprovedBy.DisplayName,
+				}, approval.CreatedOn)
 			}
 		}
 	}

@@ -74,6 +74,7 @@ var opts struct {
 	LimitReleasesPerDefinition        int64 `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"    default:"100"`
 	LimitDeploymentPerDefinition      int64 `long:"limit.deployments-per-definition"      env:"LIMIT_DEPLOYMENTS_PER_DEFINITION"      description:"Limit deployments per definition" default:"100"`
 	LimitReleaseDefinitionsPerProject int64 `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"      default:"100"`
+	LimitReleaseDuration              time.Duration `long:"limit.release-duration"        env:"LIMIT_RELEASE_DURATION"                description:"Time (time.Duration) how long the exporter should look back for releases"      default:"48h"`
 }
 
 func main() {
