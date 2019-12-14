@@ -33,7 +33,7 @@ type ReleaseDefinitionEnvironment struct {
 	CurrentRelease struct {
 		Id  int64
 		Url string
-	}  `json:"currentRelease"`
+	} `json:"currentRelease"`
 
 	BadgeUrl string `json:"badgeUrl"`
 }

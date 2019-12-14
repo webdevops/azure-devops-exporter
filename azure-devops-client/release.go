@@ -13,31 +13,31 @@ type ReleaseList struct {
 }
 
 type Release struct {
-	Id   int64 `json:"id"`
+	Id   int64  `json:"id"`
 	Name string `json:"name"`
 
 	Definition struct {
-		Id    int64 `json:"id"`
+		Id    int64  `json:"id"`
 		Name  string `json:"name"`
-		Links Links `json:"_links"`
+		Links Links  `json:"_links"`
 	} `json:"releaseDefinition"`
 
 	Project Project `json:"projectReference"`
 
 	Queue AgentPoolQueue `json:"queue"`
 
-	Reason        string `json:"reason"`
-	Result        bool `json:"result"`
-	Status        string `json:"status"`
+	Reason        string    `json:"reason"`
+	Result        bool      `json:"result"`
+	Status        string    `json:"status"`
 	CreatedOn     time.Time `json:"createdOn"`
 	QueueTime     time.Time `json:"queueTime"`
-	QueuePosition string `json:"queuePosition"`
+	QueuePosition string    `json:"queuePosition"`
 	StartTime     time.Time `json:"startTime"`
 	FinishTime    time.Time `json:"finishTime"`
-	Uri           string `json:"uri"`
-	Url           string `json:"url"`
+	Uri           string    `json:"uri"`
+	Url           string    `json:"url"`
 
-	Artifacts    []ReleaseArtifact `json:"artifacts"`
+	Artifacts    []ReleaseArtifact    `json:"artifacts"`
 	Environments []ReleaseEnvironment `json:"environments"`
 
 	RequestedBy  IdentifyRef `json:"requestedBy"`
@@ -80,12 +80,12 @@ type ReleaseArtifact struct {
 }
 
 type ReleaseEnvironment struct {
-	Id                      int64 `json:"id"`
-	ReleaseId               int64 `json:"releaseId"`
-	DefinitionEnvironmentId int64 `json:"definitionEnvironmentId"`
+	Id                      int64  `json:"id"`
+	ReleaseId               int64  `json:"releaseId"`
+	DefinitionEnvironmentId int64  `json:"definitionEnvironmentId"`
 	Name                    string `json:"name"`
 	Status                  string `json:"status"`
-	Rank                    int64 `json:"rank"`
+	Rank                    int64  `json:"rank"`
 
 	TriggerReason string `json:"triggerReason"`
 

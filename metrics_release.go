@@ -203,11 +203,9 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		}
 	}
 
-
-
 	// --------------------------------------
 	// Releases
-	minTime := time.Now().Add(- time.Duration(opts.LimitReleaseDuration))
+	minTime := time.Now().Add(-time.Duration(opts.LimitReleaseDuration))
 
 	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, minTime)
 	if err != nil {
@@ -264,7 +262,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 				"releaseID":     int64ToString(release.Id),
 				"environmentID": int64ToString(environment.DefinitionEnvironmentId),
 				"type":          "jobDuration",
-			}, environment.TimeToDeploy * 60)
+			}, environment.TimeToDeploy*60)
 
 			for _, approval := range environment.PreDeployApprovals {
 				// skip automated approvals

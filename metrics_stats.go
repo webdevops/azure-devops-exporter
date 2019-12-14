@@ -14,9 +14,9 @@ type MetricsCollectorStats struct {
 		agentPoolBuildWait     *prometheus.SummaryVec
 		agentPoolBuildDuration *prometheus.SummaryVec
 
-		projectBuildCount    *prometheus.CounterVec
-		projectBuildWait     *prometheus.SummaryVec
-		projectBuildDuration *prometheus.SummaryVec
+		projectBuildCount      *prometheus.CounterVec
+		projectBuildWait       *prometheus.SummaryVec
+		projectBuildDuration   *prometheus.SummaryVec
 		projectReleaseDuration *prometheus.SummaryVec
 	}
 }
@@ -122,7 +122,6 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		},
 	)
 
-
 	prometheus.MustRegister(m.prometheus.agentPoolBuildCount)
 	prometheus.MustRegister(m.prometheus.agentPoolBuildWait)
 	prometheus.MustRegister(m.prometheus.agentPoolBuildDuration)
@@ -157,10 +156,10 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, callback ch
 
 			if timeToDeploy > 0 {
 				m.prometheus.projectReleaseDuration.With(prometheus.Labels{
-					"projectID":         release.Project.Id,
-					"releaseDefinitionID": int64ToString(release.Definition.Id),
+					"projectID":               release.Project.Id,
+					"releaseDefinitionID":     int64ToString(release.Definition.Id),
 					"definitionEnvironmentID": int64ToString(environment.DefinitionEnvironmentId),
-					"status":            environment.Status,
+					"status":                  environment.Status,
 				}).Observe(timeToDeploy)
 			}
 		}

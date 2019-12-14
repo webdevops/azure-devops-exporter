@@ -29,7 +29,7 @@ type AzureDevopsClient struct {
 	LimitReleasesPerDefinition        int64
 	LimitDeploymentPerDefinition      int64
 	LimitReleaseDefinitionsPerProject int64
-	LimitReleasesPerProject int64
+	LimitReleasesPerProject           int64
 }
 
 func NewAzureDevopsClient() *AzureDevopsClient {
