@@ -17,6 +17,7 @@ type MetricsCollectorStats struct {
 		projectBuildCount    *prometheus.CounterVec
 		projectBuildWait     *prometheus.SummaryVec
 		projectBuildDuration *prometheus.SummaryVec
+		projectReleaseDuration *prometheus.SummaryVec
 	}
 }
 
@@ -107,6 +108,21 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		},
 	)
 
+	m.prometheus.projectReleaseDuration = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Name:   "azure_devops_stats_project_release_duration",
+			Help:   "Azure DevOps stats project release process duration",
+			MaxAge: *opts.StatsSummaryMaxAge,
+		},
+		[]string{
+			"projectID",
+			"releaseDefinitionID",
+			"definitionEnvironmentID",
+			"status",
+		},
+	)
+
+
 	prometheus.MustRegister(m.prometheus.agentPoolBuildCount)
 	prometheus.MustRegister(m.prometheus.agentPoolBuildWait)
 	prometheus.MustRegister(m.prometheus.agentPoolBuildDuration)
@@ -114,6 +130,8 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 	prometheus.MustRegister(m.prometheus.projectBuildCount)
 	prometheus.MustRegister(m.prometheus.projectBuildWait)
 	prometheus.MustRegister(m.prometheus.projectBuildDuration)
+
+	prometheus.MustRegister(m.prometheus.projectReleaseDuration)
 }
 
 func (m *MetricsCollectorStats) Reset() {
@@ -121,6 +139,32 @@ func (m *MetricsCollectorStats) Reset() {
 
 func (m *MetricsCollectorStats) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	m.CollectBuilds(ctx, callback, project)
+	m.CollectReleases(ctx, callback, project)
+}
+
+func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+	minTime := *m.CollectorReference.collectionLastTime
+
+	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, minTime)
+	if err != nil {
+		Logger.Errorf("project[%v]call[ListLatestReleases]: %v", project.Name, err)
+		return
+	}
+
+	for _, release := range releaseList.List {
+		for _, environment := range release.Environments {
+			timeToDeploy := environment.TimeToDeploy * 60
+
+			if timeToDeploy > 0 {
+				m.prometheus.projectReleaseDuration.With(prometheus.Labels{
+					"projectID":         release.Project.Id,
+					"releaseDefinitionID": int64ToString(release.Definition.Id),
+					"definitionEnvironmentID": int64ToString(environment.DefinitionEnvironmentId),
+					"status":            environment.Status,
+				}).Observe(timeToDeploy)
+			}
+		}
+	}
 }
 
 func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {

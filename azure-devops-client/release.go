@@ -148,11 +148,9 @@ func (r *Release) QueueDuration() time.Duration {
 	return r.StartTime.Sub(r.QueueTime)
 }
 
-func (c *AzureDevopsClient) ListLatestReleases(project string, duration time.Duration) (list ReleaseList, error error) {
+func (c *AzureDevopsClient) ListLatestReleases(project string, minTime time.Time) (list ReleaseList, error error) {
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
-
-	minTime := time.Now().Add(- duration)
 
 	url := fmt.Sprintf(
 		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&minCreatedTime=%s&$top=%v",

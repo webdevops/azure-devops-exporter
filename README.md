@@ -83,6 +83,7 @@ Metrics
 | `azure_devops_stats_project_builds`             | stats         | Number of builds per project, definition and result (counter)                        |
 | `azure_devops_stats_project_builds_wait`        | stats         | Build wait time per project, definition and result (summary)                         |
 | `azure_devops_stats_project_builds_duration`    | stats         | Build duration per project, definition and result (summary)                          |
+| `azure_devops_stats_project_release_duration`   | stats         | Release environment duration per project, definition, environment and result (summary) |
 | `azure_devops_resourceusage_build`              | resourceusage | Usage of limited and paid Azure DevOps resources                                     |
 
 

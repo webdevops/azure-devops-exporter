@@ -207,10 +207,11 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 	// --------------------------------------
 	// Releases
+	minTime := time.Now().Add(- time.Duration(opts.LimitReleaseDuration))
 
-	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, time.Duration(24 * time.Hour))
+	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, minTime)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListReleases]: %v", project.Name, err)
+		Logger.Errorf("project[%v]call[ListLatestReleases]: %v", project.Name, err)
 		return
 	}
 
