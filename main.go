@@ -119,7 +119,6 @@ func initArgparser() {
 		if flagsErr, ok := err.(*flags.Error); ok && flagsErr.Type == flags.ErrHelp {
 			os.Exit(0)
 		} else {
-			fmt.Println(err)
 			fmt.Println()
 			argparser.WriteHelp(os.Stdout)
 			os.Exit(1)
