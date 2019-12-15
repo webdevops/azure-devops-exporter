@@ -25,6 +25,7 @@ type AzureDevopsClient struct {
 	RequestCount   uint64
 	RequestRetries int
 
+	LimitBuildsPerProject             int64
 	LimitBuildsPerDefinition          int64
 	LimitReleasesPerDefinition        int64
 	LimitDeploymentPerDefinition      int64
@@ -46,6 +47,7 @@ func (c *AzureDevopsClient) Init() {
 	c.SetRetries(3)
 	c.SetConcurrency(10)
 
+	c.LimitBuildsPerProject = 100
 	c.LimitBuildsPerDefinition = 10
 	c.LimitReleasesPerDefinition = 100
 	c.LimitDeploymentPerDefinition = 100

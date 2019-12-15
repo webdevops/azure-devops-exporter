@@ -144,7 +144,7 @@ func (m *MetricsCollectorStats) Collect(ctx context.Context, callback chan<- fun
 func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 	minTime := *m.CollectorReference.collectionLastTime
 
-	releaseList, err := AzureDevopsClient.ListLatestReleases(project.Id, minTime)
+	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
 		Logger.Errorf("project[%v]call[ListLatestReleases]: %v", project.Name, err)
 		return

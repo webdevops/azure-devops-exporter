@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	"time"
 )
 
 type MetricsCollectorBuild struct {
@@ -116,9 +117,11 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 }
 
 func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	list, err := AzureDevopsClient.ListBuilds(project.Id)
+	minTime := time.Now().Add(-opts.LimitBuildHistoryDuration)
+
+	list, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListBuilds]: %v", project.Name, err)
+		Logger.Errorf("project[%v]call[ListBuildHistory]: %v", project.Name, err)
 		return
 	}
 

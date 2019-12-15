@@ -148,16 +148,16 @@ func (r *Release) QueueDuration() time.Duration {
 	return r.StartTime.Sub(r.QueueTime)
 }
 
-func (c *AzureDevopsClient) ListLatestReleases(project string, minTime time.Time) (list ReleaseList, error error) {
+func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&minCreatedTime=%s&$top=%v",
+		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(minTime.Format(time.RFC3339)),
-		url.QueryEscape(int64ToString(c.LimitReleasesPerProject)),
+		url.QueryEscape(int64ToString(releaseDefinitionId)),
+		url.QueryEscape(int64ToString(c.LimitReleasesPerDefinition)),
 	)
 	response, err := c.restVsrm().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
@@ -174,16 +174,16 @@ func (c *AzureDevopsClient) ListLatestReleases(project string, minTime time.Time
 	return
 }
 
-func (c *AzureDevopsClient) ListReleases(project string, releaseDefinitionId int64) (list ReleaseList, error error) {
+func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time) (list ReleaseList, error error) {
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&definitionId=%s&$top=%v",
+		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&minCreatedTime=%s&$top=%v",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(int64ToString(releaseDefinitionId)),
-		url.QueryEscape(int64ToString(c.LimitReleasesPerDefinition)),
+		url.QueryEscape(minTime.Format(time.RFC3339)),
+		url.QueryEscape(int64ToString(c.LimitReleasesPerProject)),
 	)
 	response, err := c.restVsrm().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {

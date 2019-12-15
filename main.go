@@ -70,12 +70,14 @@ var opts struct {
 	RequestConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
 	RequestRetries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
 
+	LimitBuildsPerProject             int64         `long:"limit.builds-per-project"              env:"LIMIT_BUILDS_PER_PROJECT"              description:"Limit builds per project"         default:"100"`
 	LimitBuildsPerDefinition          int64         `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"      default:"10"`
 	LimitReleasesPerProject           int64         `long:"limit.releases-per-project"            env:"LIMIT_RELEASES_PER_PROJECT"            description:"Limit releases per project"       default:"100"`
 	LimitReleasesPerDefinition        int64         `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"    default:"100"`
 	LimitDeploymentPerDefinition      int64         `long:"limit.deployments-per-definition"      env:"LIMIT_DEPLOYMENTS_PER_DEFINITION"      description:"Limit deployments per definition" default:"100"`
 	LimitReleaseDefinitionsPerProject int64         `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"      default:"100"`
-	LimitReleaseDuration              time.Duration `long:"limit.release-duration"        env:"LIMIT_RELEASE_DURATION"                description:"Time (time.Duration) how long the exporter should look back for releases"      default:"48h"`
+	LimitBuildHistoryDuration         time.Duration `long:"limit.build-history-duration"          env:"LIMIT_BUILD_HISTORY_DURATION"          description:"Time (time.Duration) how long the exporter should look back for builds"      default:"48h"`
+	LimitReleaseHistoryDuration       time.Duration `long:"limit.release-history-duration"        env:"LIMIT_RELEASE_HISTORY_DURATION"        description:"Time (time.Duration) how long the exporter should look back for releases"      default:"48h"`
 }
 
 func main() {
@@ -201,6 +203,7 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.SetRetries(opts.RequestRetries)
 	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", Version))
 
+	AzureDevopsClient.LimitBuildsPerProject = opts.LimitBuildsPerProject
 	AzureDevopsClient.LimitBuildsPerDefinition = opts.LimitBuildsPerDefinition
 	AzureDevopsClient.LimitReleasesPerDefinition = opts.LimitReleasesPerDefinition
 	AzureDevopsClient.LimitDeploymentPerDefinition = opts.LimitDeploymentPerDefinition

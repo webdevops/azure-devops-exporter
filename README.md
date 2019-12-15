@@ -35,12 +35,14 @@ Normally no configuration is needed but can be customized using environment vari
 | `AZURE_DEVOPS_APIVERSION`             | fixed version                       | API version used to query for Azure DevOps                               |
 | `REQUEST_CONCURRENCY`                 | `10`                                | API request concurrency (number of calls at the same time)               |
 | `REQUEST_RETRIES`                     | `3`                                 | API request retries in case of failure                                   |
+| `LIMIT_BUILDS_PER_PROJECT`            | `100`                               | Fetched builds per project                                               |
 | `LIMIT_BUILDS_PER_DEFINITION`         | `10`                                | Fetched builds per definition                                            |
 | `LIMIT_RELEASES_PER_PROJECT`          | `100`                               | Fetched releases per project                                             |
 | `LIMIT_RELEASES_PER_DEFINITION`       | `100`                               | Fetched releases per definition                                          |
 | `LIMIT_DEPLOYMENTS_PER_DEFINITION`    | `100`                               | Fetched deployments per definition                                       |
 | `LIMIT_RELEASEDEFINITION_PER_PROJECT` | `100`                               | Fetched builds per definition                                            |
-| `LIMIT_RELEASE_DURATION`              | `48h`                               | Time (time.Duration) how long the exporter should look back for releases |
+| `LIMIT_BUILD_HISTORY_DURATION`        | `48h`                               | Time (time.Duration) how long the exporter should look back for builds |
+| `LIMIT_RELEASE_HISTORY_DURATION`      | `48h`                               | Time (time.Duration) how long the exporter should look back for releases |
 
 
 Metrics
