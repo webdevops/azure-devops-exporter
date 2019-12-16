@@ -86,7 +86,8 @@ Metrics
 | `azure_devops_stats_project_builds_wait`        | stats         | Build wait time per project, definition and result (summary)                         |
 | `azure_devops_stats_project_builds_duration`    | stats         | Build duration per project, definition and result (summary)                          |
 | `azure_devops_stats_project_release_duration`   | stats         | Release environment duration per project, definition, environment and result (summary) |
-| `azure_devops_resourceusage_build`              | resourceusage | Usage of limited and paid Azure DevOps resources                                     |
+| `azure_devops_resourceusage_build`              | resourceusage | Usage of limited and paid Azure DevOps resources (build)                             |
+| `azure_devops_resourceusage_license`            | resourceusage | Usage of limited and paid Azure DevOps resources (license)                           |
 
 
 Usage
@@ -108,22 +109,29 @@ Application Options:
       --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
       --scrape.time.stats=                    Scrape time for stats metrics  (time.duration) [$SCRAPE_TIME_STATS]
       --scrape.time.resourceusage=            Scrape time for resourceusage metrics  (time.duration) [$SCRAPE_TIME_RESOURCEUSAGE]
+      --scrape.time.query=                    Scrape time for query results  (time.duration) [$SCRAPE_TIME_QUERY]
       --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
       --stats.summary.maxage=                 Stats Summary metrics max age (time.duration) [$STATS_SUMMARY_MAX_AGE]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
-      --whitelist.queries=                    Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [%AZURE_DEVOPS_QUERIES%]
+      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
       --azuredevops.url=                      Azure DevOps url (empty if hosted by microsoft) [$AZURE_DEVOPS_URL]
       --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
       --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
-      --azuredevops.apiversion=               Azure DevOps API version (default: 5.0) [$AZURE_DEVOPS_APIVERSION]
+      --azuredevops.apiversion=               Azure DevOps API version (default: 5.1) [$AZURE_DEVOPS_APIVERSION]
       --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
+      --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
+      --limit.releases-per-project=           Limit releases per project (default: 100) [$LIMIT_RELEASES_PER_PROJECT]
       --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
       --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
       --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
+      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h)
+                                              [$LIMIT_BUILD_HISTORY_DURATION]
+      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h)
+                                              [$LIMIT_RELEASE_HISTORY_DURATION]
 
 Help Options:
   -h, --help                                  Show this help message

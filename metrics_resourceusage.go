@@ -9,7 +9,8 @@ type MetricsCollectorResourceUsage struct {
 	CollectorProcessorGeneral
 
 	prometheus struct {
-		resourceUsageBuild *prometheus.GaugeVec
+		resourceUsageBuild   *prometheus.GaugeVec
+		resourceUsageLicense *prometheus.GaugeVec
 	}
 }
 
@@ -26,18 +27,96 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 		},
 	)
 
+
+	m.prometheus.resourceUsageLicense = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_resourceusage_license",
+			Help: "Azure DevOps resource usage for license informations",
+		},
+		[]string{
+			"name",
+		},
+	)
+
 	prometheus.MustRegister(m.prometheus.resourceUsageBuild)
+	prometheus.MustRegister(m.prometheus.resourceUsageLicense)
 }
 
 func (m *MetricsCollectorResourceUsage) Reset() {
 	m.prometheus.resourceUsageBuild.Reset()
+	m.prometheus.resourceUsageLicense.Reset()
 }
 
 func (m *MetricsCollectorResourceUsage) Collect(ctx context.Context, callback chan<- func()) {
-	m.CollectResourceUsage(ctx, callback)
+	m.CollectResourceUsageBuild(ctx, callback)
+	m.CollectResourceUsageAgent(ctx, callback)
 }
 
-func (m *MetricsCollectorResourceUsage) CollectResourceUsage(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Context, callback chan<- func()) {
+	resourceUsage, err := AzureDevopsClient.GetResourceUsageAgent()
+	if err != nil {
+		Logger.Errorf("call[GetResourceUsageAgent]: %v", err)
+		return
+	}
+
+	resourceUsageMetric := NewMetricCollectorList()
+
+	licenseDetails := resourceUsage.Data.Provider.TaskHubLicenseDetails
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "FreeLicenseCount",
+	}, licenseDetails.FreeLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "FreeHostedLicenseCount",
+	}, licenseDetails.FreeHostedLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "EnterpriseUsersCount",
+	}, licenseDetails.EnterpriseUsersCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "EnterpriseUsersCount",
+	}, licenseDetails.EnterpriseUsersCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "PurchasedHostedLicenseCount",
+	}, licenseDetails.PurchasedHostedLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "PurchasedHostedLicenseCount",
+	}, licenseDetails.PurchasedHostedLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "TotalLicenseCount",
+	}, licenseDetails.TotalLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "MsdnUsersCount",
+	}, licenseDetails.MsdnUsersCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "HostedAgentMinutesFreeCount",
+	}, licenseDetails.HostedAgentMinutesFreeCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "HostedAgentMinutesUsedCount",
+	}, licenseDetails.HostedAgentMinutesUsedCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "TotalPrivateLicenseCount",
+	}, licenseDetails.TotalPrivateLicenseCount)
+
+	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
+		"name": "TotalHostedLicenseCount",
+	}, licenseDetails.TotalHostedLicenseCount)
+
+	callback <- func() {
+		resourceUsageMetric.GaugeSet(m.prometheus.resourceUsageLicense)
+	}
+}
+
+func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Context, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageBuild()
 	if err != nil {
 		Logger.Errorf("call[GetResourceUsageBuild]: %v", err)
