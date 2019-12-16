@@ -332,7 +332,7 @@ func initMetricCollector() {
 	if opts.ScrapeTimeDeployment.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeDeployment)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
