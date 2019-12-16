@@ -23,22 +23,21 @@ type (
 				ResourceUsages []ResourceUsageAgentUsageRow `json:"resourceUsages"`
 
 				TaskHubLicenseDetails struct {
-					FreeLicenseCount *float64 `json:"freeLicenseCount"`
-					FreeHostedLicenseCount *float64 `json:"freeHostedLicenseCount"`
-					EnterpriseUsersCount *float64 `json:"enterpriseUsersCount"`
-					PurchasedLicenseCount *float64 `json:"purchasedLicenseCount"`
+					FreeLicenseCount            *float64 `json:"freeLicenseCount"`
+					FreeHostedLicenseCount      *float64 `json:"freeHostedLicenseCount"`
+					EnterpriseUsersCount        *float64 `json:"enterpriseUsersCount"`
+					PurchasedLicenseCount       *float64 `json:"purchasedLicenseCount"`
 					PurchasedHostedLicenseCount *float64 `json:"purchasedHostedLicenseCount"`
-					HostedLicensesArePremium bool `json:"hostedLicensesArePremium"`
-					TotalLicenseCount *float64 `json:"totalLicenseCount"`
-					HasLicenseCountEverUpdated bool `json:"hasLicenseCountEverUpdated"`
-					MsdnUsersCount *float64 `json:"msdnUsersCount"`
+					HostedLicensesArePremium    bool     `json:"hostedLicensesArePremium"`
+					TotalLicenseCount           *float64 `json:"totalLicenseCount"`
+					HasLicenseCountEverUpdated  bool     `json:"hasLicenseCountEverUpdated"`
+					MsdnUsersCount              *float64 `json:"msdnUsersCount"`
 					HostedAgentMinutesFreeCount *float64 `json:"hostedAgentMinutesFreeCount"`
 					HostedAgentMinutesUsedCount *float64 `json:"hostedAgentMinutesUsedCount"`
-					FailedToReachAllProviders bool `json:"failedToReachAllProviders"`
-					TotalPrivateLicenseCount *float64 `json:"totalPrivateLicenseCount"`
-					TotalHostedLicenseCount *float64 `json:"totalHostedLicenseCount"`
+					FailedToReachAllProviders   bool     `json:"failedToReachAllProviders"`
+					TotalPrivateLicenseCount    *float64 `json:"totalPrivateLicenseCount"`
+					TotalHostedLicenseCount     *float64 `json:"totalHostedLicenseCount"`
 				} `json:"taskHubLicenseDetails"`
-
 			} `json:"ms.vss-build-web.build-queue-hub-data-provider"`
 		} `json:"data"`
 	}
@@ -46,16 +45,15 @@ type (
 	ResourceUsageAgentUsageRow struct {
 		ResourceLimit struct {
 			ResourceLimitsData struct {
-				FreeCount string `json:"freeCount"`
+				FreeCount      string `json:"freeCount"`
 				PurchasedCount string `json:"purchasedCount"`
 			} `json:"resourceLimitsData"`
 
-			HostId string `json:"hostId"`
-			ParallelismTag string `json:"parallelismTag"`
-			IsHosted bool `json:"isHosted"`
-			TotalCount float64 `json:"totalCount"`
-			IsPremium bool `json:"IsPremium"`
-
+			HostId         string  `json:"hostId"`
+			ParallelismTag string  `json:"parallelismTag"`
+			IsHosted       bool    `json:"isHosted"`
+			TotalCount     float64 `json:"totalCount"`
+			IsPremium      bool    `json:"IsPremium"`
 		} `json:"resourceLimit"`
 	}
 )

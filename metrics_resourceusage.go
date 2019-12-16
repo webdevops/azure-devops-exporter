@@ -27,7 +27,6 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 		},
 	)
 
-
 	m.prometheus.resourceUsageLicense = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_resourceusage_license",

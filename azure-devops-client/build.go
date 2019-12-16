@@ -145,7 +145,6 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(int64ToString(c.LimitBuildsPerProject)),
-
 	)
 	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
