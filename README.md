@@ -141,3 +141,38 @@ topk by(projectID,releaseDefinitionName,path) (3,
   * on (projectID,releaseDefinitionID) group_left(path, releaseDefinitionName) (azure_devops_release_definition_info)
 )
 ```
+
+Agent pool usage (without PoolMaintenance)
+```
+count by(agentPoolID) (
+  azure_devops_agentpool_agent_job{planType!="PoolMaintenance"}
+  * on(agentPoolAgentID) group_left(agentPoolID) (azure_devops_agentpool_agent_info)
+) 
+/ on (agentPoolID) group_left() (azure_devops_agentpool_size)
+* on (agentPoolID) group_left(agentPoolName) (azure_devops_agentpool_info)
+```
+
+Current running jobs
+```
+label_replace(
+    azure_devops_agentpool_agent_job{planType!="PoolMaintenance"}
+    * on (agentPoolAgentID) group_left(agentPoolID,agentPoolAgentName) azure_devops_agentpool_agent_info
+    * on (agentPoolID) group_left(agentPoolName) (azure_devops_agentpool_info)
+  , "projectID", "$1", "scopeID", "^(.+)$"
+)
+* on (projectID) group_left(projectName) (azure_devops_project_info)
+```
+
+Agent pool size
+```
+azure_devops_agentpool_info
+* on (agentPoolID) group_left() (azure_devops_agentpool_size)
+```
+
+Agent pool size (enabled and online)
+```
+azure_devops_agentpool_info
+* on (agentPoolID) group_left() (
+  count by(agentPoolID) (azure_devops_agentpool_agent_info{status="online",enabled="true"})
+)
+```
