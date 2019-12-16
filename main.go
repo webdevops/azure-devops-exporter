@@ -360,7 +360,7 @@ func initMetricCollector() {
 		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
 		collectorQueryList[collectorName].SetAzureProjects(&projectList)
 		collectorQueryList[collectorName].QueryList = opts.QueriesWithProjects
-		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeQuery)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
