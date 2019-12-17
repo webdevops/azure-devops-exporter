@@ -54,6 +54,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 		[]string{
 			"projectID",
 			"buildID",
+			"buildDefinitionID",
 			"buildNumber",
 			"type",
 		},
@@ -146,31 +147,35 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 		})
 
 		buildStatusMetric.AddTime(prometheus.Labels{
-			"projectID":   project.Id,
-			"buildID":     int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
-			"type":        "queued",
+			"projectID":         project.Id,
+			"buildID":           int64ToString(build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildNumber":       build.BuildNumber,
+			"type":              "queued",
 		}, build.QueueTime)
 
 		buildStatusMetric.AddTime(prometheus.Labels{
-			"projectID":   project.Id,
-			"buildID":     int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
-			"type":        "started",
+			"projectID":         project.Id,
+			"buildID":           int64ToString(build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildNumber":       build.BuildNumber,
+			"type":              "started",
 		}, build.StartTime)
 
 		buildStatusMetric.AddTime(prometheus.Labels{
-			"projectID":   project.Id,
-			"buildID":     int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
-			"type":        "finished",
+			"projectID":         project.Id,
+			"buildID":           int64ToString(build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildNumber":       build.BuildNumber,
+			"type":              "finished",
 		}, build.FinishTime)
 
 		buildStatusMetric.AddDuration(prometheus.Labels{
-			"projectID":   project.Id,
-			"buildID":     int64ToString(build.Id),
-			"buildNumber": build.BuildNumber,
-			"type":        "jobDuration",
+			"projectID":         project.Id,
+			"buildID":           int64ToString(build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildNumber":       build.BuildNumber,
+			"type":              "jobDuration",
 		}, build.FinishTime.Sub(build.StartTime))
 	}
 
