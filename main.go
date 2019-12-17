@@ -32,10 +32,10 @@ var (
 
 var opts struct {
 	// general settings
-	Verbose []bool `   long:"verbose" short:"v"                   env:"VERBOSE"                       description:"Verbose mode"`
+	Verbose []bool `   long:"verbose" short:"v" env:"VERBOSE" description:"Verbose mode"`
 
 	// server settings
-	ServerBind string `long:"bind"                                env:"SERVER_BIND"                   description:"Server address"                                    default:":8080"`
+	ServerBind string `long:"bind"  env:"SERVER_BIND" description:"Server address"  default:":8080"`
 
 	// scrape time settings
 	ScrapeTime              time.Duration  `long:"scrape.time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
