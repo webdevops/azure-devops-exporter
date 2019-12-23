@@ -146,6 +146,14 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan
 			"url":               build.Links.Web.Href,
 		})
 
+		buildStatusMetric.AddBool(prometheus.Labels{
+			"projectID":         project.Id,
+			"buildID":           int64ToString(build.Id),
+			"buildDefinitionID": int64ToString(build.Definition.Id),
+			"buildNumber":       build.BuildNumber,
+			"type":              "succeeded",
+		}, build.Result == "succeeded")
+
 		buildStatusMetric.AddTime(prometheus.Labels{
 			"projectID":         project.Id,
 			"buildID":           int64ToString(build.Id),

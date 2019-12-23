@@ -256,6 +256,14 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 				"rank":                int64ToString(environment.Rank),
 			})
 
+			releaseEnvironmentStatusMetric.AddBool(prometheus.Labels{
+				"projectID":           project.Id,
+				"releaseID":           int64ToString(release.Id),
+				"releaseDefinitionID": int64ToString(release.Definition.Id),
+				"environmentID":       int64ToString(environment.DefinitionEnvironmentId),
+				"type":                "succeeded",
+			}, environment.Status == "succeeded")
+
 			releaseEnvironmentStatusMetric.AddTime(prometheus.Labels{
 				"projectID":           project.Id,
 				"releaseID":           int64ToString(release.Id),
