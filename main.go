@@ -347,10 +347,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "ResourceUsage"
-	if opts.ScrapeTimeStats.Seconds() > 0 {
+	if opts.ScrapeTimeResourceUsage.Seconds() > 0 {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
 		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
-		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeResourceUsage)
 	} else {
 		Logger.Infof("collector[%s]: disabled", collectorName)
 	}
