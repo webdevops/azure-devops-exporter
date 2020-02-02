@@ -71,7 +71,6 @@ func (m *MetricCollectorList) AddBool(labels prometheus.Labels, state bool) {
 	m.list = append(m.list, MetricCollectorRow{labels: labels, value: value})
 }
 
-
 func (m *MetricCollectorList) GaugeSet(gauge *prometheus.GaugeVec) {
 	for _, metric := range m.list {
 		gauge.With(metric.labels).Set(metric.value)
