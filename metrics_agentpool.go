@@ -15,6 +15,7 @@ type MetricsCollectorAgentPool struct {
 		agentPoolAgent       *prometheus.GaugeVec
 		agentPoolAgentStatus *prometheus.GaugeVec
 		agentPoolAgentJob    *prometheus.GaugeVec
+		agentPoolQueueLength *prometheus.GaugeVec
 	}
 }
 
@@ -102,6 +103,7 @@ func (m *MetricsCollectorAgentPool) Reset() {
 	m.prometheus.agentPoolAgent.Reset()
 	m.prometheus.agentPoolAgentStatus.Reset()
 	m.prometheus.agentPoolAgentJob.Reset()
+	m.prometheus.agentPoolQueueLength.Reset()
 }
 
 func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<- func()) {
@@ -111,6 +113,7 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<-
 
 	for _, agentPoolId := range m.CollectorReference.AgentPoolIdList {
 		m.collectAgentQueues(ctx, callback, agentPoolId)
+		m.collectAgentPoolJobs(ctx, callback, agentPoolId)
 	}
 }
 
@@ -185,7 +188,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 				"definitionName":   agentPoolAgent.AssignedRequest.Definition.Name,
 				"scopeID":          agentPoolAgent.AssignedRequest.ScopeId,
 			}
-			agentPoolAgentJobMetric.Add(jobLabels, timeToFloat64(agentPoolAgent.AssignedRequest.AssignTime))
+			agentPoolAgentJobMetric.Add(jobLabels, timeToFloat64(*agentPoolAgent.AssignedRequest.AssignTime))
 		}
 	}
 
@@ -193,5 +196,33 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 		agentPoolAgentMetric.GaugeSet(m.prometheus.agentPoolAgent)
 		agentPoolAgentStatusMetric.GaugeSet(m.prometheus.agentPoolAgentStatus)
 		agentPoolAgentJobMetric.GaugeSet(m.prometheus.agentPoolAgentJob)
+	}
+}
+
+func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, callback chan<- func(), agentPoolId int64) {
+	list, err := AzureDevopsClient.ListAgentPoolJobs(agentPoolId)
+	if err != nil {
+		Logger.Errorf("agentpool[%v]call[ListAgentJobs]: %v", agentPoolId, err)
+		return
+	}
+
+	agentPoolQueueLength := NewMetricCollectorList()
+
+	notStartedJobCount := 0
+
+	for _, agentPoolJob := range list.List {
+		if agentPoolJob.AssignTime == nil {
+			notStartedJobCount++
+		}
+	}
+
+	infoLabels := prometheus.Labels{
+		"agentPoolID": int64ToString(agentPoolId),
+	}
+
+	agentPoolQueueLength.Add(infoLabels, 1)
+
+	callback <- func() {
+		agentPoolQueueLength.GaugeSet(m.prometheus.agentPoolAgent)
 	}
 }
