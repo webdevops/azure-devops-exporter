@@ -140,7 +140,7 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=%v&minTime=%s&$top=%v",
+		"%v/_apis/build/builds?api-version=%v&minTime=%s&$top=%v&queryOrder=finishTimeDescending",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(minTime.Format(time.RFC3339)),
