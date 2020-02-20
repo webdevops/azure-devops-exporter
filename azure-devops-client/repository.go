@@ -32,8 +32,8 @@ type RepositoryCommitList struct {
 
 type RepositoryCommit struct {
 	CommitId         string
-	Author           Author
-	Committer        Author
+	Author           string
+	Committer        string
 	Comment          string
 	CommentTruncated bool
 	ChangeCounts     struct {
