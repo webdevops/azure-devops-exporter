@@ -90,11 +90,22 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 		},
 	)
 
+	m.prometheus.agentPoolQueueLength = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_agentpool_queue_length",
+			Help: "Azure DevOps agentpool",
+		},
+		[]string{
+			"agentPoolID",
+		},
+	)
+
 	prometheus.MustRegister(m.prometheus.agentPool)
 	prometheus.MustRegister(m.prometheus.agentPoolSize)
 	prometheus.MustRegister(m.prometheus.agentPoolAgent)
 	prometheus.MustRegister(m.prometheus.agentPoolAgentStatus)
 	prometheus.MustRegister(m.prometheus.agentPoolAgentJob)
+	prometheus.MustRegister(m.prometheus.agentPoolQueueLength)
 }
 
 func (m *MetricsCollectorAgentPool) Reset() {
@@ -206,7 +217,7 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, ca
 		return
 	}
 
-	agentPoolQueueLength := NewMetricCollectorList()
+	agentPoolQueueLengthMetric := NewMetricCollectorList()
 
 	notStartedJobCount := 0
 
@@ -220,9 +231,9 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, ca
 		"agentPoolID": int64ToString(agentPoolId),
 	}
 
-	agentPoolQueueLength.Add(infoLabels, 1)
+	agentPoolQueueLengthMetric.Add(infoLabels, float64(notStartedJobCount))
 
 	callback <- func() {
-		agentPoolQueueLength.GaugeSet(m.prometheus.agentPoolAgent)
+		agentPoolQueueLengthMetric.GaugeSet(m.prometheus.agentPoolQueueLength)
 	}
 }
