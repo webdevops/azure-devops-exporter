@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	"strings"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorQuery struct {
@@ -64,7 +65,8 @@ func (m *MetricsCollectorQuery) Collect(ctx context.Context, callback chan<- fun
 }
 
 func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callback chan<- func(), queryPath string, projectID string) {
-	workItemsMetric := NewMetricCollectorList()
+	workItemsMetric := prometheusCommon.NewMetricsList()
+	workItemsDataMetric := prometheusCommon.NewMetricsList()
 
 	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectID)
 	if err != nil {
@@ -77,7 +79,6 @@ func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callbac
 		"queryPath": queryPath,
 	}, float64(len(workItemInfoList.List)))
 
-	workItemsDataMetric := NewMetricCollectorList()
 
 	for _, workItemInfo := range workItemInfoList.List {
 		workItem, err := AzureDevopsClient.GetWorkItem(workItemInfo.Url)

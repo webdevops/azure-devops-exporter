@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorAgentPool struct {
@@ -135,8 +136,8 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callba
 		return
 	}
 
-	agentPoolInfoMetric := NewMetricCollectorList()
-	agentPoolSizeMetric := NewMetricCollectorList()
+	agentPoolInfoMetric := prometheusCommon.NewMetricsList()
+	agentPoolSizeMetric := prometheusCommon.NewMetricsList()
 
 	for _, agentQueue := range list.List {
 		agentPoolInfoMetric.Add(prometheus.Labels{
@@ -164,9 +165,9 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 		return
 	}
 
-	agentPoolAgentMetric := NewMetricCollectorList()
-	agentPoolAgentStatusMetric := NewMetricCollectorList()
-	agentPoolAgentJobMetric := NewMetricCollectorList()
+	agentPoolAgentMetric := prometheusCommon.NewMetricsList()
+	agentPoolAgentStatusMetric := prometheusCommon.NewMetricsList()
+	agentPoolAgentJobMetric := prometheusCommon.NewMetricsList()
 
 	for _, agentPoolAgent := range list.List {
 		infoLabels := prometheus.Labels{
@@ -217,7 +218,7 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, ca
 		return
 	}
 
-	agentPoolQueueLengthMetric := NewMetricCollectorList()
+	agentPoolQueueLengthMetric := prometheusCommon.NewMetricsList()
 
 	notStartedJobCount := 0
 

@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorGeneral struct {
@@ -40,7 +41,7 @@ func (m *MetricsCollectorGeneral) Collect(ctx context.Context, callback chan<- f
 }
 
 func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Context, callback chan<- func()) {
-	statsMetrics := NewMetricCollectorList()
+	statsMetrics := prometheusCommon.NewMetricsList()
 
 	statsMetrics.Add(prometheus.Labels{
 		"name": "dev.azure.com",
@@ -58,7 +59,7 @@ func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Cont
 }
 
 func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, callback chan<- func()) {
-	statsMetrics := NewMetricCollectorList()
+	statsMetrics := prometheusCommon.NewMetricsList()
 
 	for _, collector := range collectorGeneralList {
 		if collector.LastScrapeDuration != nil {

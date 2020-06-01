@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorProject struct {
@@ -41,7 +42,7 @@ func (m *MetricsCollectorProject) Collect(ctx context.Context, callback chan<- f
 }
 
 func (m *MetricsCollectorProject) collectProject(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	projectMetric := NewMetricCollectorList()
+	projectMetric := prometheusCommon.NewMetricsList()
 
 	projectMetric.AddInfo(prometheus.Labels{
 		"projectID":   project.Id,

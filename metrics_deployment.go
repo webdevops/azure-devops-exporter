@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorDeployment struct {
@@ -69,8 +70,8 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 		return
 	}
 
-	deploymentMetric := NewMetricCollectorList()
-	deploymentStatusMetric := NewMetricCollectorList()
+	deploymentMetric := prometheusCommon.NewMetricsList()
+	deploymentStatusMetric := prometheusCommon.NewMetricsList()
 
 	for _, releaseDefinition := range list.List {
 		deploymentList, err := AzureDevopsClient.ListReleaseDeployments(project.Id, releaseDefinition.Id)

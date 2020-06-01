@@ -5,6 +5,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorRepository struct {
@@ -94,10 +95,10 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<
 func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	fromTime := *m.CollectorReference.collectionLastTime
 
-	repositoryMetric := NewMetricCollectorList()
-	repositoryStatsMetric := NewMetricCollectorList()
-	repositoryCommitsMetric := NewMetricCollectorList()
-	repositoryPushesMetric := NewMetricCollectorList()
+	repositoryMetric := prometheusCommon.NewMetricsList()
+	repositoryStatsMetric := prometheusCommon.NewMetricsList()
+	repositoryCommitsMetric := prometheusCommon.NewMetricsList()
+	repositoryPushesMetric := prometheusCommon.NewMetricsList()
 
 	repositoryMetric.AddInfo(prometheus.Labels{
 		"projectID":      project.Id,

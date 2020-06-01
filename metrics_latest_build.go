@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorLatestBuild struct {
@@ -69,8 +70,8 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan
 		return
 	}
 
-	buildMetric := NewMetricCollectorList()
-	buildStatusMetric := NewMetricCollectorList()
+	buildMetric := prometheusCommon.NewMetricsList()
+	buildStatusMetric := prometheusCommon.NewMetricsList()
 
 	for _, build := range list.List {
 		buildMetric.AddInfo(prometheus.Labels{

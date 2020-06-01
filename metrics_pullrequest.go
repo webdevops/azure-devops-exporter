@@ -4,6 +4,7 @@ import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorPullRequest struct {
@@ -90,9 +91,9 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, c
 		return
 	}
 
-	pullRequestMetric := NewMetricCollectorList()
-	pullRequestStatusMetric := NewMetricCollectorList()
-	pullRequestLabelMetric := NewMetricCollectorList()
+	pullRequestMetric := prometheusCommon.NewMetricsList()
+	pullRequestStatusMetric := prometheusCommon.NewMetricsList()
+	pullRequestLabelMetric := prometheusCommon.NewMetricsList()
 
 	for _, pullRequest := range list.List {
 		voteSummary := pullRequest.GetVoteSummary()

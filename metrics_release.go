@@ -5,6 +5,7 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"time"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorRelease struct {
@@ -172,14 +173,14 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 		return
 	}
 
-	releaseDefinitionMetric := NewMetricCollectorList()
-	releaseDefinitionEnvironmentMetric := NewMetricCollectorList()
+	releaseDefinitionMetric := prometheusCommon.NewMetricsList()
+	releaseDefinitionEnvironmentMetric := prometheusCommon.NewMetricsList()
 
-	releaseMetric := NewMetricCollectorList()
-	releaseArtifactMetric := NewMetricCollectorList()
-	releaseEnvironmentMetric := NewMetricCollectorList()
-	releaseEnvironmentApprovalMetric := NewMetricCollectorList()
-	releaseEnvironmentStatusMetric := NewMetricCollectorList()
+	releaseMetric := prometheusCommon.NewMetricsList()
+	releaseArtifactMetric := prometheusCommon.NewMetricsList()
+	releaseEnvironmentMetric := prometheusCommon.NewMetricsList()
+	releaseEnvironmentApprovalMetric := prometheusCommon.NewMetricsList()
+	releaseEnvironmentStatusMetric := prometheusCommon.NewMetricsList()
 
 	for _, releaseDefinition := range list.List {
 		// --------------------------------------

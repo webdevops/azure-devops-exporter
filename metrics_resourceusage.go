@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
 type MetricsCollectorResourceUsage struct {
@@ -58,7 +59,7 @@ func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Co
 		return
 	}
 
-	resourceUsageMetric := NewMetricCollectorList()
+	resourceUsageMetric := prometheusCommon.NewMetricsList()
 
 	licenseDetails := resourceUsage.Data.Provider.TaskHubLicenseDetails
 
@@ -122,7 +123,7 @@ func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Co
 		return
 	}
 
-	resourceUsageMetric := NewMetricCollectorList()
+	resourceUsageMetric := prometheusCommon.NewMetricsList()
 
 	if resourceUsage.DistributedTaskAgents != nil {
 		resourceUsageMetric.Add(prometheus.Labels{
