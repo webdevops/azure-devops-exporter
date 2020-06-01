@@ -14,12 +14,10 @@ import (
 
 const (
 	Author  = "webdevops.io"
-	Version = "0.8.4"
 )
 
 var (
 	argparser         *flags.Parser
-	args              []string
 	Verbose           bool
 	Logger            *DaemonLogger
 	AzureDevopsClient *AzureDevops.AzureDevopsClient
@@ -28,6 +26,10 @@ var (
 	collectorProjectList   map[string]*CollectorProject
 	collectorAgentPoolList map[string]*CollectorAgentPool
 	collectorQueryList     map[string]*CollectorQuery
+
+	// Git version information
+	gitCommit = "<unknown>"
+	gitTag    = "<unknown>"
 )
 
 var opts struct {
@@ -89,7 +91,7 @@ func main() {
 	Logger = NewLogger(log.Lshortfile, Verbose)
 	defer Logger.Close()
 
-	Logger.Infof("Init Azure DevOps exporter v%s (written by %v)", Version, Author)
+	Logger.Infof("Init Azure DevOps exporter v%s (%s; by %v)", gitTag, gitCommit, Author)
 
 	Logger.Infof("Init AzureDevOps connection")
 	initAzureDevOpsConnection()
@@ -201,7 +203,7 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.SetApiVersion(opts.AzureDevopsApiVersion)
 	AzureDevopsClient.SetConcurrency(opts.RequestConcurrencyLimit)
 	AzureDevopsClient.SetRetries(opts.RequestRetries)
-	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", Version))
+	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", gitTag))
 
 	AzureDevopsClient.LimitBuildsPerProject = opts.LimitBuildsPerProject
 	AzureDevopsClient.LimitBuildsPerDefinition = opts.LimitBuildsPerDefinition

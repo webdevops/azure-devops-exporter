@@ -1,6 +1,6 @@
 module github.com/webdevops/azure-devops-exporter
 
-go 1.13
+go 1.14
 
 require (
 	github.com/cespare/xxhash/v2 v2.1.1 // indirect

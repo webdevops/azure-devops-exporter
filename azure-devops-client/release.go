@@ -105,7 +105,7 @@ type ReleaseEnvironmentDeployStep struct {
 	Id              int64
 	DeploymentId    int64
 	Attemt          int64
-	reason          string
+	Reason          string
 	Status          string
 	OperationStatus string
 
