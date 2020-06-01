@@ -64,7 +64,6 @@ type AgentPoolAgent struct {
 	Version           string
 	CreatedOn         time.Time
 	AssignedRequest   JobRequest
-
 }
 
 type JobRequest struct {
@@ -110,10 +109,9 @@ func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPo
 	return
 }
 
-
 type AgentPoolJobList struct {
-	Count int `json:"count"`
-	List []JobRequest `json:"value"`
+	Count int          `json:"count"`
+	List  []JobRequest `json:"value"`
 }
 
 func (c *AzureDevopsClient) ListAgentPoolJobs(agentPoolId int64) (list AgentPoolJobList, error error) {
