@@ -63,25 +63,26 @@ type AgentPoolAgent struct {
 	Status            string
 	Version           string
 	CreatedOn         time.Time
+	AssignedRequest   JobRequest
+}
 
-	AssignedRequest struct {
-		RequestId    int64
-		Demands      []string
-		QueueTime    time.Time
-		AssignTime   time.Time
-		ReceiveTime  time.Time
-		LockedUntil  time.Time
-		ServiceOwner string
-		HostId       string
-		ScopeId      string
-		PlanType     string
-		PlanId       string
-		JobId        string
-		Definition   struct {
-			Id    int64
-			Name  string
-			Links Links `json:"_links"`
-		}
+type JobRequest struct {
+	RequestId    int64
+	Demands      []string
+	QueueTime    time.Time
+	AssignTime   *time.Time
+	ReceiveTime  time.Time
+	LockedUntil  time.Time
+	ServiceOwner string
+	HostId       string
+	ScopeId      string
+	PlanType     string
+	PlanId       string
+	JobId        string
+	Definition   struct {
+		Id    int64
+		Name  string
+		Links Links `json:"_links"`
 	}
 }
 
@@ -91,6 +92,34 @@ func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPo
 
 	url := fmt.Sprintf(
 		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=false&includeAssignedRequest=true",
+		fmt.Sprintf("%d", agentPoolId),
+	)
+	response, err := c.rest().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+type AgentPoolJobList struct {
+	Count int          `json:"count"`
+	List  []JobRequest `json:"value"`
+}
+
+func (c *AzureDevopsClient) ListAgentPoolJobs(agentPoolId int64) (list AgentPoolJobList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"/_apis/distributedtask/pools/%v/jobrequests",
 		fmt.Sprintf("%d", agentPoolId),
 	)
 	response, err := c.rest().R().Get(url)
