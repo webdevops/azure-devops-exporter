@@ -10,40 +10,50 @@ Prometheus exporter for Azure DevOps (VSTS) for projects, builds, build times (e
 Configuration
 -------------
 
-Normally no configuration is needed but can be customized using environment variables.
+```
+Usage:
+  azure-devops-exporter [OPTIONS]
 
-| Environment variable                  | DefaultValue                        | Description                                                              |
-|---------------------------------------|-------------------------------------|--------------------------------------------------------------------------|
-| `SCRAPE_TIME`                         | `30m`                               | Interval (time.Duration) between API calls                               |
-| `SCRAPE_TIME_PROJECTS`                | not set, default see `SCRAPE_TIME`  | Interval for project metrics (list of projects for all scrapers)         |
-| `SCRAPE_TIME_REPOSITORY`              | not set, default see `SCRAPE_TIME`  | Interval for repository metrics                                          |
-| `SCRAPE_TIME_BUILD`                   | not set, default see `SCRAPE_TIME`  | Interval for build metrics                                               |
-| `SCRAPE_TIME_RELEASE`                 | not set, default see `SCRAPE_TIME`  | Interval for release metrics                                             |
-| `SCRAPE_TIME_DEPLOYMENT`              | not set, default see `SCRAPE_TIME`  | Interval for deployment metrics                                          |
-| `SCRAPE_TIME_PULLREQUEST`             | not set, default see `SCRAPE_TIME`  | Interval for pullrequest metrics                                         |
-| `SCRAPE_TIME_STATS`                   | not set, default see `SCRAPE_TIME`  | Interval for stats metrics                                               |
-| `SCRAPE_TIME_RESOURCEUSAGE`           | not set, default see `SCRAPE_TIME`  | Interval for resourceusage metrics                                       |
-| `SCRAPE_TIME_LIVE`                    | `30s`                               | Time (time.Duration) between API calls                                   |
-| `SERVER_BIND`                         | `:8080`                             | IP/Port binding                                                          |
-| `AZURE_DEVOPS_URL`                    | none                                | Azure DevOps url (only if on-prem)                                       |
-| `AZURE_DEVOPS_ORGANISATION`           | none                                | Azure DevOps organisation (subdomain, if hosted by microsoft)            |
-| `AZURE_DEVOPS_ACCESS_TOKEN`           | none                                | Azure DevOps access token                                                |
-| `AZURE_DEVOPS_FILTER_PROJECT`         | none                                | Whitelist project uuids                                                  |
-| `AZURE_DEVOPS_BLACKLIST_PROJECT`      | none                                | Blacklist project uuids                                                  |
-| `AZURE_DEVOPS_FILTER_AGENTPOOL`       | none                                | Whitelist for agentpool metrics                                          |
-| `AZURE_DEVOPS_QUERIES`                | none                                | Whitelist query and project uuids                                        |
-| `AZURE_DEVOPS_APIVERSION`             | fixed version                       | API version used to query for Azure DevOps                               |
-| `REQUEST_CONCURRENCY`                 | `10`                                | API request concurrency (number of calls at the same time)               |
-| `REQUEST_RETRIES`                     | `3`                                 | API request retries in case of failure                                   |
-| `LIMIT_BUILDS_PER_PROJECT`            | `100`                               | Fetched builds per project                                               |
-| `LIMIT_BUILDS_PER_DEFINITION`         | `10`                                | Fetched builds per definition                                            |
-| `LIMIT_RELEASES_PER_PROJECT`          | `100`                               | Fetched releases per project                                             |
-| `LIMIT_RELEASES_PER_DEFINITION`       | `100`                               | Fetched releases per definition                                          |
-| `LIMIT_DEPLOYMENTS_PER_DEFINITION`    | `100`                               | Fetched deployments per definition                                       |
-| `LIMIT_RELEASEDEFINITION_PER_PROJECT` | `100`                               | Fetched builds per definition                                            |
-| `LIMIT_BUILD_HISTORY_DURATION`        | `48h`                               | Time (time.Duration) how long the exporter should look back for builds |
-| `LIMIT_RELEASE_HISTORY_DURATION`      | `48h`                               | Time (time.Duration) how long the exporter should look back for releases |
+Application Options:
+      --debug                                 debug mode [$DEBUG]
+  -v, --verbose                               verbose mode [$VERBOSE]
+      --log.json                              Switch log output to json format [$LOG_JSON]
+      --scrape.time=                          Default scrape time (time.duration) (default: 30m) [$SCRAPE_TIME]
+      --scrape.time.projects=                 Scrape time for project metrics (time.duration) [$SCRAPE_TIME_PROJECTS]
+      --scrape.time.repository=               Scrape time for repository metrics (time.duration) [$SCRAPE_TIME_REPOSITORY]
+      --scrape.time.build=                    Scrape time for build metrics (time.duration) [$SCRAPE_TIME_BUILD]
+      --scrape.time.release=                  Scrape time for release metrics (time.duration) [$SCRAPE_TIME_RELEASE]
+      --scrape.time.deployment=               Scrape time for deployment metrics (time.duration) [$SCRAPE_TIME_DEPLOYMENT]
+      --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
+      --scrape.time.stats=                    Scrape time for stats metrics  (time.duration) [$SCRAPE_TIME_STATS]
+      --scrape.time.resourceusage=            Scrape time for resourceusage metrics  (time.duration) [$SCRAPE_TIME_RESOURCEUSAGE]
+      --scrape.time.query=                    Scrape time for query results  (time.duration) [$SCRAPE_TIME_QUERY]
+      --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
+      --stats.summary.maxage=                 Stats Summary metrics max age (time.duration) [$STATS_SUMMARY_MAX_AGE]
+      --azuredevops.url=                      Azure DevOps url (empty if hosted by microsoft) [$AZURE_DEVOPS_URL]
+      --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
+      --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
+      --azuredevops.apiversion=               Azure DevOps API version (default: 5.1) [$AZURE_DEVOPS_APIVERSION]
+      --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
+      --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
+      --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
+      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
+      --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
+      --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
+      --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
+      --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
+      --limit.releases-per-project=           Limit releases per project (default: 100) [$LIMIT_RELEASES_PER_PROJECT]
+      --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
+      --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
+      --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
+      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h) [$LIMIT_BUILD_HISTORY_DURATION]
+      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h) [$LIMIT_RELEASE_HISTORY_DURATION]
+      --bind=                                 Server address (default: :8080) [$SERVER_BIND]
 
+Help Options:
+  -h, --help                                  Show this help message
+
+```
 
 Metrics
 -------
