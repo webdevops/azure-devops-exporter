@@ -18,7 +18,9 @@ type MetricsCollectorStats struct {
 		projectBuildCount      *prometheus.CounterVec
 		projectBuildWait       *prometheus.SummaryVec
 		projectBuildDuration   *prometheus.SummaryVec
+		projectBuildSuccess    *prometheus.SummaryVec
 		projectReleaseDuration *prometheus.SummaryVec
+		projectReleaseSuccess  *prometheus.SummaryVec
 	}
 }
 
@@ -87,6 +89,18 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 	)
 	prometheus.MustRegister(m.prometheus.projectBuildCount)
 
+	m.prometheus.projectBuildSuccess = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Name: "azure_devops_stats_project_success",
+			Help: "Azure DevOps stats project success",
+		},
+		[]string{
+			"projectID",
+			"buildDefinitionID",
+		},
+	)
+	prometheus.MustRegister(m.prometheus.projectBuildSuccess)
+
 	m.prometheus.projectBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_wait",
@@ -129,6 +143,20 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		},
 	)
 	prometheus.MustRegister(m.prometheus.projectReleaseDuration)
+
+	m.prometheus.projectReleaseSuccess = prometheus.NewSummaryVec(
+		prometheus.SummaryOpts{
+			Name:   "azure_devops_stats_project_release_success",
+			Help:   "Azure DevOps stats project release success",
+			MaxAge: *opts.Stats.SummaryMaxAge,
+		},
+		[]string{
+			"projectID",
+			"releaseDefinitionID",
+			"definitionEnvironmentID",
+		},
+	)
+	prometheus.MustRegister(m.prometheus.projectReleaseSuccess)
 }
 
 func (m *MetricsCollectorStats) Reset() {
@@ -150,8 +178,22 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *log
 
 	for _, release := range releaseList.List {
 		for _, environment := range release.Environments {
-			timeToDeploy := environment.TimeToDeploy * 60
+			switch environment.Status {
+			case "succeeded":
+				m.prometheus.projectReleaseSuccess.With(prometheus.Labels{
+					"projectID":               release.Project.Id,
+					"releaseDefinitionID":     int64ToString(release.Definition.Id),
+					"definitionEnvironmentID": int64ToString(environment.DefinitionEnvironmentId),
+				}).Observe(1)
+			case "failed","partiallySucceeded":
+				m.prometheus.projectReleaseSuccess.With(prometheus.Labels{
+					"projectID":               release.Project.Id,
+					"releaseDefinitionID":     int64ToString(release.Definition.Id),
+					"definitionEnvironmentID": int64ToString(environment.DefinitionEnvironmentId),
+				}).Observe(0)
+			}
 
+			timeToDeploy := environment.TimeToDeploy * 60
 			if timeToDeploy > 0 {
 				m.prometheus.projectReleaseDuration.With(prometheus.Labels{
 					"projectID":               release.Project.Id,
@@ -187,6 +229,19 @@ func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *log.E
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"result":            build.Result,
 		}).Inc()
+
+		switch build.Result {
+		case "succeeded":
+			m.prometheus.projectBuildSuccess.With(prometheus.Labels{
+				"projectID":         build.Project.Id,
+				"buildDefinitionID": int64ToString(build.Definition.Id),
+			}).Observe(1)
+		case "failed":
+			m.prometheus.projectBuildSuccess.With(prometheus.Labels{
+				"projectID":         build.Project.Id,
+				"buildDefinitionID": int64ToString(build.Definition.Id),
+			}).Observe(0)
+		}
 
 		if build.FinishTime.Second() >= 0 {
 			jobDuration := build.FinishTime.Sub(build.StartTime)
