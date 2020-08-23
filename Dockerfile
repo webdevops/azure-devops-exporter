@@ -5,7 +5,7 @@ WORKDIR /go/src/github.com/webdevops/azure-devops-exporter
 # Get deps (cached)
 COPY ./go.mod /go/src/github.com/webdevops/azure-devops-exporter
 COPY ./go.sum /go/src/github.com/webdevops/azure-devops-exporter
-COPY ./Makefile /go/src/github.com/webdevops/azure-keyvault-exporter
+COPY ./Makefile /go/src/github.com/webdevops/azure-devops-exporter
 RUN make dependencies
 
 # Compile
