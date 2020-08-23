@@ -41,6 +41,7 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.build)
 
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -54,8 +55,6 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.build)
 	prometheus.MustRegister(m.prometheus.buildStatus)
 }
 

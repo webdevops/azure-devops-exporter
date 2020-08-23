@@ -34,6 +34,7 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryName",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.repository)
 
 	m.prometheus.repositoryStats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -46,6 +47,7 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.repositoryStats)
 
 	m.prometheus.repositoryCommits = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -57,6 +59,8 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryID",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.repositoryCommits)
+
 	m.prometheus.repositoryPushes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
 			Name: "azure_devops_repository_pushes",
@@ -67,10 +71,6 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryID",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.repository)
-	prometheus.MustRegister(m.prometheus.repositoryStats)
-	prometheus.MustRegister(m.prometheus.repositoryCommits)
 	prometheus.MustRegister(m.prometheus.repositoryPushes)
 }
 

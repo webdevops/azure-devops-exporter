@@ -28,7 +28,6 @@ func (m *MetricsCollectorGeneral) Setup(collector *CollectorGeneral) {
 			"type",
 		},
 	)
-
 	prometheus.MustRegister(m.prometheus.stats)
 }
 

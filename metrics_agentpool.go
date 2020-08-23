@@ -36,6 +36,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"isHosted",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPool)
 
 	m.prometheus.agentPoolSize = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -46,6 +47,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolID",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolSize)
 
 	m.prometheus.agentPoolAgent = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -65,6 +67,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"hasAssignedRequest",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolAgent)
 
 	m.prometheus.agentPoolAgentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -76,6 +79,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"type",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolAgentStatus)
 
 	m.prometheus.agentPoolAgentJob = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -91,6 +95,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"scopeID",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolAgentJob)
 
 	m.prometheus.agentPoolQueueLength = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -101,12 +106,6 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolID",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.agentPool)
-	prometheus.MustRegister(m.prometheus.agentPoolSize)
-	prometheus.MustRegister(m.prometheus.agentPoolAgent)
-	prometheus.MustRegister(m.prometheus.agentPoolAgentStatus)
-	prometheus.MustRegister(m.prometheus.agentPoolAgentJob)
 	prometheus.MustRegister(m.prometheus.agentPoolQueueLength)
 }
 

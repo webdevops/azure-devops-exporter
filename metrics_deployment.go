@@ -42,6 +42,7 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 			"approvedBy",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.deployment)
 
 	m.prometheus.deploymentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -54,8 +55,6 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.deployment)
 	prometheus.MustRegister(m.prometheus.deploymentStatus)
 }
 

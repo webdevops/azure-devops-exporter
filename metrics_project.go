@@ -30,7 +30,6 @@ func (m *MetricsCollectorProject) Setup(collector *CollectorProject) {
 			"projectName",
 		},
 	)
-
 	prometheus.MustRegister(m.prometheus.project)
 }
 

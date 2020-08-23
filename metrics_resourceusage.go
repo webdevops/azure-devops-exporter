@@ -28,6 +28,7 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 			"name",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.resourceUsageBuild)
 
 	m.prometheus.resourceUsageLicense = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -38,8 +39,6 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 			"name",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.resourceUsageBuild)
 	prometheus.MustRegister(m.prometheus.resourceUsageLicense)
 }
 

@@ -39,6 +39,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			"creator",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.pullRequest)
 
 	m.prometheus.pullRequestStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -52,6 +53,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.pullRequestStatus)
 
 	m.prometheus.pullRequestLabel = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -66,9 +68,6 @@ func (m *MetricsCollectorPullRequest) Setup(collector *CollectorProject) {
 			"active",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.pullRequest)
-	prometheus.MustRegister(m.prometheus.pullRequestStatus)
 	prometheus.MustRegister(m.prometheus.pullRequestLabel)
 }
 

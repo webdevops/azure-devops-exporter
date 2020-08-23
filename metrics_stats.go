@@ -40,6 +40,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolBuildCount)
 
 	m.prometheus.agentPoolBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -53,6 +54,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolBuildWait)
 
 	m.prometheus.agentPoolBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -66,6 +68,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.agentPoolBuildDuration)
 
 	// ------------------------------------------
 	// Project
@@ -82,6 +85,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.projectBuildCount)
 
 	m.prometheus.projectBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -95,6 +99,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.projectBuildWait)
 
 	m.prometheus.projectBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -108,6 +113,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.projectBuildDuration)
 
 	m.prometheus.projectReleaseDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -122,15 +128,6 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"status",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.agentPoolBuildCount)
-	prometheus.MustRegister(m.prometheus.agentPoolBuildWait)
-	prometheus.MustRegister(m.prometheus.agentPoolBuildDuration)
-
-	prometheus.MustRegister(m.prometheus.projectBuildCount)
-	prometheus.MustRegister(m.prometheus.projectBuildWait)
-	prometheus.MustRegister(m.prometheus.projectBuildDuration)
-
 	prometheus.MustRegister(m.prometheus.projectReleaseDuration)
 }
 

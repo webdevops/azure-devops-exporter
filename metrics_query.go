@@ -31,6 +31,7 @@ func (m *MetricsCollectorQuery) Setup(collector *CollectorQuery) {
 			"queryPath",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.workItemCount)
 
 	m.prometheus.workItemData = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -49,8 +50,6 @@ func (m *MetricsCollectorQuery) Setup(collector *CollectorQuery) {
 			"closedDate",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.workItemCount)
 	prometheus.MustRegister(m.prometheus.workItemData)
 }
 

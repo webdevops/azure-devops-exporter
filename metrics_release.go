@@ -44,6 +44,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.release)
 
 	m.prometheus.releaseArtifact = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -62,6 +63,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"version",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.releaseArtifact)
 
 	m.prometheus.releaseEnvironment = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -79,6 +81,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"rank",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.releaseEnvironment)
 
 	m.prometheus.releaseEnvironmentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -93,6 +96,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.releaseEnvironmentStatus)
 
 	m.prometheus.releaseEnvironmentApproval = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -114,6 +118,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"approvedBy",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.releaseEnvironmentApproval)
 
 	m.prometheus.releaseDefinition = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -129,6 +134,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
+	prometheus.MustRegister(m.prometheus.releaseDefinition)
 
 	m.prometheus.releaseDefinitionEnvironment = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -146,13 +152,6 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"badgeUrl",
 		},
 	)
-
-	prometheus.MustRegister(m.prometheus.release)
-	prometheus.MustRegister(m.prometheus.releaseArtifact)
-	prometheus.MustRegister(m.prometheus.releaseEnvironment)
-	prometheus.MustRegister(m.prometheus.releaseEnvironmentApproval)
-	prometheus.MustRegister(m.prometheus.releaseEnvironmentStatus)
-	prometheus.MustRegister(m.prometheus.releaseDefinition)
 	prometheus.MustRegister(m.prometheus.releaseDefinitionEnvironment)
 }
 
