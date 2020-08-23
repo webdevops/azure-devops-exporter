@@ -416,6 +416,13 @@ func initMetricCollector() {
 
 // start and handle prometheus handler
 func startHttpServer() {
+	// healthz
+	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
+		if _, err := fmt.Fprint(w, "Ok"); err != nil {
+			Logger.Error(err)
+		}
+	})
+
 	http.Handle("/metrics", promhttp.Handler())
 	Logger.Error(http.ListenAndServe(opts.ServerBind, nil))
 }
