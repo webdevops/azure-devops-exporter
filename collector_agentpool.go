@@ -37,7 +37,7 @@ func (c *CollectorAgentPool) Collect() {
 	wg.Add(1)
 	go func(ctx context.Context, callback chan<- func()) {
 		defer wg.Done()
-		c.Processor.Collect(ctx, callbackChannel)
+		c.Processor.Collect(ctx, c.logger, callbackChannel)
 	}(ctx, callbackChannel)
 
 	// collect metrics (callbacks) and proceses them

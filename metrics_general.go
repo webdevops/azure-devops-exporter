@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
@@ -35,12 +36,12 @@ func (m *MetricsCollectorGeneral) Reset() {
 	m.prometheus.stats.Reset()
 }
 
-func (m *MetricsCollectorGeneral) Collect(ctx context.Context, callback chan<- func()) {
-	m.collectAzureDevopsClientStats(ctx, callback)
-	m.collectCollectorStats(ctx, callback)
+func (m *MetricsCollectorGeneral) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
+	m.collectAzureDevopsClientStats(ctx, logger, callback)
+	m.collectCollectorStats(ctx, logger, callback)
 }
 
-func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	statsMetrics := prometheusCommon.NewMetricsList()
 
 	statsMetrics.Add(prometheus.Labels{
@@ -58,7 +59,7 @@ func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Cont
 	}
 }
 
-func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	statsMetrics := prometheusCommon.NewMetricsList()
 
 	for _, collector := range collectorGeneralList {

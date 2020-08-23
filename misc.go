@@ -28,13 +28,3 @@ func arrayStringContains(s []string, e string) bool {
 func timeToFloat64(v time.Time) float64 {
 	return float64(v.Unix())
 }
-
-func scrapeIntervalStatus(v *time.Duration) (ret string) {
-	if v != nil && v.Seconds() > 0 {
-		ret = v.String()
-	} else {
-		ret = "disabled"
-	}
-
-	return
-}

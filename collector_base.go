@@ -1,6 +1,7 @@
 package main
 
 import (
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
 	"time"
@@ -13,12 +14,16 @@ type CollectorBase struct {
 	azureDevOpsProjects      *devopsClient.ProjectList
 	azureDevOpsProjectsMutex sync.Mutex
 
+	logger *log.Entry
+
 	LastScrapeDuration  *time.Duration
 	collectionStartTime *time.Time
 	collectionLastTime  *time.Time
 }
 
 func (c *CollectorBase) Init() {
+	c.logger = log.WithField("collector", c.Name)
+
 }
 
 func (c *CollectorBase) SetScrapeTime(scrapeTime time.Duration) {
@@ -51,7 +56,7 @@ func (c *CollectorBase) collectionStart() {
 		c.collectionLastTime = &lastTime
 	}
 
-	Logger.Infof("collector[%s]: starting metrics collection", c.Name)
+	c.logger.Info("starting metrics collection")
 }
 
 func (c *CollectorBase) collectionFinish() {
@@ -60,10 +65,10 @@ func (c *CollectorBase) collectionFinish() {
 
 	c.collectionLastTime = c.collectionStartTime
 
-	Logger.Infof("collector[%s]: finished metrics collection (duration: %v)", c.Name, c.LastScrapeDuration)
+	c.logger.WithField("duration", c.LastScrapeDuration.Seconds()).Infof("finished metrics collection (duration: %v)", c.LastScrapeDuration)
 }
 
 func (c *CollectorBase) sleepUntilNextCollection() {
-	Logger.Verbosef("collector[%s]: sleeping %v", c.Name, c.GetScrapeTime().String())
+	c.logger.Debugf("sleeping %v", c.GetScrapeTime().String())
 	time.Sleep(*c.GetScrapeTime())
 }

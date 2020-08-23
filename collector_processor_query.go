@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 )
 
 type CollectorProcessorQueryInterface interface {
 	Setup(collector *CollectorQuery)
 	Reset()
-	Collect(ctx context.Context, callback chan<- func())
+	Collect(ctx context.Context, contextLogger *log.Entry, callback chan<- func())
 }
 
 type CollectorProcessorQuery struct {
@@ -22,6 +23,11 @@ func NewCollectorQuery(name string, processor CollectorProcessorQueryInterface) 
 		},
 		Processor: processor,
 	}
+	collector.CollectorBase.Init()
 
 	return &collector
+}
+
+func (c *CollectorProcessorQuery) logger() *log.Entry {
+	return c.CollectorReference.logger
 }

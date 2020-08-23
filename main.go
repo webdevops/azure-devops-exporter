@@ -4,22 +4,25 @@ import (
 	"fmt"
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"log"
+	"github.com/webdevops/azure-devops-exporter/config"
 	"net/http"
 	"os"
+	"path"
+	"runtime"
 	"strings"
 	"time"
 )
 
 const (
-	Author  = "webdevops.io"
+	Author = "webdevops.io"
 )
 
 var (
-	argparser         *flags.Parser
-	Verbose           bool
-	Logger            *DaemonLogger
+	argparser *flags.Parser
+	opts      config.Opts
+
 	AzureDevopsClient *AzureDevops.AzureDevopsClient
 
 	collectorGeneralList   map[string]*CollectorGeneral
@@ -32,85 +35,19 @@ var (
 	gitTag    = "<unknown>"
 )
 
-var opts struct {
-	// general settings
-	Verbose []bool `   long:"verbose" short:"v" env:"VERBOSE" description:"Verbose mode"`
-
-	// server settings
-	ServerBind string `long:"bind"  env:"SERVER_BIND" description:"Server address"  default:":8080"`
-
-	// scrape time settings
-	ScrapeTime              time.Duration  `long:"scrape.time"                  env:"SCRAPE_TIME"                    description:"Default scrape time (time.duration)"                       default:"30m"`
-	ScrapeTimeProjects      *time.Duration `long:"scrape.time.projects"         env:"SCRAPE_TIME_PROJECTS"           description:"Scrape time for project metrics (time.duration)"`
-	ScrapeTimeRepository    *time.Duration `long:"scrape.time.repository"       env:"SCRAPE_TIME_REPOSITORY"         description:"Scrape time for repository metrics (time.duration)"`
-	ScrapeTimeBuild         *time.Duration `long:"scrape.time.build"            env:"SCRAPE_TIME_BUILD"              description:"Scrape time for build metrics (time.duration)"`
-	ScrapeTimeRelease       *time.Duration `long:"scrape.time.release"          env:"SCRAPE_TIME_RELEASE"            description:"Scrape time for release metrics (time.duration)"`
-	ScrapeTimeDeployment    *time.Duration `long:"scrape.time.deployment"       env:"SCRAPE_TIME_DEPLOYMENT"         description:"Scrape time for deployment metrics (time.duration)"`
-	ScrapeTimePullRequest   *time.Duration `long:"scrape.time.pullrequest"      env:"SCRAPE_TIME_PULLREQUEST"        description:"Scrape time for pullrequest metrics  (time.duration)"`
-	ScrapeTimeStats         *time.Duration `long:"scrape.time.stats"            env:"SCRAPE_TIME_STATS"              description:"Scrape time for stats metrics  (time.duration)"`
-	ScrapeTimeResourceUsage *time.Duration `long:"scrape.time.resourceusage"    env:"SCRAPE_TIME_RESOURCEUSAGE"      description:"Scrape time for resourceusage metrics  (time.duration)"`
-	ScrapeTimeQuery         *time.Duration `long:"scrape.time.query"            env:"SCRAPE_TIME_QUERY"              description:"Scrape time for query results  (time.duration)"`
-	ScrapeTimeLive          *time.Duration `long:"scrape.time.live"             env:"SCRAPE_TIME_LIVE"               description:"Scrape time for live metrics (time.duration)"              default:"30s"`
-
-	// summary options
-	StatsSummaryMaxAge *time.Duration `long:"stats.summary.maxage"         env:"STATS_SUMMARY_MAX_AGE"             description:"Stats Summary metrics max age (time.duration)"`
-
-	// ignore settings
-	AzureDevopsFilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`
-	AzureDevopsBlacklistProjects []string `long:"blacklist.project"    env:"AZURE_DEVOPS_BLACKLIST_PROJECT" env-delim:" "   description:"Filter projects (UUIDs)"`
-	AzureDevopsFilterAgentPoolId []int64  `long:"whitelist.agentpool"  env:"AZURE_DEVOPS_FILTER_AGENTPOOL"  env-delim:" "   description:"Filter of agent pool (IDs)"`
-
-	// query settings
-	QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
-
-	// azure settings
-	AzureDevopsUrl          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
-	AzureDevopsAccessToken  string  `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"    description:"Azure DevOps access token" required:"true"`
-	AzureDevopsOrganisation string  `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
-	AzureDevopsApiVersion   string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"      description:"Azure DevOps API version"  default:"5.1"`
-
-	RequestConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
-	RequestRetries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
-
-	LimitBuildsPerProject             int64         `long:"limit.builds-per-project"              env:"LIMIT_BUILDS_PER_PROJECT"              description:"Limit builds per project"         default:"100"`
-	LimitBuildsPerDefinition          int64         `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"      default:"10"`
-	LimitReleasesPerProject           int64         `long:"limit.releases-per-project"            env:"LIMIT_RELEASES_PER_PROJECT"            description:"Limit releases per project"       default:"100"`
-	LimitReleasesPerDefinition        int64         `long:"limit.releases-per-definition"         env:"LIMIT_RELEASES_PER_DEFINITION"         description:"Limit releases per definition"    default:"100"`
-	LimitDeploymentPerDefinition      int64         `long:"limit.deployments-per-definition"      env:"LIMIT_DEPLOYMENTS_PER_DEFINITION"      description:"Limit deployments per definition" default:"100"`
-	LimitReleaseDefinitionsPerProject int64         `long:"limit.releasedefinitions-per-project"  env:"LIMIT_RELEASEDEFINITION_PER_PROJECT"   description:"Limit builds per definition"      default:"100"`
-	LimitBuildHistoryDuration         time.Duration `long:"limit.build-history-duration"          env:"LIMIT_BUILD_HISTORY_DURATION"          description:"Time (time.Duration) how long the exporter should look back for builds"      default:"48h"`
-	LimitReleaseHistoryDuration       time.Duration `long:"limit.release-history-duration"        env:"LIMIT_RELEASE_HISTORY_DURATION"        description:"Time (time.Duration) how long the exporter should look back for releases"      default:"48h"`
-}
-
 func main() {
 	initArgparser()
 
-	// set verbosity
-	Verbose = len(opts.Verbose) >= 1
+	log.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
+	log.Info(string(opts.GetJson()))
 
-	Logger = NewLogger(log.Lshortfile, Verbose)
-	defer Logger.Close()
-
-	Logger.Infof("Init Azure DevOps exporter v%s (%s; by %v)", gitTag, gitCommit, Author)
-
-	Logger.Infof("Init AzureDevOps connection")
+	log.Infof("init AzureDevOps connection")
 	initAzureDevOpsConnection()
 
-	Logger.Info("Starting metrics collection")
-	Logger.Infof("set scape interval[Default]: %v", scrapeIntervalStatus(&opts.ScrapeTime))
-	Logger.Infof("set scape interval[Live]: %v", scrapeIntervalStatus(opts.ScrapeTimeLive))
-	Logger.Infof("set scape interval[Project]: %v", scrapeIntervalStatus(opts.ScrapeTimeProjects))
-	Logger.Infof("set scape interval[Repository]: %v", scrapeIntervalStatus(opts.ScrapeTimeRepository))
-	Logger.Infof("set scape interval[PullRequest]: %v", scrapeIntervalStatus(opts.ScrapeTimePullRequest))
-	Logger.Infof("set scape interval[Build]: %v", scrapeIntervalStatus(opts.ScrapeTimeBuild))
-	Logger.Infof("set scape interval[Release]: %v", scrapeIntervalStatus(opts.ScrapeTimeRelease))
-	Logger.Infof("set scape interval[Deployment]: %v", scrapeIntervalStatus(opts.ScrapeTimeDeployment))
-	Logger.Infof("set scape interval[Stats]: %v", scrapeIntervalStatus(opts.ScrapeTimeStats))
-	Logger.Infof("set scape interval[ResourceUsage]: %v", scrapeIntervalStatus(opts.ScrapeTimeResourceUsage))
-	Logger.Infof("set scape interval[Queries]: %v", scrapeIntervalStatus(opts.ScrapeTimeQuery))
+	log.Info("init metrics collection")
 	initMetricCollector()
 
-	Logger.Infof("Starting http server on %s", opts.ServerBind)
+	log.Infof("starting http server on %s", opts.ServerBind)
 	startHttpServer()
 }
 
@@ -130,10 +67,41 @@ func initArgparser() {
 		}
 	}
 
+	// verbose level
+	if opts.Logger.Verbose {
+		log.SetLevel(log.DebugLevel)
+	}
+
+	// debug level
+	if opts.Logger.Debug {
+		log.SetReportCaller(true)
+		log.SetLevel(log.TraceLevel)
+		log.SetFormatter(&log.TextFormatter{
+			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+				s := strings.Split(f.Function, ".")
+				funcName := s[len(s)-1]
+				return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
+			},
+		})
+	}
+
+	// json log format
+	if opts.Logger.LogJson {
+		log.SetReportCaller(true)
+		log.SetFormatter(&log.JSONFormatter{
+			DisableTimestamp: true,
+			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
+				s := strings.Split(f.Function, ".")
+				funcName := s[len(s)-1]
+				return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
+			},
+		})
+	}
+
 	// ensure query paths and projects are splitted by '@'
-	if opts.QueriesWithProjects != nil {
+	if opts.AzureDevops.QueriesWithProjects != nil {
 		queryError := false
-		for _, query := range opts.QueriesWithProjects {
+		for _, query := range opts.AzureDevops.QueriesWithProjects {
 			if strings.Count(query, "@") != 1 {
 				fmt.Println("Query path '", query, "' is malformed; should be '<query UUID>@<project UUID>'")
 				queryError = true
@@ -145,72 +113,72 @@ func initArgparser() {
 	}
 
 	// use default scrape time if null
-	if opts.ScrapeTimeProjects == nil {
-		opts.ScrapeTimeProjects = &opts.ScrapeTime
+	if opts.Scrape.TimeProjects == nil {
+		opts.Scrape.TimeProjects = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeRepository == nil {
-		opts.ScrapeTimeRepository = &opts.ScrapeTime
+	if opts.Scrape.TimeRepository == nil {
+		opts.Scrape.TimeRepository = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimePullRequest == nil {
-		opts.ScrapeTimePullRequest = &opts.ScrapeTime
+	if opts.Scrape.TimePullRequest == nil {
+		opts.Scrape.TimePullRequest = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeBuild == nil {
-		opts.ScrapeTimeBuild = &opts.ScrapeTime
+	if opts.Scrape.TimeBuild == nil {
+		opts.Scrape.TimeBuild = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeRelease == nil {
-		opts.ScrapeTimeRelease = &opts.ScrapeTime
+	if opts.Scrape.TimeRelease == nil {
+		opts.Scrape.TimeRelease = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeDeployment == nil {
-		opts.ScrapeTimeDeployment = &opts.ScrapeTime
+	if opts.Scrape.TimeDeployment == nil {
+		opts.Scrape.TimeDeployment = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeStats == nil {
-		opts.ScrapeTimeStats = &opts.ScrapeTime
+	if opts.Scrape.TimeStats == nil {
+		opts.Scrape.TimeStats = &opts.Scrape.Time
 	}
 
-	if opts.ScrapeTimeResourceUsage == nil {
-		opts.ScrapeTimeResourceUsage = &opts.ScrapeTime
+	if opts.Scrape.TimeResourceUsage == nil {
+		opts.Scrape.TimeResourceUsage = &opts.Scrape.Time
 	}
 
-	if opts.StatsSummaryMaxAge == nil {
-		opts.StatsSummaryMaxAge = opts.ScrapeTimeStats
+	if opts.Stats.SummaryMaxAge == nil {
+		opts.Stats.SummaryMaxAge = opts.Scrape.TimeStats
 	}
 
-	if opts.ScrapeTimeQuery == nil {
-		opts.ScrapeTimeQuery = &opts.ScrapeTime
+	if opts.Scrape.TimeQuery == nil {
+		opts.Scrape.TimeQuery = &opts.Scrape.Time
 	}
 }
 
 // Init and build Azure authorzier
 func initAzureDevOpsConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
-	if opts.AzureDevopsUrl != nil {
-		AzureDevopsClient.HostUrl = opts.AzureDevopsUrl
+	if opts.AzureDevops.Url != nil {
+		AzureDevopsClient.HostUrl = opts.AzureDevops.Url
 	}
 
-	Logger.Infof("using organization: %v", opts.AzureDevopsOrganisation)
-	Logger.Infof("using apiversion: %v", opts.AzureDevopsApiVersion)
-	Logger.Infof("using concurrency: %v", opts.RequestConcurrencyLimit)
-	Logger.Infof("using retries: %v", opts.RequestRetries)
+	log.Infof("using organization: %v", opts.AzureDevops.Organisation)
+	log.Infof("using apiversion: %v", opts.AzureDevops.ApiVersion)
+	log.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
+	log.Infof("using retries: %v", opts.Request.Retries)
 
-	AzureDevopsClient.SetOrganization(opts.AzureDevopsOrganisation)
-	AzureDevopsClient.SetAccessToken(opts.AzureDevopsAccessToken)
-	AzureDevopsClient.SetApiVersion(opts.AzureDevopsApiVersion)
-	AzureDevopsClient.SetConcurrency(opts.RequestConcurrencyLimit)
-	AzureDevopsClient.SetRetries(opts.RequestRetries)
+	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
+	AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
+	AzureDevopsClient.SetApiVersion(opts.AzureDevops.ApiVersion)
+	AzureDevopsClient.SetConcurrency(opts.Request.ConcurrencyLimit)
+	AzureDevopsClient.SetRetries(opts.Request.Retries)
 	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", gitTag))
 
-	AzureDevopsClient.LimitBuildsPerProject = opts.LimitBuildsPerProject
-	AzureDevopsClient.LimitBuildsPerDefinition = opts.LimitBuildsPerDefinition
-	AzureDevopsClient.LimitReleasesPerDefinition = opts.LimitReleasesPerDefinition
-	AzureDevopsClient.LimitDeploymentPerDefinition = opts.LimitDeploymentPerDefinition
-	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.LimitReleaseDefinitionsPerProject
-	AzureDevopsClient.LimitReleasesPerProject = opts.LimitReleasesPerProject
+	AzureDevopsClient.LimitBuildsPerProject = opts.Limit.BuildsPerProject
+	AzureDevopsClient.LimitBuildsPerDefinition = opts.Limit.BuildsPerDefinition
+	AzureDevopsClient.LimitReleasesPerDefinition = opts.Limit.ReleasesPerDefinition
+	AzureDevopsClient.LimitDeploymentPerDefinition = opts.Limit.DeploymentPerDefinition
+	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.Limit.ReleaseDefinitionsPerProject
+	AzureDevopsClient.LimitReleasesPerProject = opts.Limit.ReleasesPerProject
 }
 
 func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
@@ -223,23 +191,23 @@ func getAzureDevOpsProjects() (list AzureDevops.ProjectList) {
 	list = rawList
 
 	// whitelist
-	if len(opts.AzureDevopsFilterProjects) > 0 {
+	if len(opts.AzureDevops.FilterProjects) > 0 {
 		rawList = list
 		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
-			if arrayStringContains(opts.AzureDevopsFilterProjects, project.Id) {
+			if arrayStringContains(opts.AzureDevops.FilterProjects, project.Id) {
 				list.List = append(list.List, project)
 			}
 		}
 	}
 
 	// blacklist
-	if len(opts.AzureDevopsBlacklistProjects) > 0 {
+	if len(opts.AzureDevops.BlacklistProjects) > 0 {
 		// filter ignored azure devops projects
 		rawList = list
 		list = AzureDevops.ProjectList{}
 		for _, project := range rawList.List {
-			if !arrayStringContains(opts.AzureDevopsBlacklistProjects, project.Id) {
+			if !arrayStringContains(opts.AzureDevops.BlacklistProjects, project.Id) {
 				list.List = append(list.List, project)
 			}
 		}
@@ -258,113 +226,113 @@ func initMetricCollector() {
 	projectList := getAzureDevOpsProjects()
 
 	collectorName = "General"
-	if opts.ScrapeTimeLive.Seconds() > 0 {
+	if opts.Scrape.TimeLive.Seconds() > 0 {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorGeneral{})
 		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
-		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Project"
-	if opts.ScrapeTimeLive.Seconds() > 0 {
+	if opts.Scrape.TimeLive.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "AgentPool"
-	if opts.ScrapeTimeLive.Seconds() > 0 {
+	if opts.Scrape.TimeLive.Seconds() > 0 {
 		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
 		collectorAgentPoolList[collectorName].SetAzureProjects(&projectList)
-		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevopsFilterAgentPoolId
-		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevops.FilterAgentPoolId
+		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "LatestBuild"
-	if opts.ScrapeTimeLive.Seconds() > 0 {
+	if opts.Scrape.TimeLive.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeLive)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Repository"
-	if opts.ScrapeTimeRepository.Seconds() > 0 {
+	if opts.Scrape.TimeRepository.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRepository)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRepository)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "PullRequest"
-	if opts.ScrapeTimePullRequest.Seconds() > 0 {
+	if opts.Scrape.TimePullRequest.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimePullRequest)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimePullRequest)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Build"
-	if opts.ScrapeTimeBuild.Seconds() > 0 {
+	if opts.Scrape.TimeBuild.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeBuild)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeBuild)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Release"
-	if opts.ScrapeTimeRelease.Seconds() > 0 {
+	if opts.Scrape.TimeRelease.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeRelease)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRelease)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Deployment"
-	if opts.ScrapeTimeDeployment.Seconds() > 0 {
+	if opts.Scrape.TimeDeployment.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeDeployment)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeDeployment)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Stats"
-	if opts.ScrapeTimeStats.Seconds() > 0 {
+	if opts.Scrape.TimeStats.Seconds() > 0 {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
 		collectorProjectList[collectorName].SetAzureProjects(&projectList)
-		collectorProjectList[collectorName].SetScrapeTime(*opts.ScrapeTimeStats)
+		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeStats)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "ResourceUsage"
-	if opts.ScrapeTimeResourceUsage.Seconds() > 0 {
+	if opts.Scrape.TimeResourceUsage.Seconds() > 0 {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
 		collectorGeneralList[collectorName].SetAzureProjects(&projectList)
-		collectorGeneralList[collectorName].SetScrapeTime(*opts.ScrapeTimeResourceUsage)
+		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeResourceUsage)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Query"
-	if opts.ScrapeTimeQuery.Seconds() > 0 {
+	if opts.Scrape.TimeQuery.Seconds() > 0 {
 		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
 		collectorQueryList[collectorName].SetAzureProjects(&projectList)
-		collectorQueryList[collectorName].QueryList = opts.QueriesWithProjects
-		collectorQueryList[collectorName].SetScrapeTime(*opts.ScrapeTimeQuery)
+		collectorQueryList[collectorName].QueryList = opts.AzureDevops.QueriesWithProjects
+		collectorQueryList[collectorName].SetScrapeTime(*opts.Scrape.TimeQuery)
 	} else {
-		Logger.Infof("collector[%s]: disabled", collectorName)
+		log.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	for _, collector := range collectorGeneralList {
@@ -384,16 +352,16 @@ func initMetricCollector() {
 	}
 
 	// background auto update of projects
-	if opts.ScrapeTimeProjects.Seconds() > 0 {
+	if opts.Scrape.TimeProjects.Seconds() > 0 {
 		go func() {
 			// initial sleep
-			time.Sleep(*opts.ScrapeTimeProjects)
+			time.Sleep(*opts.Scrape.TimeProjects)
 
 			for {
-				Logger.Info("daemon: updating project list")
+				log.Info("daemon: updating project list")
 
 				projectList := getAzureDevOpsProjects()
-				Logger.Infof("daemon: found %v projects", projectList.Count)
+				log.Infof("daemon: found %v projects", projectList.Count)
 
 				for _, collector := range collectorGeneralList {
 					collector.SetAzureProjects(&projectList)
@@ -407,8 +375,8 @@ func initMetricCollector() {
 					collector.SetAzureProjects(&projectList)
 				}
 
-				Logger.Info("daemon: skipping Query collectors; they don't use projects")
-				time.Sleep(*opts.ScrapeTimeProjects)
+				log.Info("daemon: skipping Query collectors; they don't use projects")
+				time.Sleep(*opts.Scrape.TimeProjects)
 			}
 		}()
 	}
@@ -419,10 +387,10 @@ func startHttpServer() {
 	// healthz
 	http.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fmt.Fprint(w, "Ok"); err != nil {
-			Logger.Error(err)
+			log.Error(err)
 		}
 	})
 
 	http.Handle("/metrics", promhttp.Handler())
-	Logger.Error(http.ListenAndServe(opts.ServerBind, nil))
+	log.Error(http.ListenAndServe(opts.ServerBind, nil))
 }

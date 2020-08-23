@@ -3,8 +3,9 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
-	"strings"
+	log "github.com/sirupsen/logrus"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
+	"strings"
 )
 
 type MetricsCollectorQuery struct {
@@ -57,20 +58,20 @@ func (m *MetricsCollectorQuery) Reset() {
 	m.prometheus.workItemCount.Reset()
 }
 
-func (m *MetricsCollectorQuery) Collect(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorQuery) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	for _, query := range m.CollectorReference.QueryList {
 		queryPair := strings.Split(query, "@")
-		m.collectQueryResults(ctx, callback, queryPair[0], queryPair[1])
+		m.collectQueryResults(ctx, logger, callback, queryPair[0], queryPair[1])
 	}
 }
 
-func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callback chan<- func(), queryPath string, projectID string) {
+func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, logger *log.Entry, callback chan<- func(), queryPath string, projectID string) {
 	workItemsMetric := prometheusCommon.NewMetricsList()
 	workItemsDataMetric := prometheusCommon.NewMetricsList()
 
 	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectID)
 	if err != nil {
-		Logger.Errorf("Query[%v@%v]call[QueryWorkItems]: %v", queryPath, projectID, err)
+		logger.Error(err)
 		return
 	}
 
@@ -79,11 +80,10 @@ func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, callbac
 		"queryPath": queryPath,
 	}, float64(len(workItemInfoList.List)))
 
-
 	for _, workItemInfo := range workItemInfoList.List {
 		workItem, err := AzureDevopsClient.GetWorkItem(workItemInfo.Url)
 		if err != nil {
-			Logger.Errorf("WorkItem[%v@%v]call[GetWorkItem]: %v", workItemInfo.Id, workItemInfo.Url, err)
+			logger.Error(err)
 			return
 		}
 

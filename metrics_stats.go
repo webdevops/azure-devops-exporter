@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
@@ -44,7 +45,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_wait",
 			Help:   "Azure DevOps stats agentpool builds wait duration",
-			MaxAge: *opts.StatsSummaryMaxAge,
+			MaxAge: *opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -57,7 +58,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_duration",
 			Help:   "Azure DevOps stats agentpool builds process duration",
-			MaxAge: *opts.StatsSummaryMaxAge,
+			MaxAge: *opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -86,7 +87,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_wait",
 			Help:   "Azure DevOps stats project builds wait duration",
-			MaxAge: *opts.StatsSummaryMaxAge,
+			MaxAge: *opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -99,7 +100,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_duration",
 			Help:   "Azure DevOps stats project builds process duration",
-			MaxAge: *opts.StatsSummaryMaxAge,
+			MaxAge: *opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -112,7 +113,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_release_duration",
 			Help:   "Azure DevOps stats project release process duration",
-			MaxAge: *opts.StatsSummaryMaxAge,
+			MaxAge: *opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -136,17 +137,17 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 func (m *MetricsCollectorStats) Reset() {
 }
 
-func (m *MetricsCollectorStats) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	m.CollectBuilds(ctx, callback, project)
-	m.CollectReleases(ctx, callback, project)
+func (m *MetricsCollectorStats) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+	m.CollectBuilds(ctx, logger, callback, project)
+	m.CollectReleases(ctx, logger, callback, project)
 }
 
-func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	minTime := *m.CollectorReference.collectionLastTime
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListLatestReleases]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
@@ -166,12 +167,12 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, callback ch
 	}
 }
 
-func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	minTime := *m.CollectorReference.collectionLastTime
 
 	buildList, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListBuildHistory]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 

@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"sync"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
+	"sync"
 )
 
 type MetricsCollectorRepository struct {
@@ -78,21 +79,22 @@ func (m *MetricsCollectorRepository) Reset() {
 	m.prometheus.repositoryStats.Reset()
 }
 
-func (m *MetricsCollectorRepository) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorRepository) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	wg := sync.WaitGroup{}
 
 	for _, repository := range project.RepositoryList.List {
 		wg.Add(1)
 		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 			defer wg.Done()
-			m.collectRepository(ctx, callback, project, repository)
+			contextLogger := logger.WithField("repository", repository.Name)
+			m.collectRepository(ctx, contextLogger, callback, project, repository)
 		}(ctx, callback, project, repository)
 	}
 
 	wg.Wait()
 }
 
-func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	fromTime := *m.CollectorReference.collectionLastTime
 
 	repositoryMetric := prometheusCommon.NewMetricsList()
@@ -122,7 +124,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 			"repositoryID": repository.Id,
 		}, float64(commitList.Count))
 	} else {
-		Logger.Errorf("project[%v]call[ListCommits]: %v", project.Name, err)
+		logger.Error(err)
 	}
 
 	// get pushes delta list
@@ -133,7 +135,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, call
 			"repositoryID": repository.Id,
 		}, float64(pushList.Count))
 	} else {
-		Logger.Errorf("project[%v]call[ListCommits]: %v", project.Name, err)
+		logger.Error(err)
 	}
 
 	callback <- func() {

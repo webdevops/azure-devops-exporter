@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
@@ -118,21 +119,28 @@ func (m *MetricsCollectorAgentPool) Reset() {
 	m.prometheus.agentPoolQueueLength.Reset()
 }
 
-func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	for _, project := range m.CollectorReference.azureDevOpsProjects.List {
-		m.collectAgentInfo(ctx, callback, project)
+		contextLogger := logger.WithFields(log.Fields{
+			"project": project.Name,
+		})
+		m.collectAgentInfo(ctx, contextLogger, callback, project)
 	}
 
 	for _, agentPoolId := range m.CollectorReference.AgentPoolIdList {
-		m.collectAgentQueues(ctx, callback, agentPoolId)
-		m.collectAgentPoolJobs(ctx, callback, agentPoolId)
+		contextLogger := logger.WithFields(log.Fields{
+			"agentPoolId": agentPoolId,
+		})
+
+		m.collectAgentQueues(ctx, contextLogger, callback, agentPoolId)
+		m.collectAgentPoolJobs(ctx, contextLogger, callback, agentPoolId)
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListAgentQueues(project.Id)
 	if err != nil {
-		Logger.Errorf("agentpool[%v]call[ListAgentQueues]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
@@ -158,10 +166,10 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, callba
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logger *log.Entry, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolAgents(agentPoolId)
 	if err != nil {
-		Logger.Errorf("agentpool[%v]call[ListAgentPoolAgents]: %v", agentPoolId, err)
+		logger.Error(err)
 		return
 	}
 
@@ -211,10 +219,10 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, call
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, logger *log.Entry, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolJobs(agentPoolId)
 	if err != nil {
-		Logger.Errorf("agentpool[%v]call[ListAgentJobs]: %v", agentPoolId, err)
+		logger.Error(err)
 		return
 	}
 

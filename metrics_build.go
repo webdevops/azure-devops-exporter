@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 	"time"
@@ -87,16 +88,15 @@ func (m *MetricsCollectorBuild) Reset() {
 	m.prometheus.buildStatus.Reset()
 }
 
-func (m *MetricsCollectorBuild) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	m.collectDefinition(ctx, callback, project)
-	m.collectBuilds(ctx, callback, project)
-
+func (m *MetricsCollectorBuild) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+	m.collectDefinition(ctx, logger, callback, project)
+	m.collectBuilds(ctx, logger, callback, project)
 }
 
-func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuildDefinitions(project.Id)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListBuildDefinitions]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
@@ -118,12 +118,12 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, callback 
 	}
 }
 
-func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(-opts.LimitBuildHistoryDuration)
+func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	list, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListBuildHistory]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 

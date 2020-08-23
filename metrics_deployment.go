@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
@@ -63,10 +64,10 @@ func (m *MetricsCollectorDeployment) Reset() {
 	m.prometheus.deploymentStatus.Reset()
 }
 
-func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorDeployment) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListReleaseDefinitions]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
@@ -74,9 +75,11 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, callback chan<
 	deploymentStatusMetric := prometheusCommon.NewMetricsList()
 
 	for _, releaseDefinition := range list.List {
+		contextLogger := logger.WithField("releaseDefinition", releaseDefinition.Name)
+
 		deploymentList, err := AzureDevopsClient.ListReleaseDeployments(project.Id, releaseDefinition.Id)
 		if err != nil {
-			Logger.Errorf("project[%v]call[ListReleaseDeployments]: %v", project.Name, err)
+			contextLogger.Error(err)
 			return
 		}
 

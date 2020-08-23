@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
@@ -78,16 +79,17 @@ func (m *MetricsCollectorPullRequest) Reset() {
 
 }
 
-func (m *MetricsCollectorPullRequest) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorPullRequest) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	for _, repository := range project.RepositoryList.List {
-		m.collectPullRequests(ctx, callback, project, repository)
+		contextLogger := logger.WithField("repository", repository.Name)
+		m.collectPullRequests(ctx, contextLogger, callback, project, repository)
 	}
 }
 
-func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	list, err := AzureDevopsClient.ListPullrequest(project.Id, repository.Id)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListPullrequest] %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 

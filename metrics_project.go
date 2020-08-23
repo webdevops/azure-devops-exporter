@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
@@ -37,11 +38,11 @@ func (m *MetricsCollectorProject) Reset() {
 	m.prometheus.project.Reset()
 }
 
-func (m *MetricsCollectorProject) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
-	m.collectProject(ctx, callback, project)
+func (m *MetricsCollectorProject) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+	m.collectProject(ctx, logger, callback, project)
 }
 
-func (m *MetricsCollectorProject) collectProject(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorProject) collectProject(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	projectMetric := prometheusCommon.NewMetricsList()
 
 	projectMetric.AddInfo(prometheus.Labels{

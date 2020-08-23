@@ -3,9 +3,10 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"time"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
+	"time"
 )
 
 type MetricsCollectorRelease struct {
@@ -166,10 +167,10 @@ func (m *MetricsCollectorRelease) Reset() {
 	m.prometheus.releaseDefinitionEnvironment.Reset()
 }
 
-func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListReleaseDefinitions]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
@@ -210,11 +211,11 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, callback chan<- f
 
 	// --------------------------------------
 	// Releases
-	minTime := time.Now().Add(-opts.LimitReleaseHistoryDuration)
+	minTime := time.Now().Add(-opts.Limit.ReleaseHistoryDuration)
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListReleaseHistory]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 

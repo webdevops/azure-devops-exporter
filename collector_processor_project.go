@@ -2,13 +2,14 @@ package main
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type CollectorProcessorProjectInterface interface {
 	Setup(collector *CollectorProject)
 	Reset()
-	Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project)
+	Collect(ctx context.Context, contextLogger *log.Entry, callback chan<- func(), project devopsClient.Project)
 }
 
 type CollectorProcessorProject struct {
@@ -23,6 +24,11 @@ func NewCollectorProject(name string, processor CollectorProcessorProjectInterfa
 		},
 		Processor: processor,
 	}
+	collector.CollectorBase.Init()
 
 	return &collector
+}
+
+func (c *CollectorProcessorProject) logger() *log.Entry {
+	return c.CollectorReference.logger
 }

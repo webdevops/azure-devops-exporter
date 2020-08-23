@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
 )
@@ -29,7 +30,7 @@ func (c *CollectorProject) Collect() {
 	var wgCallback sync.WaitGroup
 
 	if c.GetAzureProjects() == nil {
-		Logger.Infof("collector[%s]: no projects found, skipping", c.Name)
+		c.logger.Info("no projects found, skipping")
 		return
 	}
 
@@ -43,7 +44,10 @@ func (c *CollectorProject) Collect() {
 		wg.Add(1)
 		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 			defer wg.Done()
-			c.Processor.Collect(ctx, callbackChannel, project)
+			contextLogger := c.logger.WithFields(log.Fields{
+				"project": project.Name,
+			})
+			c.Processor.Collect(ctx, contextLogger, callbackChannel, project)
 		}(ctx, callbackChannel, project)
 	}
 

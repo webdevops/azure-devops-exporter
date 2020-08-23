@@ -28,7 +28,7 @@ func (c *CollectorGeneral) Collect() {
 	var wgCallback sync.WaitGroup
 
 	if c.GetAzureProjects() == nil {
-		Logger.Infof("collector[%s]: no projects found, skipping", c.Name)
+		c.logger.Info("no projects found, skipping")
 		return
 	}
 
@@ -41,7 +41,7 @@ func (c *CollectorGeneral) Collect() {
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		c.Processor.Collect(ctx, callbackChannel)
+		c.Processor.Collect(ctx, c.logger, callbackChannel)
 	}()
 
 	// collect metrics (callbacks) and proceses them

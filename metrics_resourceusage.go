@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
 
@@ -47,15 +48,15 @@ func (m *MetricsCollectorResourceUsage) Reset() {
 	m.prometheus.resourceUsageLicense.Reset()
 }
 
-func (m *MetricsCollectorResourceUsage) Collect(ctx context.Context, callback chan<- func()) {
-	m.CollectResourceUsageBuild(ctx, callback)
-	m.CollectResourceUsageAgent(ctx, callback)
+func (m *MetricsCollectorResourceUsage) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
+	m.CollectResourceUsageBuild(ctx, logger, callback)
+	m.CollectResourceUsageAgent(ctx, logger, callback)
 }
 
-func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageAgent()
 	if err != nil {
-		Logger.Errorf("call[GetResourceUsageAgent]: %v", err)
+		logger.Error(err)
 		return
 	}
 
@@ -116,10 +117,10 @@ func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Co
 	}
 }
 
-func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Context, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Context, logger *log.Entry, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageBuild()
 	if err != nil {
-		Logger.Errorf("call[GetResourceUsageBuild]: %v", err)
+		logger.Error(err)
 		return
 	}
 

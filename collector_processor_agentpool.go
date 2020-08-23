@@ -2,12 +2,13 @@ package main
 
 import (
 	"context"
+	log "github.com/sirupsen/logrus"
 )
 
 type CollectorProcessorAgentPoolInterface interface {
 	Setup(collector *CollectorAgentPool)
 	Reset()
-	Collect(ctx context.Context, callback chan<- func())
+	Collect(ctx context.Context, contextLogger *log.Entry, callback chan<- func())
 }
 
 type CollectorProcessorAgentPool struct {
@@ -22,6 +23,11 @@ func NewCollectorAgentPool(name string, processor CollectorProcessorAgentPoolInt
 		},
 		Processor: processor,
 	}
+	collector.CollectorBase.Init()
 
 	return &collector
+}
+
+func (c *CollectorProcessorAgentPool) logger() *log.Entry {
+	return c.CollectorReference.logger
 }

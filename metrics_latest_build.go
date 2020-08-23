@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"github.com/prometheus/client_golang/prometheus"
+	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	prometheusCommon "github.com/webdevops/go-prometheus-common"
 )
@@ -63,10 +64,10 @@ func (m *MetricsCollectorLatestBuild) Reset() {
 	m.prometheus.buildStatus.Reset()
 }
 
-func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListLatestBuilds(project.Id)
 	if err != nil {
-		Logger.Errorf("project[%v]call[ListLatestBuilds]: %v", project.Name, err)
+		logger.Error(err)
 		return
 	}
 
