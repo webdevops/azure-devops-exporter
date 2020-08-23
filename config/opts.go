@@ -57,6 +57,7 @@ type (
 		}
 
 		Limit struct {
+			Project                      int64         `long:"limit.project"                         env:"LIMIT_PROJECT"                         description:"Limit number of projects"         default:"100"`
 			BuildsPerProject             int64         `long:"limit.builds-per-project"              env:"LIMIT_BUILDS_PER_PROJECT"              description:"Limit builds per project"         default:"100"`
 			BuildsPerDefinition          int64         `long:"limit.builds-per-definition"           env:"LIMIT_BUILDS_PER_DEFINITION"           description:"Limit builds per definition"      default:"10"`
 			ReleasesPerProject           int64         `long:"limit.releases-per-project"            env:"LIMIT_RELEASES_PER_PROJECT"            description:"Limit releases per project"       default:"100"`

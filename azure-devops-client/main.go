@@ -25,6 +25,7 @@ type AzureDevopsClient struct {
 	RequestCount   uint64
 	RequestRetries int
 
+	LimitProject                      int64
 	LimitBuildsPerProject             int64
 	LimitBuildsPerDefinition          int64
 	LimitReleasesPerDefinition        int64

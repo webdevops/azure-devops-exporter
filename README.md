@@ -40,6 +40,7 @@ Application Options:
       --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
       --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
+      --limit.project=                        Limit number of projects (default: 100) [$LIMIT_PROJECT]
       --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
       --limit.releases-per-project=           Limit releases per project (default: 100) [$LIMIT_RELEASES_PER_PROJECT]
@@ -52,7 +53,6 @@ Application Options:
 
 Help Options:
   -h, --help                                  Show this help message
-
 ```
 
 Metrics

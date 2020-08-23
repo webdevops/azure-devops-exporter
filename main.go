@@ -173,6 +173,7 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.SetRetries(opts.Request.Retries)
 	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", gitTag))
 
+	AzureDevopsClient.LimitProject = opts.Limit.Project
 	AzureDevopsClient.LimitBuildsPerProject = opts.Limit.BuildsPerProject
 	AzureDevopsClient.LimitBuildsPerDefinition = opts.Limit.BuildsPerDefinition
 	AzureDevopsClient.LimitReleasesPerDefinition = opts.Limit.ReleasesPerDefinition
