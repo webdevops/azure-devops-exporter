@@ -2,8 +2,8 @@ Azure DevOps Exporter (VSTS)
 ============================
 
 [![license](https://img.shields.io/github/license/webdevops/azure-devops-exporter.svg)](https://github.com/webdevops/azure-devops-exporter/blob/master/LICENSE)
-[![Docker](https://img.shields.io/badge/docker-webdevops%2Fazure--devops--exporter-blue.svg?longCache=true&style=flat&logo=docker)](https://hub.docker.com/r/webdevops/azure-devops-exporter/)
-[![Docker Build Status](https://img.shields.io/docker/build/webdevops/azure-devops-exporter.svg)](https://hub.docker.com/r/webdevops/azure-devops-exporter/)
+[![Docker](https://img.shields.io/docker/cloud/automated/webdevops/azure-devops-exporter)](https://hub.docker.com/r/webdevops/azure-devops-exporter/)
+[![Docker Build Status](https://img.shields.io/docker/cloud/build/webdevops/azure-devops-exporter)](https://hub.docker.com/r/webdevops/azure-devops-exporter/)
 
 Prometheus exporter for Azure DevOps (VSTS) for projects, builds, build times (elapsed and queue wait time), agent pool utilization and active pull requests.
 
