@@ -29,6 +29,9 @@ image: build
 build-push-development:
 	docker build -t webdevops/$(NAME):development . && docker push webdevops/$(NAME):development
 
+test:
+	go test ./...
+
 .PHONY: lint
 lint: $(GOLANGCI_LINT_BIN)
 	# megacheck fails to respect build flags, causing compilation failure during linting.

@@ -10,6 +10,7 @@ RUN make dependencies
 
 # Compile
 COPY ./ /go/src/github.com/webdevops/azure-devops-exporter
+RUN make test
 RUN make lint
 RUN make build
 RUN ./azure-devops-exporter --help
