@@ -28,7 +28,3 @@ func NewCollectorProject(name string, processor CollectorProcessorProjectInterfa
 
 	return &collector
 }
-
-func (c *CollectorProcessorProject) logger() *log.Entry {
-	return c.CollectorReference.logger
-}

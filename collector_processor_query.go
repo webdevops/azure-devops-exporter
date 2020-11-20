@@ -27,7 +27,3 @@ func NewCollectorQuery(name string, processor CollectorProcessorQueryInterface) 
 
 	return &collector
 }
-
-func (c *CollectorProcessorQuery) logger() *log.Entry {
-	return c.CollectorReference.logger
-}

@@ -27,7 +27,3 @@ func NewCollectorAgentPool(name string, processor CollectorProcessorAgentPoolInt
 
 	return &collector
 }
-
-func (c *CollectorProcessorAgentPool) logger() *log.Entry {
-	return c.CollectorReference.logger
-}

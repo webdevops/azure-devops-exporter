@@ -185,7 +185,7 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *log
 					"releaseDefinitionID":     int64ToString(release.Definition.Id),
 					"definitionEnvironmentID": int64ToString(environment.DefinitionEnvironmentId),
 				}).Observe(1)
-			case "failed","partiallySucceeded":
+			case "failed", "partiallySucceeded":
 				m.prometheus.projectReleaseSuccess.With(prometheus.Labels{
 					"projectID":               release.Project.Id,
 					"releaseDefinitionID":     int64ToString(release.Definition.Id),

@@ -160,10 +160,10 @@ func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) e
 		// check status code
 		statusCode := response.StatusCode()
 		if statusCode != 200 {
-			return errors.New(fmt.Sprintf("Response status code is %v (expected 200), url: %v", statusCode, response.Request.URL))
+			return fmt.Errorf("response status code is %v (expected 200), url: %v", statusCode, response.Request.URL)
 		}
 	} else {
-		return errors.New("Response is nil")
+		return errors.New("response is nil")
 	}
 
 	return nil
