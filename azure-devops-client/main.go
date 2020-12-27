@@ -8,6 +8,11 @@ import (
 )
 
 type AzureDevopsClient struct {
+	// RequestCount has to be the first words
+	// in order to be 64-aligned on 32-bit architectures.
+	RequestCount   uint64
+	RequestRetries int
+
 	organization *string
 	collection   *string
 	accessToken  *string
@@ -21,9 +26,6 @@ type AzureDevopsClient struct {
 
 	semaphore   chan bool
 	concurrency int64
-
-	RequestCount   uint64
-	RequestRetries int
 
 	LimitProject                      int64
 	LimitBuildsPerProject             int64
