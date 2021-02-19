@@ -112,7 +112,7 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 }
 
 func (c *AzureDevopsClient) restVsrm() *resty.Client {
-	if c.restClientVsrm == nil { 
+	if c.restClientVsrm == nil {
 		c.restClientVsrm = resty.New()
 		c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		c.restClientVsrm.SetHeader("Accept", "application/json")
