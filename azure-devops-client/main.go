@@ -3,8 +3,9 @@ package AzureDevopsClient
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/resty.v1"
 	"sync/atomic"
+
+	"gopkg.in/resty.v1"
 )
 
 type AzureDevopsClient struct {
@@ -111,20 +112,15 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 }
 
 func (c *AzureDevopsClient) restVsrm() *resty.Client {
-	if c.restClientVsrm == nil {
+	if c.restClientVsrm == nil { 
 		c.restClientVsrm = resty.New()
-		if c.HostUrl != nil {
-			c.restClient.SetHostURL(*c.HostUrl)
-		} else {
-			c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
-		}
+		c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		c.restClientVsrm.SetHeader("Accept", "application/json")
 		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
 		c.restClientVsrm.SetRetryCount(c.RequestRetries)
 		c.restClientVsrm.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClientVsrm.OnAfterResponse(c.restOnAfterResponse)
 	}
-
 	return c.restClientVsrm
 }
 
