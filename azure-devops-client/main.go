@@ -77,6 +77,7 @@ func (c *AzureDevopsClient) SetRetries(v int) {
 
 func (c *AzureDevopsClient) SetUserAgent(v string) {
 	c.rest().SetHeader("User-Agent", v)
+	c.restVsrm().SetHeader("User-Agent", v)
 }
 
 func (c *AzureDevopsClient) SetApiVersion(apiversion string) {
