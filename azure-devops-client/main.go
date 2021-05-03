@@ -114,7 +114,7 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	if c.restClientVsrm == nil {
 		c.restClientVsrm = resty.New()
 		if c.HostUrl != nil {
-			c.restClient.SetHostURL(*c.HostUrl)
+			c.restClientVsrm.SetHostURL(*c.HostUrl)
 		} else {
 			c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		}
