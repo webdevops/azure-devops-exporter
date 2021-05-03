@@ -14,6 +14,7 @@ type MetricsCollectorAgentPool struct {
 	prometheus struct {
 		agentPool            *prometheus.GaugeVec
 		agentPoolSize        *prometheus.GaugeVec
+		agentPoolUsage       *prometheus.GaugeVec
 		agentPoolAgent       *prometheus.GaugeVec
 		agentPoolAgentStatus *prometheus.GaugeVec
 		agentPoolAgentJob    *prometheus.GaugeVec
@@ -48,6 +49,17 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 		},
 	)
 	prometheus.MustRegister(m.prometheus.agentPoolSize)
+
+	m.prometheus.agentPoolUsage = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_agentpool_usage",
+			Help: "Azure DevOps agentpool usage",
+		},
+		[]string{
+			"agentPoolID",
+		},
+	)
+	prometheus.MustRegister(m.prometheus.agentPoolUsage)
 
 	m.prometheus.agentPoolAgent = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -172,11 +184,15 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 		return
 	}
 
+	agentPoolUsageMetric := prometheusCommon.NewMetricsList()
 	agentPoolAgentMetric := prometheusCommon.NewMetricsList()
 	agentPoolAgentStatusMetric := prometheusCommon.NewMetricsList()
 	agentPoolAgentJobMetric := prometheusCommon.NewMetricsList()
 
+	agentPoolSize := 0
+	agentPoolUsed := 0
 	for _, agentPoolAgent := range list.List {
+		agentPoolSize++
 		infoLabels := prometheus.Labels{
 			"agentPoolID":           int64ToString(agentPoolId),
 			"agentPoolAgentID":      int64ToString(agentPoolAgent.Id),
@@ -199,6 +215,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 		agentPoolAgentStatusMetric.Add(statusCreatedLabels, timeToFloat64(agentPoolAgent.CreatedOn))
 
 		if agentPoolAgent.AssignedRequest.RequestId > 0 {
+			agentPoolUsed++
 			jobLabels := prometheus.Labels{
 				"agentPoolAgentID": int64ToString(agentPoolAgent.Id),
 				"planType":         agentPoolAgent.AssignedRequest.PlanType,
@@ -211,7 +228,12 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 		}
 	}
 
+	agentPoolUsageMetric.Add(prometheus.Labels{
+		"agentPoolID": int64ToString(agentPoolId),
+	}, float64(agentPoolUsed / agentPoolSize))
+
 	callback <- func() {
+		agentPoolUsageMetric.GaugeSet(m.prometheus.agentPoolUsage)
 		agentPoolAgentMetric.GaugeSet(m.prometheus.agentPoolAgent)
 		agentPoolAgentStatusMetric.GaugeSet(m.prometheus.agentPoolAgentStatus)
 		agentPoolAgentJobMetric.GaugeSet(m.prometheus.agentPoolAgentJob)

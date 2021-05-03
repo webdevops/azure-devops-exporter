@@ -63,6 +63,7 @@ Metrics
 | `azure_devops_stats`                            | live          | General scraper stats                                                                |
 | `azure_devops_agentpool_info`                   | live          | Agent Pool informations                                                              |
 | `azure_devops_agentpool_size`                   | live          | Number of agents per agent pool                                                      |
+| `azure_devops_agentpool_usage`                  | live          | Usage of agent pool (used agents; percent 0-1)                                       |
 | `azure_devops_agentpool_queue_length`           | live          | Queue length per agent pool                                                          |
 | `azure_devops_agentpool_agent_info`             | live          | Agent information per agent pool                                                     |
 | `azure_devops_agentpool_agent_status`           | live          | Status informations (eg. created date) for each agent in a agent pool                |
