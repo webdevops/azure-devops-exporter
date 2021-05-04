@@ -60,7 +60,7 @@ func (c *CollectorBase) collectionStart() {
 }
 
 func (c *CollectorBase) collectionFinish() {
-	duration := time.Until(*c.collectionStartTime)
+	duration := time.Since(*c.collectionStartTime)
 	c.LastScrapeDuration = &duration
 
 	c.collectionLastTime = c.collectionStartTime
