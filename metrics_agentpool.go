@@ -230,7 +230,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 
 	agentPoolUsageMetric.Add(prometheus.Labels{
 		"agentPoolID": int64ToString(agentPoolId),
-	}, float64(agentPoolUsed/agentPoolSize))
+	}, float64(agentPoolUsed)/float64(agentPoolSize))
 
 	callback <- func() {
 		agentPoolUsageMetric.GaugeSet(m.prometheus.agentPoolUsage)
