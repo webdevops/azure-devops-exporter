@@ -96,7 +96,7 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 	if c.restClient == nil {
 		c.restClient = resty.New()
 		if c.HostUrl != nil {
-			c.restClient.SetHostURL(*c.HostUrl)
+			c.restClient.SetHostURL(*c.HostUrl + "/" + *c.organization + "/")
 		} else {
 			c.restClient.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
 		}
@@ -115,7 +115,7 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	if c.restClientVsrm == nil {
 		c.restClientVsrm = resty.New()
 		if c.HostUrl != nil {
-			c.restClientVsrm.SetHostURL(*c.HostUrl)
+			c.restClientVsrm.SetHostURL(*c.HostUrl + "/" + *c.organization + "/")
 		} else {
 			c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		}
