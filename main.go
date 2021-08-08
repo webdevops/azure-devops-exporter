@@ -152,6 +152,10 @@ func initArgparser() {
 	if opts.Scrape.TimeQuery == nil {
 		opts.Scrape.TimeQuery = &opts.Scrape.Time
 	}
+
+	if v := os.Getenv("AZURE_DEVOPS_FILTER_AGENTPOOL"); v != "" {
+		log.Panic("deprecated env var AZURE_DEVOPS_FILTER_AGENTPOOL detected, please use AZURE_DEVOPS_AGENTPOOL")
+	}
 }
 
 // Init and build Azure authorzier
@@ -248,7 +252,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeLive.Seconds() > 0 {
 		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
 		collectorAgentPoolList[collectorName].SetAzureProjects(&projectList)
-		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevops.FilterAgentPoolId
+		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevops.AgentPoolIdList
 		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
 		log.Infof("collector[%s]: disabled", collectorName)
