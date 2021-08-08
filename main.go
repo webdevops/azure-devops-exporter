@@ -98,6 +98,21 @@ func initArgparser() {
 		})
 	}
 
+	// load accesstoken from file
+	if opts.AzureDevops.AccessTokenFile != nil && len(*opts.AzureDevops.AccessTokenFile) > 0 {
+		log.Infof("reading access token from file \"%s\"", *opts.AzureDevops.AccessTokenFile)
+		// load access token from file
+		if val, err := os.ReadFile(*opts.AzureDevops.AccessTokenFile); err == nil {
+			opts.AzureDevops.AccessToken = strings.TrimSpace(string(val))
+		} else {
+			log.Panicf("unable to read access token file \"%s\": %v", *opts.AzureDevops.AccessTokenFile, err)
+		}
+	}
+
+	if len(opts.AzureDevops.AccessToken) == 0 {
+		log.Panicf("no Azure DevOps access token specified")
+	}
+
 	// ensure query paths and projects are splitted by '@'
 	if opts.AzureDevops.QueriesWithProjects != nil {
 		queryError := false

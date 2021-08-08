@@ -37,10 +37,11 @@ type (
 
 		// azure settings
 		AzureDevops struct {
-			Url          *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"             description:"Azure DevOps url (empty if hosted by microsoft)"`
-			AccessToken  string  `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"    description:"Azure DevOps access token" required:"true" json:"-"`
-			Organisation string  `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"    description:"Azure DevOps organization" required:"true"`
-			ApiVersion   string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"      description:"Azure DevOps API version"  default:"5.1"`
+			Url             *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"               description:"Azure DevOps url (empty if hosted by microsoft)"`
+			AccessToken     string  `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"      description:"Azure DevOps access token" json:"-"`
+			AccessTokenFile *string `long:"azuredevops.access-token-file"       env:"AZURE_DEVOPS_ACCESS_TOKEN_FILE" description:"Azure DevOps access token (from file)"`
+			Organisation    string  `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"      description:"Azure DevOps organization" required:"true"`
+			ApiVersion      string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"        description:"Azure DevOps API version"  default:"5.1"`
 
 			// agentpool
 			AgentPoolIdList []int64 `long:"azuredevops.agentpool"  env:"AZURE_DEVOPS_AGENTPOOL"  env-delim:" "   description:"Enable scrape metrics for agent pool (IDs)"`

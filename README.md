@@ -20,35 +20,49 @@ Application Options:
       --log.json                              Switch log output to json format [$LOG_JSON]
       --scrape.time=                          Default scrape time (time.duration) (default: 30m) [$SCRAPE_TIME]
       --scrape.time.projects=                 Scrape time for project metrics (time.duration) [$SCRAPE_TIME_PROJECTS]
-      --scrape.time.repository=               Scrape time for repository metrics (time.duration) [$SCRAPE_TIME_REPOSITORY]
+      --scrape.time.repository=               Scrape time for repository metrics (time.duration)
+                                              [$SCRAPE_TIME_REPOSITORY]
       --scrape.time.build=                    Scrape time for build metrics (time.duration) [$SCRAPE_TIME_BUILD]
       --scrape.time.release=                  Scrape time for release metrics (time.duration) [$SCRAPE_TIME_RELEASE]
-      --scrape.time.deployment=               Scrape time for deployment metrics (time.duration) [$SCRAPE_TIME_DEPLOYMENT]
-      --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration) [$SCRAPE_TIME_PULLREQUEST]
+      --scrape.time.deployment=               Scrape time for deployment metrics (time.duration)
+                                              [$SCRAPE_TIME_DEPLOYMENT]
+      --scrape.time.pullrequest=              Scrape time for pullrequest metrics  (time.duration)
+                                              [$SCRAPE_TIME_PULLREQUEST]
       --scrape.time.stats=                    Scrape time for stats metrics  (time.duration) [$SCRAPE_TIME_STATS]
-      --scrape.time.resourceusage=            Scrape time for resourceusage metrics  (time.duration) [$SCRAPE_TIME_RESOURCEUSAGE]
+      --scrape.time.resourceusage=            Scrape time for resourceusage metrics  (time.duration)
+                                              [$SCRAPE_TIME_RESOURCEUSAGE]
       --scrape.time.query=                    Scrape time for query results  (time.duration) [$SCRAPE_TIME_QUERY]
-      --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
+      --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s)
+                                              [$SCRAPE_TIME_LIVE]
       --stats.summary.maxage=                 Stats Summary metrics max age (time.duration) [$STATS_SUMMARY_MAX_AGE]
       --azuredevops.url=                      Azure DevOps url (empty if hosted by microsoft) [$AZURE_DEVOPS_URL]
       --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
+      --azuredevops.access-token-file=        Azure DevOps access token (from file) [$AZURE_DEVOPS_ACCESS_TOKEN_FILE]
       --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
       --azuredevops.apiversion=               Azure DevOps API version (default: 5.1) [$AZURE_DEVOPS_APIVERSION]
+      --azuredevops.agentpool=                Enable scrape metrics for agent pool (IDs) [$AZURE_DEVOPS_AGENTPOOL]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
-      --whitelist.agentpool=                  Filter of agent pool (IDs) [$AZURE_DEVOPS_FILTER_AGENTPOOL]
-      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
-      --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
-      --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
+      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'
+                                              [$AZURE_DEVOPS_QUERIES]
+      --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10)
+                                              [$REQUEST_CONCURRENCY]
+      --request.retries=                      Number of retried requests against dev.azure.com (default: 3)
+                                              [$REQUEST_RETRIES]
       --limit.project=                        Limit number of projects (default: 100) [$LIMIT_PROJECT]
       --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
       --limit.releases-per-project=           Limit releases per project (default: 100) [$LIMIT_RELEASES_PER_PROJECT]
-      --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
-      --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
-      --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
-      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h) [$LIMIT_BUILD_HISTORY_DURATION]
-      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h) [$LIMIT_RELEASE_HISTORY_DURATION]
+      --limit.releases-per-definition=        Limit releases per definition (default: 100)
+                                              [$LIMIT_RELEASES_PER_DEFINITION]
+      --limit.deployments-per-definition=     Limit deployments per definition (default: 100)
+                                              [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
+      --limit.releasedefinitions-per-project= Limit builds per definition (default: 100)
+                                              [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
+      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds
+                                              (default: 48h) [$LIMIT_BUILD_HISTORY_DURATION]
+      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for
+                                              releases (default: 48h) [$LIMIT_RELEASE_HISTORY_DURATION]
       --bind=                                 Server address (default: :8080) [$SERVER_BIND]
 
 Help Options:
