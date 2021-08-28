@@ -21,5 +21,5 @@ RUN ./azure-devops-exporter --help
 FROM gcr.io/distroless/static
 ENV LOG_JSON=1
 COPY --from=build /go/src/github.com/webdevops/azure-devops-exporter/azure-devops-exporter /
-USER 1000
+USER 1000:1000
 ENTRYPOINT ["/azure-devops-exporter"]
