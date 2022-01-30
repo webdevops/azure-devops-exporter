@@ -27,6 +27,24 @@ type BuildList struct {
 	List  []Build `json:"value"`
 }
 
+type TimelineRecordList struct {
+	List []TimelineRecord `json:"records"`
+}
+
+type TimelineRecord struct {
+	RecordType   string  `json:"type"`
+	Name         string  `json:"name"`
+	Id           string  `json:"id"`
+	ParentId     string  `json:"parentId"`
+	ErrorCount   float64 `json:"errorCount"`
+	WarningCount float64 `json:"warningCount"`
+	Result       string  `json:"result"`
+	WorkerName   string  `json:"workerName"`
+	Identifier   string  `json:"identifier"`
+	StartTime    time.Time
+	FinishTime   time.Time
+}
+
 type Build struct {
 	Id                  int64  `json:"id"`
 	BuildNumber         string `json:"buildNumber"`
@@ -171,6 +189,30 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(statusFilter),
+	)
+	response, err := c.rest().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+func (c *AzureDevopsClient) ListBuildTimeline(project string, buildID string) (list TimelineRecordList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"%v/_apis/build/builds/%v/Timeline",
+		url.QueryEscape(project),
+		url.QueryEscape(buildID),
 	)
 	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {

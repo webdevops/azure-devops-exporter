@@ -90,6 +90,10 @@ Metrics
 | `azure_devops_pullrequest_label`                | pullrequest   | Labels set on active PullRequests                                                    |
 | `azure_devops_build_info`                       | build         | Build informations                                                                   |
 | `azure_devops_build_status`                     | build         | Build status infos (queued, started, finished time)                                  |
+| `azure_devops_build_stage`                      | build         | Build stage infos (duration, errors, warnings, started, finished time)               |
+| `azure_devops_build_phase`                      | build         | Build phase infos (duration, errors, warnings, started, finished time)               |
+| `azure_devops_build_job`                        | build         | Build job infos (duration, errors, warnings, started, finished time)                 |
+| `azure_devops_build_task`                       | build         | Build task infos (duration, errors, warnings, started, finished time)                |
 | `azure_devops_build_definition_info`            | build         | Build definition info                                                                |
 | `azure_devops_release_info`                     | release       | Release informations                                                                 |
 | `azure_devops_release_artifact`                 | release       | Release artifcact informations                                                       |
