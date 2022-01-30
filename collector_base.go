@@ -3,16 +3,12 @@ package main
 import (
 	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"sync"
 	"time"
 )
 
 type CollectorBase struct {
 	Name       string
 	scrapeTime *time.Duration
-
-	azureDevOpsProjects      *devopsClient.ProjectList
-	azureDevOpsProjectsMutex sync.Mutex
 
 	logger *log.Entry
 
@@ -34,17 +30,8 @@ func (c *CollectorBase) GetScrapeTime() *time.Duration {
 	return c.scrapeTime
 }
 
-func (c *CollectorBase) SetAzureProjects(projects *devopsClient.ProjectList) {
-	c.azureDevOpsProjectsMutex.Lock()
-	c.azureDevOpsProjects = projects
-	c.azureDevOpsProjectsMutex.Unlock()
-}
-
-func (c *CollectorBase) GetAzureProjects() (projects *devopsClient.ProjectList) {
-	c.azureDevOpsProjectsMutex.Lock()
-	projects = c.azureDevOpsProjects
-	c.azureDevOpsProjectsMutex.Unlock()
-	return
+func (c *CollectorBase) GetAzureProjects() (projects []devopsClient.Project) {
+	return AzureDevopsServiceDiscovery.ProjectList()
 }
 
 func (c *CollectorBase) collectionStart() {

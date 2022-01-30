@@ -40,7 +40,7 @@ func (c *CollectorProject) Collect() {
 
 	c.collectionStart()
 
-	for _, project := range c.GetAzureProjects().List {
+	for _, project := range c.GetAzureProjects() {
 		wg.Add(1)
 		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project) {
 			defer wg.Done()

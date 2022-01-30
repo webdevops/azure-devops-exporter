@@ -131,29 +131,14 @@ func (m *MetricsCollectorAgentPool) Reset() {
 }
 
 func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
-	for _, project := range m.CollectorReference.azureDevOpsProjects.List {
+	for _, project := range m.CollectorReference.GetAzureProjects() {
 		contextLogger := logger.WithFields(log.Fields{
 			"project": project.Name,
 		})
 		m.collectAgentInfo(ctx, contextLogger, callback, project)
 	}
 
-	agentPoolList := []int64{}
-	if m.CollectorReference.AgentPoolIdList != nil {
-		agentPoolList = *m.CollectorReference.AgentPoolIdList
-	} else {
-		result, err := AzureDevopsClient.ListAgentPools()
-		if err != nil {
-			logger.Error(err)
-			return
-		}
-
-		for _, agentPool := range result.Value {
-			agentPoolList = append(agentPoolList, agentPool.ID)
-		}
-	}
-
-	for _, agentPoolId := range agentPoolList {
+	for _, agentPoolId := range AzureDevopsServiceDiscovery.AgentPoolList() {
 		contextLogger := logger.WithFields(log.Fields{
 			"agentPoolId": agentPoolId,
 		})

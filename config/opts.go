@@ -54,6 +54,11 @@ type (
 			QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
 		}
 
+		// cache settings
+		Cache struct {
+			Expiry time.Duration `long:"cache.expiry"  env:"CACHE_EXPIRY"  description:"Internal cache expiry time (time.duration)"  default:"30m"`
+		}
+
 		Request struct {
 			ConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
 			Retries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`

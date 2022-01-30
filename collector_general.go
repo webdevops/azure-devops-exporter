@@ -27,7 +27,7 @@ func (c *CollectorGeneral) Collect() {
 	var wg sync.WaitGroup
 	var wgCallback sync.WaitGroup
 
-	if c.GetAzureProjects() == nil {
+	if len(c.GetAzureProjects()) == 0 {
 		c.logger.Info("no projects found, skipping")
 		return
 	}
