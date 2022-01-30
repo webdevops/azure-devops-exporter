@@ -64,6 +64,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"buildID",
 			"buildDefinitionID",
 			"buildNumber",
+			"result",
 			"type",
 		},
 	)
@@ -240,6 +241,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"buildID":           int64ToString(build.Id),
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildNumber":       build.BuildNumber,
+			"result":            build.Result,
 			"type":              "succeeded",
 		}, build.Result == "succeeded")
 
@@ -248,6 +250,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"buildID":           int64ToString(build.Id),
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildNumber":       build.BuildNumber,
+			"result":            build.Result,
 			"type":              "queued",
 		}, build.QueueTime)
 
@@ -256,6 +259,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"buildID":           int64ToString(build.Id),
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildNumber":       build.BuildNumber,
+			"result":            build.Result,
 			"type":              "started",
 		}, build.StartTime)
 
@@ -264,6 +268,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"buildID":           int64ToString(build.Id),
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildNumber":       build.BuildNumber,
+			"result":            build.Result,
 			"type":              "finished",
 		}, build.FinishTime)
 
@@ -272,6 +277,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"buildID":           int64ToString(build.Id),
 			"buildDefinitionID": int64ToString(build.Definition.Id),
 			"buildNumber":       build.BuildNumber,
+			"result":            build.Result,
 			"type":              "jobDuration",
 		}, build.FinishTime.Sub(build.StartTime))
 	}
