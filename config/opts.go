@@ -44,7 +44,7 @@ type (
 			ApiVersion      string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"        description:"Azure DevOps API version"  default:"5.1"`
 
 			// agentpool
-			AgentPoolIdList []int64 `long:"azuredevops.agentpool"  env:"AZURE_DEVOPS_AGENTPOOL"  env-delim:" "   description:"Enable scrape metrics for agent pool (IDs)"`
+			AgentPoolIdList *[]int64 `long:"azuredevops.agentpool"  env:"AZURE_DEVOPS_AGENTPOOL"  env-delim:" "   description:"Enable scrape metrics for agent pool (IDs)"`
 
 			// ignore settings
 			FilterProjects    []string `long:"whitelist.project"    env:"AZURE_DEVOPS_FILTER_PROJECT"    env-delim:" "   description:"Filter projects (UUIDs)"`

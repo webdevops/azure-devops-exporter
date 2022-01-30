@@ -9,7 +9,7 @@ type CollectorAgentPool struct {
 	CollectorBase
 
 	Processor       CollectorProcessorAgentPoolInterface
-	AgentPoolIdList []int64
+	AgentPoolIdList *[]int64
 }
 
 func (c *CollectorAgentPool) Run() {

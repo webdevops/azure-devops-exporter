@@ -138,7 +138,22 @@ func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, logger *log.Ent
 		m.collectAgentInfo(ctx, contextLogger, callback, project)
 	}
 
-	for _, agentPoolId := range m.CollectorReference.AgentPoolIdList {
+	agentPoolList := []int64{}
+	if m.CollectorReference.AgentPoolIdList != nil {
+		agentPoolList = *m.CollectorReference.AgentPoolIdList
+	} else {
+		result, err := AzureDevopsClient.ListAgentPools()
+		if err != nil {
+			logger.Error(err)
+			return
+		}
+
+		for _, agentPool := range result.Value {
+			agentPoolList = append(agentPoolList, agentPool.ID)
+		}
+	}
+
+	for _, agentPoolId := range agentPoolList {
 		contextLogger := logger.WithFields(log.Fields{
 			"agentPoolId": agentPoolId,
 		})
