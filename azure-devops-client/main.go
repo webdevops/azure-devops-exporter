@@ -4,6 +4,10 @@ import (
 	"errors"
 	"fmt"
 	resty "github.com/go-resty/resty/v2"
+	"github.com/prometheus/client_golang/prometheus"
+	"net/url"
+	"strconv"
+	"strings"
 	"sync/atomic"
 )
 
@@ -34,6 +38,10 @@ type AzureDevopsClient struct {
 	LimitDeploymentPerDefinition      int64
 	LimitReleaseDefinitionsPerProject int64
 	LimitReleasesPerProject           int64
+
+	prometheus struct {
+		apiRequest *prometheus.HistogramVec
+	}
 }
 
 func NewAzureDevopsClient() *AzureDevopsClient {
@@ -56,6 +64,17 @@ func (c *AzureDevopsClient) Init() {
 	c.LimitDeploymentPerDefinition = 100
 	c.LimitReleaseDefinitionsPerProject = 100
 	c.LimitReleasesPerProject = 100
+
+	c.prometheus.apiRequest = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Name:    "azure_devops_api_request",
+			Help:    "AzureDevOps API requests",
+			Buckets: []float64{.05, .1, .25, .5, 1, 2.5, 5, 10, 30},
+		},
+		[]string{"endpoint", "organization", "method", "statusCode"},
+	)
+
+	prometheus.MustRegister(c.prometheus.apiRequest)
 }
 
 func (c *AzureDevopsClient) SetConcurrency(v int64) {
@@ -143,6 +162,13 @@ func (c *AzureDevopsClient) restOnBeforeRequest(client *resty.Client, request *r
 }
 
 func (c *AzureDevopsClient) restOnAfterResponse(client *resty.Client, response *resty.Response) (err error) {
+	requestUrl, _ := url.Parse(response.Request.URL)
+	c.prometheus.apiRequest.With(prometheus.Labels{
+		"endpoint":     requestUrl.Hostname(),
+		"organization": *c.organization,
+		"method":       strings.ToLower(response.Request.Method),
+		"statusCode":   strconv.FormatInt(int64(response.StatusCode()), 10),
+	}).Observe(response.Time().Seconds())
 	return
 }
 

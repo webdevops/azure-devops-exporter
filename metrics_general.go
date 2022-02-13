@@ -36,26 +36,7 @@ func (m *MetricsCollectorGeneral) Reset() {
 }
 
 func (m *MetricsCollectorGeneral) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
-	m.collectAzureDevopsClientStats(ctx, logger, callback)
 	m.collectCollectorStats(ctx, logger, callback)
-}
-
-func (m *MetricsCollectorGeneral) collectAzureDevopsClientStats(ctx context.Context, logger *log.Entry, callback chan<- func()) {
-	statsMetrics := prometheusCommon.NewMetricsList()
-
-	statsMetrics.Add(prometheus.Labels{
-		"name": "dev.azure.com",
-		"type": "requests",
-	}, AzureDevopsClient.GetRequestCount())
-
-	statsMetrics.Add(prometheus.Labels{
-		"name": "dev.azure.com",
-		"type": "concurrency",
-	}, AzureDevopsClient.GetCurrentConcurrency())
-
-	callback <- func() {
-		statsMetrics.GaugeSet(m.prometheus.stats)
-	}
 }
 
 func (m *MetricsCollectorGeneral) collectCollectorStats(ctx context.Context, logger *log.Entry, callback chan<- func()) {
