@@ -1,11 +1,8 @@
-name: "Release: docker"
+name: "Scheduled: docker"
 
 on:
-  push:
-    branches:
-      - '**'
-    tags:
-      - '*.*.*'
+  schedule:
+    - cron: '0 6 * * 1'
 
 jobs:
   build:

@@ -1,17 +1,14 @@
-FROM golang:1.17 as build
+FROM golang:1.17-alpine as build
+
+RUN apk upgrade --no-cache --force
+RUN apk add --update build-base make git
 
 WORKDIR /go/src/github.com/webdevops/azure-devops-exporter
 
-# Get deps (cached)
-COPY ./go.mod /go/src/github.com/webdevops/azure-devops-exporter
-COPY ./go.sum /go/src/github.com/webdevops/azure-devops-exporter
-COPY ./Makefile /go/src/github.com/webdevops/azure-devops-exporter
-RUN make dependencies
-
 # Compile
 COPY ./ /go/src/github.com/webdevops/azure-devops-exporter
+RUN make dependencies
 RUN make test
-RUN make lint
 RUN make build
 RUN ./azure-devops-exporter --help
 
