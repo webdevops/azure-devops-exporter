@@ -25,7 +25,7 @@ jobs:
         id: docker_meta
         uses: docker/metadata-action@v3
         with:
-          images: webdevops/${{ github.event.repository.name }},quay.io/webdevops/${{ github.event.repository.name }}
+          images: ${{ github.repository }},quay.io/${{ github.repository }}
           labels: |
             io.artifacthub.package.readme-url=https://raw.githubusercontent.com/${{ github.repository }}/${{ github.event.repository.default_branch }}/README.md
 
