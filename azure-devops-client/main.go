@@ -3,7 +3,7 @@ package AzureDevopsClient
 import (
 	"errors"
 	"fmt"
-	"gopkg.in/resty.v1"
+	resty "github.com/go-resty/resty/v2"
 	"sync/atomic"
 )
 
@@ -96,9 +96,9 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 	if c.restClient == nil {
 		c.restClient = resty.New()
 		if c.HostUrl != nil {
-			c.restClient.SetHostURL(*c.HostUrl + "/" + *c.organization + "/")
+			c.restClient.SetBaseURL(*c.HostUrl + "/" + *c.organization + "/")
 		} else {
-			c.restClient.SetHostURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
+			c.restClient.SetBaseURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
 		}
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
@@ -115,9 +115,9 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	if c.restClientVsrm == nil {
 		c.restClientVsrm = resty.New()
 		if c.HostUrl != nil {
-			c.restClientVsrm.SetHostURL(*c.HostUrl + "/" + *c.organization + "/")
+			c.restClientVsrm.SetBaseURL(*c.HostUrl + "/" + *c.organization + "/")
 		} else {
-			c.restClientVsrm.SetHostURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
+			c.restClientVsrm.SetBaseURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
 		}
 		c.restClientVsrm.SetHeader("Accept", "application/json")
 		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
