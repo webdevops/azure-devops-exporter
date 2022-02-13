@@ -63,54 +63,55 @@ Help Options:
 Metrics
 -------
 
-| Metric                                          | Scraper       | Description                                                                             |
-|-------------------------------------------------|---------------|-----------------------------------------------------------------------------------------|
-| `azure_devops_stats`                            | live          | General scraper stats                                                                   |
-| `azure_devops_agentpool_info`                   | live          | Agent Pool informations                                                                 |
-| `azure_devops_agentpool_size`                   | live          | Number of agents per agent pool                                                         |
-| `azure_devops_agentpool_usage`                  | live          | Usage of agent pool (used agents; percent 0-1)                                          |
-| `azure_devops_agentpool_queue_length`           | live          | Queue length per agent pool                                                             |
-| `azure_devops_agentpool_agent_info`             | live          | Agent information per agent pool                                                        |
-| `azure_devops_agentpool_agent_status`           | live          | Status informations (eg. created date) for each agent in a agent pool                   |
-| `azure_devops_agentpool_agent_job`              | live          | Currently running jobs on each agent                                                    |
-| `azure_devops_project_info`                     | live/projects | Project informations                                                                    |
-| `azure_devops_build_latest_info`                | live          | Latest build information                                                                |
-| `azure_devops_build_latest_status`              | live          | Latest build status informations                                                        |
-| `azure_devops_pullrequest_info`                 | pullrequest   | Active PullRequests                                                                     |
-| `azure_devops_pullrequest_status`               | pullrequest   | Status informations (eg. created date) for active PullRequests                          |
-| `azure_devops_pullrequest_label`                | pullrequest   | Labels set on active PullRequests                                                       |
-| `azure_devops_build_info`                       | build         | Build informations                                                                      |
-| `azure_devops_build_status`                     | build         | Build status infos (queued, started, finished time)                                     |
-| `azure_devops_build_stage`                      | build         | Build stage infos (duration, errors, warnings, started, finished time)                  |
-| `azure_devops_build_phase`                      | build         | Build phase infos (duration, errors, warnings, started, finished time)                  |
-| `azure_devops_build_job`                        | build         | Build job infos (duration, errors, warnings, started, finished time)                    |
-| `azure_devops_build_task`                       | build         | Build task infos (duration, errors, warnings, started, finished time)                   |
-| `azure_devops_build_definition_info`            | build         | Build definition info                                                                   |
-| `azure_devops_release_info`                     | release       | Release informations                                                                    |
-| `azure_devops_release_artifact`                 | release       | Release artifcact informations                                                          |
-| `azure_devops_release_environment`              | release       | Release environment list                                                                |
-| `azure_devops_release_environment_status`       | release       | Release environment status informations                                                 |
-| `azure_devops_release_approval`                 | release       | Release environment approval list                                                       |
-| `azure_devops_release_definition_info`          | release       | Release definition info                                                                 |
-| `azure_devops_release_definition_environment`   | release       | Release definition environment list                                                     |
-| `azure_devops_repository_info`                  | repository    | Repository informations                                                                 |
-| `azure_devops_repository_stats`                 | repository    | Repository stats                                                                        |
-| `azure_devops_repository_commits`               | repository    | Repository commit counter                                                               |
-| `azure_devops_repository_pushes`                | repository    | Repository push counter                                                                 |
-| `azure_devops_query_result`                     | live          | Latest results of given queries                                                         |
-| `azure_devops_deployment_info`                  | deployment    | Release deployment informations                                                         |
-| `azure_devops_deployment_status`                | deployment    | Release deployment status informations                                                  |
-| `azure_devops_stats_agentpool_builds`           | stats         | Number of buildsper agentpool, project and result (counter)                             |
-| `azure_devops_stats_agentpool_builds_wait`      | stats         | Build wait time per agentpool, project and result (summary)                             |
-| `azure_devops_stats_agentpool_builds_duration`  | stats         | Build duration per agentpool, project and result (summary)                              |
-| `azure_devops_stats_project_builds`             | stats         | Number of builds per project, definition and result (counter)                           |
-| `azure_devops_stats_project_builds_wait`        | stats         | Build wait time per project, definition and result (summary)                            |
-| `azure_devops_stats_project_builds_success`     | stats         | Success rating of build per project and definition (summary)                            |
-| `azure_devops_stats_project_builds_duration`    | stats         | Build duration per project, definition and result (summary)                             |
-| `azure_devops_stats_project_release_duration`   | stats         | Release environment duration per project, definition, environment and result (summary)  |
-| `azure_devops_stats_project_release_success`    | stats         | Success rating of release environment per project, definition and environment (summary) |
-| `azure_devops_resourceusage_build`              | resourceusage | Usage of limited and paid Azure DevOps resources (build)                                |
-| `azure_devops_resourceusage_license`            | resourceusage | Usage of limited and paid Azure DevOps resources (license)                              |
+| Metric                                         | Scraper       | Description                                                                             |
+|------------------------------------------------|---------------|-----------------------------------------------------------------------------------------|
+| `azure_devops_stats`                           | live          | General scraper stats                                                                   |
+| `azure_devops_agentpool_info`                  | live          | Agent Pool informations                                                                 |
+| `azure_devops_agentpool_size`                  | live          | Number of agents per agent pool                                                         |
+| `azure_devops_agentpool_usage`                 | live          | Usage of agent pool (used agents; percent 0-1)                                          |
+| `azure_devops_agentpool_queue_length`          | live          | Queue length per agent pool                                                             |
+| `azure_devops_agentpool_agent_info`            | live          | Agent information per agent pool                                                        |
+| `azure_devops_agentpool_agent_status`          | live          | Status informations (eg. created date) for each agent in a agent pool                   |
+| `azure_devops_agentpool_agent_job`             | live          | Currently running jobs on each agent                                                    |
+| `azure_devops_project_info`                    | live/projects | Project informations                                                                    |
+| `azure_devops_build_latest_info`               | live          | Latest build information                                                                |
+| `azure_devops_build_latest_status`             | live          | Latest build status informations                                                        |
+| `azure_devops_pullrequest_info`                | pullrequest   | Active PullRequests                                                                     |
+| `azure_devops_pullrequest_status`              | pullrequest   | Status informations (eg. created date) for active PullRequests                          |
+| `azure_devops_pullrequest_label`               | pullrequest   | Labels set on active PullRequests                                                       |
+| `azure_devops_build_info`                      | build         | Build informations                                                                      |
+| `azure_devops_build_status`                    | build         | Build status infos (queued, started, finished time)                                     |
+| `azure_devops_build_stage`                     | build         | Build stage infos (duration, errors, warnings, started, finished time)                  |
+| `azure_devops_build_phase`                     | build         | Build phase infos (duration, errors, warnings, started, finished time)                  |
+| `azure_devops_build_job`                       | build         | Build job infos (duration, errors, warnings, started, finished time)                    |
+| `azure_devops_build_task`                      | build         | Build task infos (duration, errors, warnings, started, finished time)                   |
+| `azure_devops_build_definition_info`           | build         | Build definition info                                                                   |
+| `azure_devops_release_info`                    | release       | Release informations                                                                    |
+| `azure_devops_release_artifact`                | release       | Release artifcact informations                                                          |
+| `azure_devops_release_environment`             | release       | Release environment list                                                                |
+| `azure_devops_release_environment_status`      | release       | Release environment status informations                                                 |
+| `azure_devops_release_approval`                | release       | Release environment approval list                                                       |
+| `azure_devops_release_definition_info`         | release       | Release definition info                                                                 |
+| `azure_devops_release_definition_environment`  | release       | Release definition environment list                                                     |
+| `azure_devops_repository_info`                 | repository    | Repository informations                                                                 |
+| `azure_devops_repository_stats`                | repository    | Repository stats                                                                        |
+| `azure_devops_repository_commits`              | repository    | Repository commit counter                                                               |
+| `azure_devops_repository_pushes`               | repository    | Repository push counter                                                                 |
+| `azure_devops_query_result`                    | live          | Latest results of given queries                                                         |
+| `azure_devops_deployment_info`                 | deployment    | Release deployment informations                                                         |
+| `azure_devops_deployment_status`               | deployment    | Release deployment status informations                                                  |
+| `azure_devops_stats_agentpool_builds`          | stats         | Number of buildsper agentpool, project and result (counter)                             |
+| `azure_devops_stats_agentpool_builds_wait`     | stats         | Build wait time per agentpool, project and result (summary)                             |
+| `azure_devops_stats_agentpool_builds_duration` | stats         | Build duration per agentpool, project and result (summary)                              |
+| `azure_devops_stats_project_builds`            | stats         | Number of builds per project, definition and result (counter)                           |
+| `azure_devops_stats_project_builds_wait`       | stats         | Build wait time per project, definition and result (summary)                            |
+| `azure_devops_stats_project_builds_success`    | stats         | Success rating of build per project and definition (summary)                            |
+| `azure_devops_stats_project_builds_duration`   | stats         | Build duration per project, definition and result (summary)                             |
+| `azure_devops_stats_project_release_duration`  | stats         | Release environment duration per project, definition, environment and result (summary)  |
+| `azure_devops_stats_project_release_success`   | stats         | Success rating of release environment per project, definition and environment (summary) |
+| `azure_devops_resourceusage_build`             | resourceusage | Usage of limited and paid Azure DevOps resources (build)                                |
+| `azure_devops_resourceusage_license`           | resourceusage | Usage of limited and paid Azure DevOps resources (license)                              |
+| `azure_devops_api_request_*`                   |               | REST api request histogram (count, latency, statuscCodes)                               |
 
 
 Prometheus queries
