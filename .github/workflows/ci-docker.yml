@@ -3,12 +3,21 @@ name: "CI: docker build"
 on: [pull_request]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
-
     steps:
-    - uses: actions/checkout@v2
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag webdevops/azure-devops-exporter:$(date +%s)
+      - uses: actions/checkout@v2
+
+      - name: Run Gosec Security Scanner
+        uses: securego/gosec@master
+        with:
+          args: ./...
+
+      - name: Run Golangci lint
+        uses: golangci/golangci-lint-action@v2
+        with:
+          version: latest
+          args: -E exportloopref,gofmt --timeout=30m
+
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag ${{ github.repository }}:$(date +%s)
