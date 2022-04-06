@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"time"
+
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+	prometheusCommon "github.com/webdevops/go-common/prometheus"
+
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	prometheusCommon "github.com/webdevops/go-prometheus-common"
-	"time"
 )
 
 type MetricsCollectorBuild struct {

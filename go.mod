@@ -11,13 +11,15 @@ require (
 	github.com/prometheus/common v0.32.1 // indirect
 	github.com/prometheus/procfs v0.7.3 // indirect
 	github.com/sirupsen/logrus v1.8.1
-	github.com/webdevops/go-prometheus-common v0.0.0-20220213124313-1d520ce7593d
 	golang.org/x/net v0.0.0-20220127200216-cd36cc0744dd // indirect
-	golang.org/x/sys v0.0.0-20220209214540-3681064d5158 // indirect
+	golang.org/x/sys v0.0.0-20220319134239-a9b59b0215f8 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
 )
 
-require github.com/patrickmn/go-cache v2.1.0+incompatible
+require (
+	github.com/patrickmn/go-cache v2.1.0+incompatible
+	github.com/webdevops/go-common v0.0.0-20220406110653-237539a358b2
+)
 
 require (
 	github.com/beorn7/perks v1.0.1 // indirect

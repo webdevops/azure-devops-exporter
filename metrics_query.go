@@ -2,10 +2,11 @@ package main
 
 import (
 	"context"
+	"strings"
+
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-prometheus-common"
-	"strings"
+	prometheusCommon "github.com/webdevops/go-common/prometheus"
 )
 
 type MetricsCollectorQuery struct {
