@@ -2,16 +2,16 @@ package main
 
 import (
 	"fmt"
-	"github.com/jessevdk/go-flags"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
-	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"github.com/webdevops/azure-devops-exporter/config"
 	"net/http"
 	"os"
 	"path"
 	"runtime"
 	"strings"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	log "github.com/sirupsen/logrus"
+	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
+	"github.com/webdevops/azure-devops-exporter/config"
 )
 
 const (

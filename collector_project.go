@@ -2,9 +2,10 @@ package main
 
 import (
 	"context"
+	"sync"
+
 	log "github.com/sirupsen/logrus"
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
-	"sync"
 )
 
 type CollectorProject struct {

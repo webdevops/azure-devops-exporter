@@ -3,12 +3,13 @@ package AzureDevopsClient
 import (
 	"errors"
 	"fmt"
-	resty "github.com/go-resty/resty/v2"
-	"github.com/prometheus/client_golang/prometheus"
 	"net/url"
 	"strconv"
 	"strings"
 	"sync/atomic"
+
+	resty "github.com/go-resty/resty/v2"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 type AzureDevopsClient struct {

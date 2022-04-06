@@ -1,11 +1,11 @@
 package main
 
 import (
-	"github.com/patrickmn/go-cache"
-	log "github.com/sirupsen/logrus"
-	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"sync"
 	"time"
+
+	log "github.com/sirupsen/logrus"
+	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 const (
