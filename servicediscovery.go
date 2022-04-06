@@ -4,7 +4,9 @@ import (
 	"sync"
 	"time"
 
+	cache "github.com/patrickmn/go-cache"
 	log "github.com/sirupsen/logrus"
+
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
