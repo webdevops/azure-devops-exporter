@@ -125,6 +125,7 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 		c.restClient.SetRetryCount(c.RequestRetries)
 		c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClient.OnAfterResponse(c.restOnAfterResponse)
+		c.restClient.SetRedirectPolicy(resty.FlexibleRedirectPolicy(15))
 
 	}
 
@@ -144,6 +145,7 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 		c.restClientVsrm.SetRetryCount(c.RequestRetries)
 		c.restClientVsrm.OnBeforeRequest(c.restOnBeforeRequest)
 		c.restClientVsrm.OnAfterResponse(c.restOnAfterResponse)
+		c.restClientVsrm.SetRedirectPolicy(resty.FlexibleRedirectPolicy(15))
 	}
 
 	return c.restClientVsrm
