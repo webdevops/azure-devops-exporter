@@ -85,6 +85,10 @@ func (m *MetricsCollectorRepository) Collect(ctx context.Context, logger *log.En
 	wg := sync.WaitGroup{}
 
 	for _, repository := range project.RepositoryList.List {
+		if repository.Disabled() {
+			continue
+		}
+
 		wg.Add(1)
 		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 			defer wg.Done()

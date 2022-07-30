@@ -82,6 +82,10 @@ func (m *MetricsCollectorPullRequest) Reset() {
 
 func (m *MetricsCollectorPullRequest) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
 	for _, repository := range project.RepositoryList.List {
+		if repository.Disabled() {
+			continue
+		}
+
 		contextLogger := logger.WithField("repository", repository.Name)
 		m.collectPullRequests(ctx, contextLogger, callback, project, repository)
 	}

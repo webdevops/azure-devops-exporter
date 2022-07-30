@@ -22,6 +22,8 @@ type Repository struct {
 	Visibility string
 	Size       int64
 
+	IsDisabled *bool `json:"isDisabled"`
+
 	Links Links `json:"_links"`
 }
 
@@ -127,4 +129,12 @@ func (c *AzureDevopsClient) ListPushes(project string, repository string, fromDa
 	}
 
 	return
+}
+
+func (r *Repository) Disabled() (ret bool) {
+	if r.IsDisabled != nil {
+		return *r.IsDisabled
+	}
+
+	return false
 }
