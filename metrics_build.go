@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -306,8 +307,9 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	for _, build := range list.List {
 		timelineRecordList, _ := AzureDevopsClient.ListBuildTimeline(project.Id, int64ToString(build.Id))
 		for _, timelineRecord := range timelineRecordList.List {
-			switch recordType := timelineRecord.RecordType; recordType {
-			case "Stage":
+			recordType := timelineRecord.RecordType;
+			switch strings.ToLower(recordType) {
+			case "stage":
 				buildStageMetric.Add(prometheus.Labels{
 					"projectID":         project.Id,
 					"buildID":           int64ToString(build.Id),
@@ -380,7 +382,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 					"type":              "duration",
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
 
-			case "Phase":
+			case "phase":
 				buildPhaseMetric.Add(prometheus.Labels{
 					"projectID":         project.Id,
 					"buildID":           int64ToString(build.Id),
@@ -458,7 +460,8 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 					"result":            timelineRecord.Result,
 					"type":              "duration",
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
-			case "Job":
+
+			case "job":
 				buildJobMetric.Add(prometheus.Labels{
 					"projectID":         project.Id,
 					"buildID":           int64ToString(build.Id),
@@ -536,7 +539,8 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 					"result":            timelineRecord.Result,
 					"type":              "duration",
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
-			case "Task":
+
+			case "task":
 				buildTaskMetric.Add(prometheus.Labels{
 					"projectID":         project.Id,
 					"buildID":           int64ToString(build.Id),
@@ -614,9 +618,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 					"result":            timelineRecord.Result,
 					"type":              "duration",
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
-
 			}
-
 		}
 	}
 
