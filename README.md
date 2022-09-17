@@ -39,9 +39,11 @@ Application Options:
       --azuredevops.agentpool=                Enable scrape metrics for agent pool (IDs) [$AZURE_DEVOPS_AGENTPOOL]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
-      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
+      --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'
+                                              [$AZURE_DEVOPS_QUERIES]
       --cache.expiry=                         Internal cache expiry time (time.duration) (default: 30m) [$CACHE_EXPIRY]
-      --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
+      --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10)
+                                              [$REQUEST_CONCURRENCY]
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
       --limit.project=                        Limit number of projects (default: 100) [$LIMIT_PROJECT]
       --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
@@ -50,11 +52,13 @@ Application Options:
       --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
       --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
       --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
-      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h)
-                                              [$LIMIT_BUILD_HISTORY_DURATION]
-      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h)
-                                              [$LIMIT_RELEASE_HISTORY_DURATION]
-      --bind=                                 Server address (default: :8080) [$SERVER_BIND]
+      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default:
+                                              48h) [$LIMIT_BUILD_HISTORY_DURATION]
+      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default:
+                                              48h) [$LIMIT_RELEASE_HISTORY_DURATION]
+      --server.bind=                          Server address (default: :8080) [$SERVER_BIND]
+      --server.timeout.read=                  Server read timeout (default: 5s) [$SERVER_TIMEOUT_READ]
+      --server.timeout.write=                 Server write timeout (default: 10s) [$SERVER_TIMEOUT_WRITE]
 
 Help Options:
   -h, --help                                  Show this help message
