@@ -92,7 +92,7 @@ func (sd *azureDevopsServiceDiscovery) ProjectList() (list []AzureDevops.Project
 	}
 
 	// save to cache
-	_ = sd.cache.Add(azureDevopsServiceDiscoveryCacheKeyProjectList, list, sd.cacheExpiry)
+	sd.cache.SetDefault(azureDevopsServiceDiscoveryCacheKeyProjectList, list)
 
 	return
 }
@@ -126,7 +126,7 @@ func (sd *azureDevopsServiceDiscovery) AgentPoolList() (list []int64) {
 	}
 
 	// save to cache
-	_ = sd.cache.Add(azureDevopsServiceDiscoveryCacheKeyAgentPoolList, list, sd.cacheExpiry)
+	sd.cache.SetDefault(azureDevopsServiceDiscoveryCacheKeyAgentPoolList, list)
 
 	return
 }
