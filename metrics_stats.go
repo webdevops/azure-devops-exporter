@@ -6,6 +6,7 @@ import (
 
 	"github.com/prometheus/client_golang/prometheus"
 	log "github.com/sirupsen/logrus"
+
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 

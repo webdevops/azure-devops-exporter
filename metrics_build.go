@@ -307,7 +307,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	for _, build := range list.List {
 		timelineRecordList, _ := AzureDevopsClient.ListBuildTimeline(project.Id, int64ToString(build.Id))
 		for _, timelineRecord := range timelineRecordList.List {
-			recordType := timelineRecord.RecordType;
+			recordType := timelineRecord.RecordType
 			switch strings.ToLower(recordType) {
 			case "stage":
 				buildStageMetric.Add(prometheus.Labels{
