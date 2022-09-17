@@ -1,3 +1,4 @@
 /vendor/
+/release-assets
 /azure-devops-exporter
 *.exe
