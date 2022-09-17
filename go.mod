@@ -10,15 +10,15 @@ require (
 	github.com/prometheus/common v0.37.0 // indirect
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/sirupsen/logrus v1.9.0
-	golang.org/x/net v0.0.0-20220805013720-a33c5aa5df48 // indirect
-	golang.org/x/sys v0.0.0-20220804214406-8e32c043e418 // indirect
+	golang.org/x/net v0.0.0-20220909164309-bea034e7d591 // indirect
+	golang.org/x/sys v0.0.0-20220915200043-7b5979e65e41 // indirect
 	google.golang.org/protobuf v1.28.1 // indirect
 )
 
 require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/webdevops/go-common v0.0.0-20220807131626-ccf56fcd7f3a
+	github.com/webdevops/go-common v0.0.0-20220914173209-2471ec95feda
 )
 
 require (
