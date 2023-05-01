@@ -5,13 +5,11 @@ import (
 	"fmt"
 	"net/http"
 	"os"
-	"path"
 	"runtime"
 	"strings"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	log "github.com/sirupsen/logrus"
 
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"github.com/webdevops/azure-devops-exporter/config"
@@ -40,19 +38,20 @@ var (
 
 func main() {
 	initArgparser()
+	initLogger()
 
-	log.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
-	log.Info(string(opts.GetJson()))
+	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
+	logger.Info(string(opts.GetJson()))
 
-	log.Infof("init AzureDevOps connection")
+	logger.Infof("init AzureDevOps connection")
 	initAzureDevOpsConnection()
 	AzureDevopsServiceDiscovery = NewAzureDevopsServiceDiscovery()
 	AzureDevopsServiceDiscovery.Update()
 
-	log.Info("init metrics collection")
+	logger.Info("init metrics collection")
 	initMetricCollector()
 
-	log.Infof("starting http server on %s", opts.Server.Bind)
+	logger.Infof("starting http server on %s", opts.Server.Bind)
 	startHttpServer()
 }
 
@@ -73,50 +72,19 @@ func initArgparser() {
 		}
 	}
 
-	// verbose level
-	if opts.Logger.Verbose {
-		log.SetLevel(log.DebugLevel)
-	}
-
-	// debug level
-	if opts.Logger.Debug {
-		log.SetReportCaller(true)
-		log.SetLevel(log.TraceLevel)
-		log.SetFormatter(&log.TextFormatter{
-			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				s := strings.Split(f.Function, ".")
-				funcName := s[len(s)-1]
-				return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
-			},
-		})
-	}
-
-	// json log format
-	if opts.Logger.LogJson {
-		log.SetReportCaller(true)
-		log.SetFormatter(&log.JSONFormatter{
-			DisableTimestamp: true,
-			CallerPrettyfier: func(f *runtime.Frame) (string, string) {
-				s := strings.Split(f.Function, ".")
-				funcName := s[len(s)-1]
-				return funcName, fmt.Sprintf("%s:%d", path.Base(f.File), f.Line)
-			},
-		})
-	}
-
 	// load accesstoken from file
 	if opts.AzureDevops.AccessTokenFile != nil && len(*opts.AzureDevops.AccessTokenFile) > 0 {
-		log.Infof("reading access token from file \"%s\"", *opts.AzureDevops.AccessTokenFile)
+		logger.Infof("reading access token from file \"%s\"", *opts.AzureDevops.AccessTokenFile)
 		// load access token from file
 		if val, err := os.ReadFile(*opts.AzureDevops.AccessTokenFile); err == nil {
 			opts.AzureDevops.AccessToken = strings.TrimSpace(string(val))
 		} else {
-			log.Panicf("unable to read access token file \"%s\": %v", *opts.AzureDevops.AccessTokenFile, err)
+			logger.Fatalf("unable to read access token file \"%s\": %v", *opts.AzureDevops.AccessTokenFile, err)
 		}
 	}
 
 	if len(opts.AzureDevops.AccessToken) == 0 {
-		log.Panicf("no Azure DevOps access token specified")
+		logger.Fatalf("no Azure DevOps access token specified")
 	}
 
 	// ensure query paths and projects are splitted by '@'
@@ -175,7 +143,7 @@ func initArgparser() {
 	}
 
 	if v := os.Getenv("AZURE_DEVOPS_FILTER_AGENTPOOL"); v != "" {
-		log.Panic("deprecated env var AZURE_DEVOPS_FILTER_AGENTPOOL detected, please use AZURE_DEVOPS_AGENTPOOL")
+		logger.Fatal("deprecated env var AZURE_DEVOPS_FILTER_AGENTPOOL detected, please use AZURE_DEVOPS_AGENTPOOL")
 	}
 }
 
@@ -186,10 +154,10 @@ func initAzureDevOpsConnection() {
 		AzureDevopsClient.HostUrl = opts.AzureDevops.Url
 	}
 
-	log.Infof("using organization: %v", opts.AzureDevops.Organisation)
-	log.Infof("using apiversion: %v", opts.AzureDevops.ApiVersion)
-	log.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
-	log.Infof("using retries: %v", opts.Request.Retries)
+	logger.Infof("using organization: %v", opts.AzureDevops.Organisation)
+	logger.Infof("using apiversion: %v", opts.AzureDevops.ApiVersion)
+	logger.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
+	logger.Infof("using retries: %v", opts.Request.Retries)
 
 	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
 	AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
@@ -218,7 +186,7 @@ func initMetricCollector() {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorGeneral{})
 		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Project"
@@ -226,7 +194,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "AgentPool"
@@ -235,7 +203,7 @@ func initMetricCollector() {
 		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevops.AgentPoolIdList
 		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "LatestBuild"
@@ -243,7 +211,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Repository"
@@ -251,7 +219,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRepository)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "PullRequest"
@@ -259,7 +227,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimePullRequest)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Build"
@@ -267,7 +235,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeBuild)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Release"
@@ -275,7 +243,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRelease)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Deployment"
@@ -283,7 +251,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeDeployment)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Stats"
@@ -291,7 +259,7 @@ func initMetricCollector() {
 		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
 		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeStats)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "ResourceUsage"
@@ -299,7 +267,7 @@ func initMetricCollector() {
 		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
 		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeResourceUsage)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	collectorName = "Query"
@@ -308,7 +276,7 @@ func initMetricCollector() {
 		collectorQueryList[collectorName].QueryList = opts.AzureDevops.QueriesWithProjects
 		collectorQueryList[collectorName].SetScrapeTime(*opts.Scrape.TimeQuery)
 	} else {
-		log.Infof("collector[%s]: disabled", collectorName)
+		logger.Infof("collector[%s]: disabled", collectorName)
 	}
 
 	for _, collector := range collectorGeneralList {
@@ -335,14 +303,14 @@ func startHttpServer() {
 	// healthz
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fmt.Fprint(w, "Ok"); err != nil {
-			log.Error(err)
+			logger.Error(err)
 		}
 	})
 
 	// readyz
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fmt.Fprint(w, "Ok"); err != nil {
-			log.Error(err)
+			logger.Error(err)
 		}
 	})
 
@@ -354,5 +322,5 @@ func startHttpServer() {
 		ReadTimeout:  opts.Server.ReadTimeout,
 		WriteTimeout: opts.Server.WriteTimeout,
 	}
-	log.Fatal(srv.ListenAndServe())
+	logger.Fatal(srv.ListenAndServe())
 }
