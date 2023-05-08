@@ -6,14 +6,14 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorBuild struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		build       *prometheus.GaugeVec
@@ -31,8 +31,8 @@ type MetricsCollectorBuild struct {
 	}
 }
 
-func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorBuild) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.build = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -55,7 +55,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.build)
+	m.Collector.RegisterMetricList("build", m.prometheus.build, true)
 
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -71,7 +71,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildStatus)
+	m.Collector.RegisterMetricList("buildStatus", m.prometheus.buildStatus, true)
 
 	m.prometheus.buildStage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -90,7 +90,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildStage)
+	m.Collector.RegisterMetricList("buildStage", m.prometheus.buildStage, true)
 
 	m.prometheus.buildPhase = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -110,7 +110,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildPhase)
+	m.Collector.RegisterMetricList("buildPhase", m.prometheus.buildPhase, true)
 
 	m.prometheus.buildJob = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -130,7 +130,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildJob)
+	m.Collector.RegisterMetricList("buildJob", m.prometheus.buildJob, true)
 
 	m.prometheus.buildTask = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -150,7 +150,7 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildTask)
+	m.Collector.RegisterMetricList("buildTask", m.prometheus.buildTask, true)
 
 	m.prometheus.buildDefinition = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -166,33 +166,31 @@ func (m *MetricsCollectorBuild) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildDefinition)
+	m.Collector.RegisterMetricList("buildDefinition", m.prometheus.buildDefinition, true)
 }
 
-func (m *MetricsCollectorBuild) Reset() {
-	m.prometheus.build.Reset()
-	m.prometheus.buildDefinition.Reset()
-	m.prometheus.buildStatus.Reset()
-	m.prometheus.buildStage.Reset()
-	m.prometheus.buildPhase.Reset()
-	m.prometheus.buildJob.Reset()
-	m.prometheus.buildTask.Reset()
+func (m *MetricsCollectorBuild) Reset() {}
+
+func (m *MetricsCollectorBuild) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectDefinition(ctx, projectLogger, callback, project)
+		m.collectBuilds(ctx, projectLogger, callback, project)
+		m.collectBuildsTimeline(ctx, projectLogger, callback, project)
+	}
 }
 
-func (m *MetricsCollectorBuild) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	m.collectDefinition(ctx, logger, callback, project)
-	m.collectBuilds(ctx, logger, callback, project)
-	m.collectBuildsTimeline(ctx, logger, callback, project)
-}
-
-func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuildDefinitions(project.Id)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	buildDefinitonMetric := prometheusCommon.NewMetricsList()
+	buildDefinitonMetric := m.Collector.GetMetricList("buildDefinition")
 
 	for _, buildDefinition := range list.List {
 		buildDefinitonMetric.Add(prometheus.Labels{
@@ -204,13 +202,9 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *l
 			"url":                 buildDefinition.Links.Web.Href,
 		}, 1)
 	}
-
-	callback <- func() {
-		buildDefinitonMetric.GaugeSet(m.prometheus.buildDefinition)
-	}
 }
 
-func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	list, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
@@ -219,8 +213,8 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 		return
 	}
 
-	buildMetric := prometheusCommon.NewMetricsList()
-	buildStatusMetric := prometheusCommon.NewMetricsList()
+	buildMetric := m.Collector.GetMetricList("build")
+	buildStatusMetric := m.Collector.GetMetricList("buildStatus")
 
 	for _, build := range list.List {
 		buildMetric.AddInfo(prometheus.Labels{
@@ -284,14 +278,9 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *log.E
 			"type":              "jobDuration",
 		}, build.FinishTime.Sub(build.StartTime))
 	}
-
-	callback <- func() {
-		buildMetric.GaugeSet(m.prometheus.build)
-		buildStatusMetric.GaugeSet(m.prometheus.buildStatus)
-	}
 }
 
-func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
 	if err != nil {
@@ -299,10 +288,10 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 		return
 	}
 
-	buildStageMetric := prometheusCommon.NewMetricsList()
-	buildPhaseMetric := prometheusCommon.NewMetricsList()
-	buildJobMetric := prometheusCommon.NewMetricsList()
-	buildTaskMetric := prometheusCommon.NewMetricsList()
+	buildStageMetric := m.Collector.GetMetricList("buildStage")
+	buildPhaseMetric := m.Collector.GetMetricList("buildPhase")
+	buildJobMetric := m.Collector.GetMetricList("buildJob")
+	buildTaskMetric := m.Collector.GetMetricList("buildTask")
 
 	for _, build := range list.List {
 		timelineRecordList, _ := AzureDevopsClient.ListBuildTimeline(project.Id, int64ToString(build.Id))
@@ -620,12 +609,5 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
 			}
 		}
-	}
-
-	callback <- func() {
-		buildStageMetric.GaugeSet(m.prometheus.buildStage)
-		buildPhaseMetric.GaugeSet(m.prometheus.buildPhase)
-		buildJobMetric.GaugeSet(m.prometheus.buildJob)
-		buildTaskMetric.GaugeSet(m.prometheus.buildTask)
 	}
 }

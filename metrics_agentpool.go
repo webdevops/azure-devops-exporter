@@ -4,14 +4,15 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"github.com/webdevops/go-common/utils/to"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorAgentPool struct {
-	CollectorProcessorAgentPool
+	collector.Processor
 
 	prometheus struct {
 		agentPool            *prometheus.GaugeVec
@@ -24,8 +25,8 @@ type MetricsCollectorAgentPool struct {
 	}
 }
 
-func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorAgentPool) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.agentPool = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -39,7 +40,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"isHosted",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPool)
+	m.Collector.RegisterMetricList("agentPool", m.prometheus.agentPool, true)
 
 	m.prometheus.agentPoolSize = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -50,7 +51,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolSize)
+	m.Collector.RegisterMetricList("agentPoolSize", m.prometheus.agentPoolSize, true)
 
 	m.prometheus.agentPoolUsage = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -61,7 +62,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolUsage)
+	m.Collector.RegisterMetricList("agentPoolUsage", m.prometheus.agentPoolUsage, true)
 
 	m.prometheus.agentPoolAgent = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -81,7 +82,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"hasAssignedRequest",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolAgent)
+	m.Collector.RegisterMetricList("agentPoolAgent", m.prometheus.agentPoolAgent, true)
 
 	m.prometheus.agentPoolAgentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -93,7 +94,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolAgentStatus)
+	m.Collector.RegisterMetricList("agentPoolAgentStatus", m.prometheus.agentPoolAgentStatus, true)
 
 	m.prometheus.agentPoolAgentJob = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -109,7 +110,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"scopeID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolAgentJob)
+	m.Collector.RegisterMetricList("agentPoolAgentJob", m.prometheus.agentPoolAgentJob, true)
 
 	m.prometheus.agentPoolQueueLength = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -120,51 +121,42 @@ func (m *MetricsCollectorAgentPool) Setup(collector *CollectorAgentPool) {
 			"agentPoolID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolQueueLength)
+	m.Collector.RegisterMetricList("agentPoolQueueLength", m.prometheus.agentPoolQueueLength, true)
 }
 
-func (m *MetricsCollectorAgentPool) Reset() {
-	m.prometheus.agentPool.Reset()
-	m.prometheus.agentPoolSize.Reset()
-	m.prometheus.agentPoolAgent.Reset()
-	m.prometheus.agentPoolAgentStatus.Reset()
-	m.prometheus.agentPoolAgentJob.Reset()
-	m.prometheus.agentPoolQueueLength.Reset()
-}
+func (m *MetricsCollectorAgentPool) Reset() {}
 
-func (m *MetricsCollectorAgentPool) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
-	for _, project := range m.CollectorReference.GetAzureProjects() {
-		contextLogger := logger.WithFields(log.Fields{
-			"project": project.Name,
-		})
-		m.collectAgentInfo(ctx, contextLogger, callback, project)
+func (m *MetricsCollectorAgentPool) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectAgentInfo(ctx, projectLogger, callback, project)
 	}
 
 	for _, agentPoolId := range AzureDevopsServiceDiscovery.AgentPoolList() {
-		contextLogger := logger.WithFields(log.Fields{
-			"agentPoolId": agentPoolId,
-		})
-
-		m.collectAgentQueues(ctx, contextLogger, callback, agentPoolId)
-		m.collectAgentPoolJobs(ctx, contextLogger, callback, agentPoolId)
+		agentPoolLogger := logger.With(zap.Int64("agentPoolId", agentPoolId))
+		m.collectAgentQueues(ctx, agentPoolLogger, callback, agentPoolId)
+		m.collectAgentPoolJobs(ctx, agentPoolLogger, callback, agentPoolId)
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListAgentQueues(project.Id)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	agentPoolInfoMetric := prometheusCommon.NewMetricsList()
-	agentPoolSizeMetric := prometheusCommon.NewMetricsList()
+	agentPoolInfoMetric := m.Collector.GetMetricList("agentPool")
+	agentPoolSizeMetric := m.Collector.GetMetricList("agentPoolSize")
 
 	for _, agentQueue := range list.List {
 		agentPoolInfoMetric.Add(prometheus.Labels{
 			"agentPoolID":   int64ToString(agentQueue.Pool.Id),
 			"agentPoolName": agentQueue.Name,
-			"isHosted":      boolToString(agentQueue.Pool.IsHosted),
+			"isHosted":      to.BoolString(agentQueue.Pool.IsHosted),
 			"agentPoolType": agentQueue.Pool.PoolType,
 		}, 1)
 
@@ -172,24 +164,19 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger
 			"agentPoolID": int64ToString(agentQueue.Pool.Id),
 		}, float64(agentQueue.Pool.Size))
 	}
-
-	callback <- func() {
-		agentPoolInfoMetric.GaugeSet(m.prometheus.agentPool)
-		agentPoolSizeMetric.GaugeSet(m.prometheus.agentPoolSize)
-	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logger *log.Entry, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolAgents(agentPoolId)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	agentPoolUsageMetric := prometheusCommon.NewMetricsList()
-	agentPoolAgentMetric := prometheusCommon.NewMetricsList()
-	agentPoolAgentStatusMetric := prometheusCommon.NewMetricsList()
-	agentPoolAgentJobMetric := prometheusCommon.NewMetricsList()
+	agentPoolUsageMetric := m.Collector.GetMetricList("agentPoolUsage")
+	agentPoolAgentMetric := m.Collector.GetMetricList("agentPoolAgent")
+	agentPoolAgentStatusMetric := m.Collector.GetMetricList("agentPoolAgentStatus")
+	agentPoolAgentJobMetric := m.Collector.GetMetricList("agentPoolAgentJob")
 
 	agentPoolSize := 0
 	agentPoolUsed := 0
@@ -203,9 +190,9 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 			"provisioningState":     agentPoolAgent.ProvisioningState,
 			"maxParallelism":        int64ToString(agentPoolAgent.MaxParallelism),
 			"agentPoolAgentOs":      agentPoolAgent.OsDescription,
-			"enabled":               boolToString(agentPoolAgent.Enabled),
+			"enabled":               to.BoolString(agentPoolAgent.Enabled),
 			"status":                agentPoolAgent.Status,
-			"hasAssignedRequest":    boolToString(agentPoolAgent.AssignedRequest.RequestId > 0),
+			"hasAssignedRequest":    to.BoolString(agentPoolAgent.AssignedRequest.RequestId > 0),
 		}
 
 		agentPoolAgentMetric.Add(infoLabels, 1)
@@ -230,26 +217,23 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 		}
 	}
 
+	usage := float64(0)
+	if agentPoolSize > 0 {
+		usage = float64(agentPoolUsed) / float64(agentPoolSize)
+	}
 	agentPoolUsageMetric.Add(prometheus.Labels{
 		"agentPoolID": int64ToString(agentPoolId),
-	}, float64(agentPoolUsed)/float64(agentPoolSize))
-
-	callback <- func() {
-		agentPoolUsageMetric.GaugeSet(m.prometheus.agentPoolUsage)
-		agentPoolAgentMetric.GaugeSet(m.prometheus.agentPoolAgent)
-		agentPoolAgentStatusMetric.GaugeSet(m.prometheus.agentPoolAgentStatus)
-		agentPoolAgentJobMetric.GaugeSet(m.prometheus.agentPoolAgentJob)
-	}
+	}, usage)
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, logger *log.Entry, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolJobs(agentPoolId)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	agentPoolQueueLengthMetric := prometheusCommon.NewMetricsList()
+	agentPoolQueueLengthMetric := m.Collector.GetMetricList("agentPoolQueueLength")
 
 	notStartedJobCount := 0
 
@@ -264,8 +248,4 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, lo
 	}
 
 	agentPoolQueueLengthMetric.Add(infoLabels, float64(notStartedJobCount))
-
-	callback <- func() {
-		agentPoolQueueLengthMetric.GaugeSet(m.prometheus.agentPoolQueueLength)
-	}
 }

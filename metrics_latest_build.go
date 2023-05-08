@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorLatestBuild struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		build       *prometheus.GaugeVec
@@ -19,8 +19,8 @@ type MetricsCollectorLatestBuild struct {
 	}
 }
 
-func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorLatestBuild) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.build = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -43,7 +43,7 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.build)
+	m.Collector.RegisterMetricList("build", m.prometheus.build, true)
 
 	m.prometheus.buildStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -57,23 +57,30 @@ func (m *MetricsCollectorLatestBuild) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.buildStatus)
+	m.Collector.RegisterMetricList("buildStatus", m.prometheus.buildStatus, true)
 }
 
-func (m *MetricsCollectorLatestBuild) Reset() {
-	m.prometheus.build.Reset()
-	m.prometheus.buildStatus.Reset()
+func (m *MetricsCollectorLatestBuild) Reset() {}
+
+func (m *MetricsCollectorLatestBuild) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectLatestBuilds(ctx, projectLogger, project, callback)
+	}
 }
 
-func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorLatestBuild) collectLatestBuilds(ctx context.Context, logger *zap.SugaredLogger, project devopsClient.Project, callback chan<- func()) {
 	list, err := AzureDevopsClient.ListLatestBuilds(project.Id)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	buildMetric := prometheusCommon.NewMetricsList()
-	buildStatusMetric := prometheusCommon.NewMetricsList()
+	buildMetric := m.Collector.GetMetricList("build")
+	buildStatusMetric := m.Collector.GetMetricList("buildStatus")
 
 	for _, build := range list.List {
 		buildMetric.AddInfo(prometheus.Labels{
@@ -119,10 +126,5 @@ func (m *MetricsCollectorLatestBuild) Collect(ctx context.Context, logger *log.E
 			"buildNumber": build.BuildNumber,
 			"type":        "jobDuration",
 		}, build.FinishTime.Sub(build.StartTime))
-	}
-
-	callback <- func() {
-		buildMetric.GaugeSet(m.prometheus.build)
-		buildStatusMetric.GaugeSet(m.prometheus.buildStatus)
 	}
 }

@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorDeployment struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		deployment       *prometheus.GaugeVec
@@ -19,8 +19,8 @@ type MetricsCollectorDeployment struct {
 	}
 }
 
-func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorDeployment) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.deployment = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -44,7 +44,7 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 			"approvedBy",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.deployment)
+	m.Collector.RegisterMetricList("deployment", m.prometheus.deployment, true)
 
 	m.prometheus.deploymentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -57,7 +57,7 @@ func (m *MetricsCollectorDeployment) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.deploymentStatus)
+	m.Collector.RegisterMetricList("deploymentStatus", m.prometheus.deploymentStatus, true)
 }
 
 func (m *MetricsCollectorDeployment) Reset() {
@@ -65,18 +65,28 @@ func (m *MetricsCollectorDeployment) Reset() {
 	m.prometheus.deploymentStatus.Reset()
 }
 
-func (m *MetricsCollectorDeployment) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorDeployment) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectDeployments(ctx, projectLogger, callback, project)
+	}
+}
+
+func (m *MetricsCollectorDeployment) collectDeployments(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	deploymentMetric := prometheusCommon.NewMetricsList()
-	deploymentStatusMetric := prometheusCommon.NewMetricsList()
+	deploymentMetric := m.Collector.GetMetricList("deployment")
+	deploymentStatusMetric := m.Collector.GetMetricList("deploymentStatus")
 
 	for _, releaseDefinition := range list.List {
-		contextLogger := logger.WithField("releaseDefinition", releaseDefinition.Name)
+		contextLogger := logger.With(zap.String("releaseDefinition", releaseDefinition.Name))
 
 		deploymentList, err := AzureDevopsClient.ListReleaseDeployments(project.Id, releaseDefinition.Id)
 		if err != nil {
@@ -138,10 +148,5 @@ func (m *MetricsCollectorDeployment) Collect(ctx context.Context, logger *log.En
 				}, completedOn.Sub(*startedOn))
 			}
 		}
-	}
-
-	callback <- func() {
-		deploymentMetric.GaugeSet(m.prometheus.deployment)
-		deploymentStatusMetric.GaugeSet(m.prometheus.deploymentStatus)
 	}
 }

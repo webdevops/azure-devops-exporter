@@ -5,7 +5,7 @@ import (
 	"time"
 
 	cache "github.com/patrickmn/go-cache"
-	log "github.com/sirupsen/logrus"
+	"go.uber.org/zap"
 
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -20,7 +20,7 @@ type (
 		cache       *cache.Cache
 		cacheExpiry time.Duration
 
-		logger *log.Entry
+		logger *zap.SugaredLogger
 
 		lock struct {
 			projectList   sync.Mutex
@@ -31,11 +31,9 @@ type (
 
 func NewAzureDevopsServiceDiscovery() *azureDevopsServiceDiscovery {
 	sd := &azureDevopsServiceDiscovery{}
-	sd.cacheExpiry = opts.Cache.Expiry
+	sd.cacheExpiry = opts.ServiceDiscovery.RefreshDuration
 	sd.cache = cache.New(sd.cacheExpiry, time.Duration(1*time.Minute))
-	sd.logger = log.WithFields(log.Fields{
-		"component": "servicediscovery",
-	})
+	sd.logger = logger.With(zap.String("component", "servicediscovery"))
 
 	sd.logger.Infof("init AzureDevops servicediscovery with %v cache", sd.cacheExpiry.String())
 	return sd

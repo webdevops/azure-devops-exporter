@@ -4,14 +4,14 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorProject struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		project    *prometheus.GaugeVec
@@ -19,8 +19,8 @@ type MetricsCollectorProject struct {
 	}
 }
 
-func (m *MetricsCollectorProject) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorProject) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.project = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -32,26 +32,26 @@ func (m *MetricsCollectorProject) Setup(collector *CollectorProject) {
 			"projectName",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.project)
+	m.Collector.RegisterMetricList("project", m.prometheus.project, true)
 }
 
-func (m *MetricsCollectorProject) Reset() {
-	m.prometheus.project.Reset()
+func (m *MetricsCollectorProject) Reset() {}
+
+func (m *MetricsCollectorProject) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectProject(ctx, projectLogger, callback, project)
+	}
 }
 
-func (m *MetricsCollectorProject) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	m.collectProject(ctx, logger, callback, project)
-}
-
-func (m *MetricsCollectorProject) collectProject(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	projectMetric := prometheusCommon.NewMetricsList()
+func (m *MetricsCollectorProject) collectProject(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+	projectMetric := m.Collector.GetMetricList("project")
 
 	projectMetric.AddInfo(prometheus.Labels{
 		"projectID":   project.Id,
 		"projectName": project.Name,
 	})
-
-	callback <- func() {
-		projectMetric.GaugeSet(m.prometheus.project)
-	}
 }

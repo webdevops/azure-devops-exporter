@@ -10,6 +10,8 @@ import (
 
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"github.com/webdevops/azure-devops-exporter/config"
@@ -25,11 +27,6 @@ var (
 
 	AzureDevopsClient           *AzureDevops.AzureDevopsClient
 	AzureDevopsServiceDiscovery *azureDevopsServiceDiscovery
-
-	collectorGeneralList   map[string]*CollectorGeneral
-	collectorProjectList   map[string]*CollectorProject
-	collectorAgentPoolList map[string]*CollectorAgentPool
-	collectorQueryList     map[string]*CollectorQuery
 
 	// Git version information
 	gitCommit = "<unknown>"
@@ -174,125 +171,140 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.Limit.ReleaseDefinitionsPerProject
 	AzureDevopsClient.LimitReleasesPerProject = opts.Limit.ReleasesPerProject
 }
+
 func initMetricCollector() {
 	var collectorName string
-	collectorGeneralList = map[string]*CollectorGeneral{}
-	collectorProjectList = map[string]*CollectorProject{}
-	collectorAgentPoolList = map[string]*CollectorAgentPool{}
-	collectorQueryList = map[string]*CollectorQuery{}
-
-	collectorName = "General"
-	if opts.Scrape.TimeLive.Seconds() > 0 {
-		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorGeneral{})
-		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
-	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
-	}
 
 	collectorName = "Project"
 	if opts.Scrape.TimeLive.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorProject{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
+		c := collector.New(collectorName, &MetricsCollectorProject{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeLive)
+		c.SetCache(opts.GetCachePath("project.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "AgentPool"
 	if opts.Scrape.TimeLive.Seconds() > 0 {
-		collectorAgentPoolList[collectorName] = NewCollectorAgentPool(collectorName, &MetricsCollectorAgentPool{})
-		collectorAgentPoolList[collectorName].AgentPoolIdList = opts.AzureDevops.AgentPoolIdList
-		collectorAgentPoolList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
+		c := collector.New(collectorName, &MetricsCollectorAgentPool{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeLive)
+		c.SetCache(opts.GetCachePath("agentpool.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "LatestBuild"
 	if opts.Scrape.TimeLive.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorLatestBuild{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeLive)
+		c := collector.New(collectorName, &MetricsCollectorLatestBuild{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeLive)
+		c.SetCache(opts.GetCachePath("latestbuild.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Repository"
 	if opts.Scrape.TimeRepository.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRepository{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRepository)
+		c := collector.New(collectorName, &MetricsCollectorRepository{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeRepository)
+		c.SetCache(opts.GetCachePath("latestbuild.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "PullRequest"
 	if opts.Scrape.TimePullRequest.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorPullRequest{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimePullRequest)
+		c := collector.New(collectorName, &MetricsCollectorPullRequest{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimePullRequest)
+		c.SetCache(opts.GetCachePath("pullrequest.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Build"
 	if opts.Scrape.TimeBuild.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorBuild{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeBuild)
+		c := collector.New(collectorName, &MetricsCollectorBuild{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeBuild)
+		c.SetCache(opts.GetCachePath("build.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Release"
 	if opts.Scrape.TimeRelease.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorRelease{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeRelease)
+		c := collector.New(collectorName, &MetricsCollectorRelease{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeRelease)
+		c.SetCache(opts.GetCachePath("release.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Deployment"
 	if opts.Scrape.TimeDeployment.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorDeployment{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeDeployment)
+		c := collector.New(collectorName, &MetricsCollectorDeployment{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeDeployment)
+		c.SetCache(opts.GetCachePath("deployment.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Stats"
 	if opts.Scrape.TimeStats.Seconds() > 0 {
-		collectorProjectList[collectorName] = NewCollectorProject(collectorName, &MetricsCollectorStats{})
-		collectorProjectList[collectorName].SetScrapeTime(*opts.Scrape.TimeStats)
+		c := collector.New(collectorName, &MetricsCollectorStats{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeStats)
+		c.SetCache(opts.GetCachePath("stats.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "ResourceUsage"
 	if opts.Scrape.TimeResourceUsage.Seconds() > 0 {
-		collectorGeneralList[collectorName] = NewCollectorGeneral(collectorName, &MetricsCollectorResourceUsage{})
-		collectorGeneralList[collectorName].SetScrapeTime(*opts.Scrape.TimeResourceUsage)
+		c := collector.New(collectorName, &MetricsCollectorResourceUsage{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeResourceUsage)
+		c.SetCache(opts.GetCachePath("resourceusage.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Query"
 	if opts.Scrape.TimeQuery.Seconds() > 0 {
-		collectorQueryList[collectorName] = NewCollectorQuery(collectorName, &MetricsCollectorQuery{})
-		collectorQueryList[collectorName].QueryList = opts.AzureDevops.QueriesWithProjects
-		collectorQueryList[collectorName].SetScrapeTime(*opts.Scrape.TimeQuery)
+		c := collector.New(collectorName, &MetricsCollectorQuery{}, logger)
+		c.SetScapeTime(*opts.Scrape.TimeQuery)
+		c.SetCache(opts.GetCachePath("query.json"))
+		if err := c.Start(); err != nil {
+			logger.Fatal(err.Error())
+		}
 	} else {
-		logger.Infof("collector[%s]: disabled", collectorName)
-	}
-
-	for _, collector := range collectorGeneralList {
-		collector.Run()
-	}
-
-	for _, collector := range collectorProjectList {
-		collector.Run()
-	}
-
-	for _, collector := range collectorAgentPoolList {
-		collector.Run()
-	}
-
-	for _, collector := range collectorQueryList {
-		collector.Run()
+		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
 	}
 }
 

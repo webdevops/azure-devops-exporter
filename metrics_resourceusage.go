@@ -4,12 +4,12 @@ import (
 	"context"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 )
 
 type MetricsCollectorResourceUsage struct {
-	CollectorProcessorGeneral
+	collector.Processor
 
 	prometheus struct {
 		resourceUsageBuild   *prometheus.GaugeVec
@@ -17,8 +17,8 @@ type MetricsCollectorResourceUsage struct {
 	}
 }
 
-func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorResourceUsage) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.resourceUsageBuild = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -29,7 +29,7 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 			"name",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.resourceUsageBuild)
+	m.Collector.RegisterMetricList("resourceUsageBuild", m.prometheus.resourceUsageBuild, true)
 
 	m.prometheus.resourceUsageLicense = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -40,27 +40,27 @@ func (m *MetricsCollectorResourceUsage) Setup(collector *CollectorGeneral) {
 			"name",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.resourceUsageLicense)
+	m.Collector.RegisterMetricList("resourceUsageLicense", m.prometheus.resourceUsageLicense, true)
 }
 
-func (m *MetricsCollectorResourceUsage) Reset() {
-	m.prometheus.resourceUsageBuild.Reset()
-	m.prometheus.resourceUsageLicense.Reset()
+func (m *MetricsCollectorResourceUsage) Reset() {}
+
+func (m *MetricsCollectorResourceUsage) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	m.collectResourceUsageBuild(ctx, logger, callback)
+	m.collectResourceUsageAgent(ctx, logger, callback)
 }
 
-func (m *MetricsCollectorResourceUsage) Collect(ctx context.Context, logger *log.Entry, callback chan<- func()) {
-	m.CollectResourceUsageBuild(ctx, logger, callback)
-	m.CollectResourceUsageAgent(ctx, logger, callback)
-}
-
-func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Context, logger *log.Entry, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) collectResourceUsageAgent(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageAgent()
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	resourceUsageMetric := prometheusCommon.NewMetricsList()
+	resourceUsageMetric := m.Collector.GetMetricList("resourceUsageLicense")
 
 	licenseDetails := resourceUsage.Data.Provider.TaskHubLicenseDetails
 
@@ -111,20 +111,16 @@ func (m *MetricsCollectorResourceUsage) CollectResourceUsageAgent(ctx context.Co
 	resourceUsageMetric.AddIfNotNil(prometheus.Labels{
 		"name": "TotalHostedLicenseCount",
 	}, licenseDetails.TotalHostedLicenseCount)
-
-	callback <- func() {
-		resourceUsageMetric.GaugeSet(m.prometheus.resourceUsageLicense)
-	}
 }
 
-func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Context, logger *log.Entry, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) collectResourceUsageBuild(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageBuild()
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	resourceUsageMetric := prometheusCommon.NewMetricsList()
+	resourceUsageMetric := m.Collector.GetMetricList("resourceUsageBuild")
 
 	if resourceUsage.DistributedTaskAgents != nil {
 		resourceUsageMetric.Add(prometheus.Labels{
@@ -149,9 +145,4 @@ func (m *MetricsCollectorResourceUsage) CollectResourceUsageBuild(ctx context.Co
 			"name": "XamlControllers",
 		}, float64(*resourceUsage.XamlControllers))
 	}
-
-	callback <- func() {
-		resourceUsageMetric.GaugeSet(m.prometheus.resourceUsageBuild)
-	}
-
 }

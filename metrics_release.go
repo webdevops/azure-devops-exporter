@@ -5,14 +5,15 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"github.com/webdevops/go-common/utils/to"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorRelease struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		release                    *prometheus.GaugeVec
@@ -26,8 +27,8 @@ type MetricsCollectorRelease struct {
 	}
 }
 
-func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorRelease) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.release = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -46,7 +47,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.release)
+	m.Collector.RegisterMetricList("release", m.prometheus.release, true)
 
 	m.prometheus.releaseArtifact = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -65,7 +66,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"version",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseArtifact)
+	m.Collector.RegisterMetricList("releaseArtifact", m.prometheus.releaseArtifact, true)
 
 	m.prometheus.releaseEnvironment = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -83,7 +84,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"rank",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseEnvironment)
+	m.Collector.RegisterMetricList("releaseEnvironment", m.prometheus.releaseEnvironment, true)
 
 	m.prometheus.releaseEnvironmentStatus = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -98,7 +99,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseEnvironmentStatus)
+	m.Collector.RegisterMetricList("releaseEnvironmentStatus", m.prometheus.releaseEnvironmentStatus, true)
 
 	m.prometheus.releaseEnvironmentApproval = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -120,7 +121,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"approvedBy",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseEnvironmentApproval)
+	m.Collector.RegisterMetricList("releaseEnvironmentApproval", m.prometheus.releaseEnvironmentApproval, true)
 
 	m.prometheus.releaseDefinition = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -136,7 +137,7 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"url",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseDefinition)
+	m.Collector.RegisterMetricList("releaseDefinition", m.prometheus.releaseDefinition, true)
 
 	m.prometheus.releaseDefinitionEnvironment = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -154,35 +155,36 @@ func (m *MetricsCollectorRelease) Setup(collector *CollectorProject) {
 			"badgeUrl",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.releaseDefinitionEnvironment)
+	m.Collector.RegisterMetricList("releaseDefinitionEnvironment", m.prometheus.releaseDefinitionEnvironment, true)
 }
 
-func (m *MetricsCollectorRelease) Reset() {
-	m.prometheus.release.Reset()
-	m.prometheus.releaseArtifact.Reset()
-	m.prometheus.releaseEnvironment.Reset()
-	m.prometheus.releaseEnvironmentApproval.Reset()
-	m.prometheus.releaseEnvironmentStatus.Reset()
+func (m *MetricsCollectorRelease) Reset() {}
 
-	m.prometheus.releaseDefinition.Reset()
-	m.prometheus.releaseDefinitionEnvironment.Reset()
+func (m *MetricsCollectorRelease) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.collectReleases(ctx, projectLogger, callback, project)
+	}
 }
 
-func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
 		logger.Error(err)
 		return
 	}
 
-	releaseDefinitionMetric := prometheusCommon.NewMetricsList()
-	releaseDefinitionEnvironmentMetric := prometheusCommon.NewMetricsList()
+	releaseDefinitionMetric := m.Collector.GetMetricList("releaseDefinition")
+	releaseDefinitionEnvironmentMetric := m.Collector.GetMetricList("releaseDefinitionEnvironment")
 
-	releaseMetric := prometheusCommon.NewMetricsList()
-	releaseArtifactMetric := prometheusCommon.NewMetricsList()
-	releaseEnvironmentMetric := prometheusCommon.NewMetricsList()
-	releaseEnvironmentApprovalMetric := prometheusCommon.NewMetricsList()
-	releaseEnvironmentStatusMetric := prometheusCommon.NewMetricsList()
+	releaseMetric := m.Collector.GetMetricList("release")
+	releaseArtifactMetric := m.Collector.GetMetricList("releaseArtifact")
+	releaseEnvironmentMetric := m.Collector.GetMetricList("releaseEnvironment")
+	releaseEnvironmentApprovalMetric := m.Collector.GetMetricList("releaseEnvironmentApproval")
+	releaseEnvironmentStatusMetric := m.Collector.GetMetricList("releaseEnvironmentStatus")
 
 	for _, releaseDefinition := range list.List {
 		// --------------------------------------
@@ -229,7 +231,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry
 			"releaseName":         release.Name,
 			"status":              release.Status,
 			"reason":              release.Reason,
-			"result":              boolToString(release.Result),
+			"result":              to.BoolString(release.Result),
 			"url":                 release.Links.Web.Href,
 		})
 
@@ -296,7 +298,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry
 					"environmentID":       int64ToString(environment.DefinitionEnvironmentId),
 					"approvalType":        approval.ApprovalType,
 					"status":              approval.Status,
-					"isAutomated":         boolToString(approval.IsAutomated),
+					"isAutomated":         to.BoolString(approval.IsAutomated),
 					"trialNumber":         int64ToString(approval.TrialNumber),
 					"attempt":             int64ToString(approval.Attempt),
 					"rank":                int64ToString(approval.Rank),
@@ -318,7 +320,7 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry
 					"environmentID":       int64ToString(environment.DefinitionEnvironmentId),
 					"approvalType":        approval.ApprovalType,
 					"status":              approval.Status,
-					"isAutomated":         boolToString(approval.IsAutomated),
+					"isAutomated":         to.BoolString(approval.IsAutomated),
 					"trialNumber":         int64ToString(approval.TrialNumber),
 					"attempt":             int64ToString(approval.Attempt),
 					"rank":                int64ToString(approval.Rank),
@@ -327,16 +329,5 @@ func (m *MetricsCollectorRelease) Collect(ctx context.Context, logger *log.Entry
 				}, approval.CreatedOn)
 			}
 		}
-	}
-
-	callback <- func() {
-		releaseDefinitionMetric.GaugeSet(m.prometheus.releaseDefinition)
-		releaseDefinitionEnvironmentMetric.GaugeSet(m.prometheus.releaseDefinitionEnvironment)
-
-		releaseMetric.GaugeSet(m.prometheus.release)
-		releaseArtifactMetric.GaugeSet(m.prometheus.releaseArtifact)
-		releaseEnvironmentMetric.GaugeSet(m.prometheus.releaseEnvironment)
-		releaseEnvironmentApprovalMetric.GaugeSet(m.prometheus.releaseEnvironmentApproval)
-		releaseEnvironmentStatusMetric.GaugeSet(m.prometheus.releaseEnvironmentStatus)
 	}
 }

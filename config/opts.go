@@ -57,12 +57,16 @@ type (
 
 		// cache settings
 		Cache struct {
-			Expiry time.Duration `long:"cache.expiry"  env:"CACHE_EXPIRY"  description:"Internal cache expiry time (time.duration)"  default:"30m"`
+			Path string `long:"cache.path" env:"CACHE_PATH" description:"Cache path (to folder, file://path... or azblob://storageaccount.blob.core.windows.net/containername)"`
 		}
 
 		Request struct {
 			ConcurrencyLimit int64 `long:"request.concurrency"                   env:"REQUEST_CONCURRENCY"     description:"Number of concurrent requests against dev.azure.com"  default:"10"`
 			Retries          int   `long:"request.retries"                       env:"REQUEST_RETRIES"         description:"Number of retried requests against dev.azure.com"     default:"3"`
+		}
+
+		ServiceDiscovery struct {
+			RefreshDuration time.Duration `long:"servicediscovery.refresh"  env:"SERVICEDISCOVERY_REFRESH"  description:"Refresh duration for servicediscovery (time.duration)"  default:"30m"`
 		}
 
 		Limit struct {
@@ -85,6 +89,15 @@ type (
 		}
 	}
 )
+
+func (o *Opts) GetCachePath(path string) (ret *string) {
+	if o.Cache.Path != "" {
+		tmp := o.Cache.Path + "/" + path
+		ret = &tmp
+	}
+
+	return
+}
 
 func (o *Opts) GetJson() []byte {
 	jsonBytes, err := json.Marshal(o)

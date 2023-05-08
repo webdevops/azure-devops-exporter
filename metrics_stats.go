@@ -5,13 +5,14 @@ import (
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorStats struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		agentPoolBuildCount    *prometheus.CounterVec
@@ -27,8 +28,8 @@ type MetricsCollectorStats struct {
 	}
 }
 
-func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	// ------------------------------------------
 	// AgentPool
@@ -45,7 +46,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolBuildCount)
+	m.Collector.RegisterMetricList("agentPoolBuildCount", m.prometheus.agentPoolBuildCount, false)
 
 	m.prometheus.agentPoolBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -59,7 +60,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolBuildWait)
+	m.Collector.RegisterMetricList("agentPoolBuildWait", m.prometheus.agentPoolBuildWait, false)
 
 	m.prometheus.agentPoolBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -73,7 +74,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.agentPoolBuildDuration)
+	m.Collector.RegisterMetricList("agentPoolBuildDuration", m.prometheus.agentPoolBuildDuration, false)
 
 	// ------------------------------------------
 	// Project
@@ -90,7 +91,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectBuildCount)
+	m.Collector.RegisterMetricList("projectBuildCount", m.prometheus.projectBuildCount, false)
 
 	m.prometheus.projectBuildSuccess = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -102,7 +103,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"buildDefinitionID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectBuildSuccess)
+	m.Collector.RegisterMetricList("projectBuildSuccess", m.prometheus.projectBuildSuccess, false)
 
 	m.prometheus.projectBuildWait = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -116,7 +117,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectBuildWait)
+	m.Collector.RegisterMetricList("projectBuildWait", m.prometheus.projectBuildWait, false)
 
 	m.prometheus.projectBuildDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -130,7 +131,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"result",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectBuildDuration)
+	m.Collector.RegisterMetricList("projectBuildDuration", m.prometheus.projectBuildDuration, false)
 
 	m.prometheus.projectReleaseDuration = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -145,7 +146,7 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"status",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectReleaseDuration)
+	m.Collector.RegisterMetricList("projectReleaseDuration", m.prometheus.projectReleaseDuration, false)
 
 	m.prometheus.projectReleaseSuccess = prometheus.NewSummaryVec(
 		prometheus.SummaryOpts{
@@ -159,19 +160,27 @@ func (m *MetricsCollectorStats) Setup(collector *CollectorProject) {
 			"definitionEnvironmentID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.projectReleaseSuccess)
+	m.Collector.RegisterMetricList("projectReleaseSuccess", m.prometheus.projectReleaseSuccess, false)
 }
 
-func (m *MetricsCollectorStats) Reset() {
+func (m *MetricsCollectorStats) Reset() {}
+
+func (m *MetricsCollectorStats) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
+
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+		m.CollectBuilds(ctx, projectLogger, callback, project)
+		m.CollectReleases(ctx, projectLogger, callback, project)
+	}
 }
 
-func (m *MetricsCollectorStats) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	m.CollectBuilds(ctx, logger, callback, project)
-	m.CollectReleases(ctx, logger, callback, project)
-}
-
-func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	minTime := *m.CollectorReference.collectionLastTime
+func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+	minTime := time.Now().Add(-*m.Collector.GetScapeTime())
+	if val := m.Collector.GetLastScapeTime(); val != nil {
+		minTime = *val
+	}
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
@@ -209,7 +218,7 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *log
 	}
 }
 
-func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	buildList, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")

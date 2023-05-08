@@ -2,17 +2,18 @@ package main
 
 import (
 	"context"
-	"sync"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
-	log "github.com/sirupsen/logrus"
-	prometheusCommon "github.com/webdevops/go-common/prometheus"
+	"github.com/remeh/sizedwaitgroup"
+	"github.com/webdevops/go-common/prometheus/collector"
+	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
 
 type MetricsCollectorRepository struct {
-	CollectorProcessorProject
+	collector.Processor
 
 	prometheus struct {
 		repository        *prometheus.GaugeVec
@@ -22,8 +23,8 @@ type MetricsCollectorRepository struct {
 	}
 }
 
-func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
-	m.CollectorReference = collector
+func (m *MetricsCollectorRepository) Setup(collector *collector.Collector) {
+	m.Processor.Setup(collector)
 
 	m.prometheus.repository = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -36,7 +37,7 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryName",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.repository)
+	m.Collector.RegisterMetricList("repository", m.prometheus.repository, true)
 
 	m.prometheus.repositoryStats = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
@@ -49,7 +50,7 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"type",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.repositoryStats)
+	m.Collector.RegisterMetricList("repositoryStats", m.prometheus.repositoryStats, true)
 
 	m.prometheus.repositoryCommits = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -61,7 +62,7 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.repositoryCommits)
+	m.Collector.RegisterMetricList("repositoryCommits", m.prometheus.repositoryCommits, false)
 
 	m.prometheus.repositoryPushes = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -73,40 +74,45 @@ func (m *MetricsCollectorRepository) Setup(collector *CollectorProject) {
 			"repositoryID",
 		},
 	)
-	prometheus.MustRegister(m.prometheus.repositoryPushes)
+	m.Collector.RegisterMetricList("repositoryPushes", m.prometheus.repositoryPushes, false)
 }
 
-func (m *MetricsCollectorRepository) Reset() {
-	m.prometheus.repository.Reset()
-	m.prometheus.repositoryStats.Reset()
-}
+func (m *MetricsCollectorRepository) Reset() {}
 
-func (m *MetricsCollectorRepository) Collect(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project) {
-	wg := sync.WaitGroup{}
+func (m *MetricsCollectorRepository) Collect(callback chan<- func()) {
+	ctx := m.Context()
+	logger := m.Logger()
 
-	for _, repository := range project.RepositoryList.List {
-		if repository.Disabled() {
-			continue
+	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
+		projectLogger := logger.With(zap.String("project", project.Name))
+
+		wg := sizedwaitgroup.New(5)
+		for _, repository := range project.RepositoryList.List {
+			if repository.Disabled() {
+				continue
+			}
+
+			wg.Add()
+			go func(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+				defer wg.Done()
+				repositoryLogger := projectLogger.With(zap.String("repository", repository.Name))
+				m.collectRepository(ctx, repositoryLogger, callback, project, repository)
+			}(ctx, callback, project, repository)
 		}
+		wg.Wait()
+	}
+}
 
-		wg.Add(1)
-		go func(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
-			defer wg.Done()
-			contextLogger := logger.WithField("repository", repository.Name)
-			m.collectRepository(ctx, contextLogger, callback, project, repository)
-		}(ctx, callback, project, repository)
+func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+	fromTime := time.Now().Add(-*m.Collector.GetScapeTime())
+	if val := m.Collector.GetLastScapeTime(); val != nil {
+		fromTime = *val
 	}
 
-	wg.Wait()
-}
-
-func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logger *log.Entry, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
-	fromTime := *m.CollectorReference.collectionLastTime
-
-	repositoryMetric := prometheusCommon.NewMetricsList()
-	repositoryStatsMetric := prometheusCommon.NewMetricsList()
-	repositoryCommitsMetric := prometheusCommon.NewMetricsList()
-	repositoryPushesMetric := prometheusCommon.NewMetricsList()
+	repositoryMetric := m.Collector.GetMetricList("repository")
+	repositoryStatsMetric := m.Collector.GetMetricList("repositoryStats")
+	repositoryCommitsMetric := m.Collector.GetMetricList("repositoryCommits")
+	repositoryPushesMetric := m.Collector.GetMetricList("repositoryPushes")
 
 	repositoryMetric.AddInfo(prometheus.Labels{
 		"projectID":      project.Id,
@@ -142,12 +148,5 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logg
 		}, float64(pushList.Count))
 	} else {
 		logger.Error(err)
-	}
-
-	callback <- func() {
-		repositoryMetric.GaugeSet(m.prometheus.repository)
-		repositoryStatsMetric.GaugeSet(m.prometheus.repositoryStats)
-		repositoryCommitsMetric.CounterAdd(m.prometheus.repositoryCommits)
-		repositoryPushesMetric.CounterAdd(m.prometheus.repositoryPushes)
 	}
 }
