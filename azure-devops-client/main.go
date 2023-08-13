@@ -7,6 +7,7 @@ import (
 	"strconv"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,6 +32,8 @@ type AzureDevopsClient struct {
 
 	semaphore   chan bool
 	concurrency int64
+
+	delayUntil *time.Time
 
 	LimitProject                      int64
 	LimitBuildsPerProject             int64
@@ -123,7 +126,12 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 		c.restClient.SetHeader("Accept", "application/json")
 		c.restClient.SetBasicAuth("", *c.accessToken)
 		c.restClient.SetRetryCount(c.RequestRetries)
-		c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
+		if c.delayUntil != nil {
+			c.restClient.OnBeforeRequest(c.restOnBeforeRequestDelay)
+		} else {
+			c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
+		}
+
 		c.restClient.OnAfterResponse(c.restOnAfterResponse)
 
 	}
@@ -157,6 +165,19 @@ func (c *AzureDevopsClient) concurrencyUnlock() {
 	<-c.semaphore
 }
 
+// PreRequestHook is a resty hook that is called before every request
+// It checks that the delay is ok before requesting
+func (c *AzureDevopsClient) restOnBeforeRequestDelay(client *resty.Client, request *resty.Request) (err error) {
+	atomic.AddUint64(&c.RequestCount, 1)
+	if c.delayUntil != nil {
+		if time.Now().Before(*c.delayUntil) {
+			time.Sleep(time.Until(*c.delayUntil))
+		}
+		c.delayUntil = nil
+	}
+	return
+}
+
 func (c *AzureDevopsClient) restOnBeforeRequest(client *resty.Client, request *resty.Request) (err error) {
 	atomic.AddUint64(&c.RequestCount, 1)
 	return
@@ -187,6 +208,14 @@ func (c *AzureDevopsClient) checkResponse(response *resty.Response, err error) e
 		return err
 	}
 	if response != nil {
+		// check delay from usage quota
+		if d := response.Header().Get("Retry-After"); d != "" {
+			// convert string to int to time.Duration
+			if dInt, err := strconv.Atoi(d); err != nil {
+				dD := time.Now().Add(time.Duration(dInt) * time.Second)
+				c.delayUntil = &dD
+			}
+		}
 		// check status code
 		statusCode := response.StatusCode()
 		if statusCode != 200 {
