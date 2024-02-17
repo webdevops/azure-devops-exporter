@@ -18,7 +18,7 @@ require (
 	github.com/jessevdk/go-flags v1.5.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/remeh/sizedwaitgroup v1.0.0
-	github.com/webdevops/go-common v0.0.0-20240210120128-6531d37585c1
+	github.com/webdevops/go-common v0.0.0-20240217103834-271a75e4e59c
 	go.uber.org/zap v1.26.0
 )
 
