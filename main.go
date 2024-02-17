@@ -19,6 +19,8 @@ import (
 
 const (
 	Author = "webdevops.io"
+
+	cacheTag = "v1"
 )
 
 var (
@@ -179,7 +181,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorProject{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("project.json"))
+		c.SetCache(opts.GetCachePath("project.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -191,7 +193,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorAgentPool{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("agentpool.json"))
+		c.SetCache(opts.GetCachePath("agentpool.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -203,7 +205,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorLatestBuild{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("latestbuild.json"))
+		c.SetCache(opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -215,7 +217,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeRepository.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorRepository{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeRepository)
-		c.SetCache(opts.GetCachePath("latestbuild.json"))
+		c.SetCache(opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -227,7 +229,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimePullRequest.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorPullRequest{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimePullRequest)
-		c.SetCache(opts.GetCachePath("pullrequest.json"))
+		c.SetCache(opts.GetCachePath("pullrequest.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -239,7 +241,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeBuild.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorBuild{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeBuild)
-		c.SetCache(opts.GetCachePath("build.json"))
+		c.SetCache(opts.GetCachePath("build.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -251,7 +253,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeRelease.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorRelease{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeRelease)
-		c.SetCache(opts.GetCachePath("release.json"))
+		c.SetCache(opts.GetCachePath("release.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -263,7 +265,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeDeployment.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorDeployment{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeDeployment)
-		c.SetCache(opts.GetCachePath("deployment.json"))
+		c.SetCache(opts.GetCachePath("deployment.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -275,7 +277,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeStats.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorStats{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeStats)
-		c.SetCache(opts.GetCachePath("stats.json"))
+		c.SetCache(opts.GetCachePath("stats.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -287,7 +289,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeResourceUsage.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorResourceUsage{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeResourceUsage)
-		c.SetCache(opts.GetCachePath("resourceusage.json"))
+		c.SetCache(opts.GetCachePath("resourceusage.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -299,7 +301,7 @@ func initMetricCollector() {
 	if opts.Scrape.TimeQuery.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorQuery{}, logger)
 		c.SetScapeTime(*opts.Scrape.TimeQuery)
-		c.SetCache(opts.GetCachePath("query.json"))
+		c.SetCache(opts.GetCachePath("query.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
