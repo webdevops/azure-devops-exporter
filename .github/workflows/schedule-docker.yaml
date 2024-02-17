@@ -1,0 +1,12 @@
+name: "schedule/docker"
+
+on:
+  schedule:
+    - cron: '45 6 * * 1'
+
+jobs:
+  schedule:
+    uses: ./.github/workflows/build-docker.yaml
+    secrets: inherit
+    with:
+      publish: true

@@ -1,47 +1,65 @@
-name: "Scheduled: docker"
+name: build/docker
 
 on:
-  schedule:
-    - cron: '0 6 * * 1'
+  workflow_call:
+    inputs:
+      publish:
+        required: true
+        type: boolean
 
 jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set Swap Space
-        uses: pierotofy/set-swap-space@master
+        uses: pierotofy/set-swap-space@49819abfb41bd9b44fb781159c033dba90353a7c
         with:
           swap-size-gb: 12
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: "go.sum"
+          check-latest: true
+
       - name: Run Golangci lint
-        uses: golangci/golangci-lint-action@v2
+        uses: golangci/golangci-lint-action@v4
         with:
           version: latest
           args: --print-resources-usage
 
   build:
+    name: "build ${{ matrix.Dockerfile }}:${{ matrix.target }}"
     needs: lint
     strategy:
       fail-fast: false
       matrix:
-        Dockerfile: [Dockerfile]
-        suffix: [""]
-        latest: ["auto"]
-        include: []
+        include:
+          - Dockerfile: Dockerfile
+            target: "final-static"
+            suffix: ""
+            latest: "auto"
+
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set Swap Space
-        uses: pierotofy/set-swap-space@master
+        uses: pierotofy/set-swap-space@49819abfb41bd9b44fb781159c033dba90353a7c
         with:
           swap-size-gb: 12
 
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: 'go.mod'
+          cache-dependency-path: "go.sum"
+          check-latest: true
+
       - name: Docker meta
         id: docker_meta
-        uses: docker/metadata-action@v4
+        uses: docker/metadata-action@v5
         with:
           images: ${{ github.repository }},quay.io/${{ github.repository }}
           labels: |
@@ -51,30 +69,33 @@ jobs:
             suffix=${{ matrix.suffix }}
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v1
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v1
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to DockerHub
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
+        if: ${{ inputs.publish }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Login to Quay
-        uses: docker/login-action@v1
+        uses: docker/login-action@v3
+        if: ${{ inputs.publish }}
         with:
           registry: quay.io
           username: ${{ secrets.QUAY_USERNAME }}
           password: ${{ secrets.QUAY_TOKEN }}
 
-      - name: Build and push
-        uses: docker/build-push-action@v2
+      - name: ${{ inputs.publish && 'Build and push' || 'Build' }}
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./${{ matrix.Dockerfile }}
+          target: ${{ matrix.target }}
           platforms: linux/amd64,linux/arm64
-          push: ${{ github.event_name != 'pull_request' }}
+          push: ${{ inputs.publish }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}

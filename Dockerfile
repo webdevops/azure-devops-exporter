@@ -1,7 +1,7 @@
 #############################################
 # Build
 #############################################
-FROM --platform=$BUILDPLATFORM golang:1.19-alpine as build
+FROM --platform=$BUILDPLATFORM golang:1.22-alpine as build
 
 RUN apk upgrade --no-cache --force
 RUN apk add --update build-base make git
@@ -28,9 +28,9 @@ COPY --from=build /go/src/github.com/webdevops/azure-devops-exporter/azure-devop
 RUN ["./azure-devops-exporter", "--help"]
 
 #############################################
-# Final
+# Final-static
 #############################################
-FROM gcr.io/distroless/static
+FROM gcr.io/distroless/static as final-static
 ENV LOG_JSON=1
 WORKDIR /
 COPY --from=test /app .

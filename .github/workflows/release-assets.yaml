@@ -1,4 +1,4 @@
-name: "Release: assets"
+name: "release/assets"
 
 on:
   release:
@@ -8,16 +8,17 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
 
       - name: Set Swap Space
-        uses: pierotofy/set-swap-space@master
+        uses: pierotofy/set-swap-space@49819abfb41bd9b44fb781159c033dba90353a7c
         with:
           swap-size-gb: 12
 
-      - uses: actions/setup-go@v2
+      - uses: actions/setup-go@v5
         with:
-          go-version: '1.19'
+          go-version-file: 'go.mod'
+          cache-dependency-path: "go.sum"
           check-latest: true
 
       - name: Build
