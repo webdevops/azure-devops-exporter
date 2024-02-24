@@ -36,8 +36,8 @@ var (
 )
 
 func main() {
-	initArgparser()
 	initLogger()
+	initArgparser()
 
 	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
 	logger.Info(string(opts.GetJson()))
@@ -82,8 +82,8 @@ func initArgparser() {
 		}
 	}
 
-	if len(opts.AzureDevops.AccessToken) == 0 {
-		logger.Fatalf("no Azure DevOps access token specified")
+	if len(opts.AzureDevops.AccessToken) == 0 || (len(opts.AzureDevops.TenantId) == 0 && len(opts.AzureDevops.ClientId) == 0 && len(opts.AzureDevops.ClientSecret) == 0) {
+		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID, client secret) for service principal authentication have been provided")
 	}
 
 	// ensure query paths and projects are splitted by '@'
@@ -160,6 +160,9 @@ func initAzureDevOpsConnection() {
 
 	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
 	AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
+	AzureDevopsClient.SetTenantId(opts.AzureDevops.TenantId)
+	AzureDevopsClient.SetClientId(opts.AzureDevops.ClientId)
+	AzureDevopsClient.SetClientSecret(opts.AzureDevops.ClientSecret)
 	AzureDevopsClient.SetApiVersion(opts.AzureDevops.ApiVersion)
 	AzureDevopsClient.SetConcurrency(opts.Request.ConcurrencyLimit)
 	AzureDevopsClient.SetRetries(opts.Request.Retries)
