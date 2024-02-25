@@ -82,7 +82,7 @@ func initArgparser() {
 		}
 	}
 
-	if len(opts.AzureDevops.AccessToken) == 0 || (len(opts.AzureDevops.TenantId) == 0 && len(opts.AzureDevops.ClientId) == 0 && len(opts.AzureDevops.ClientSecret) == 0) {
+	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.AzureDevops.TenantId) == 0 || len(opts.AzureDevops.ClientId) == 0 || len(opts.AzureDevops.ClientSecret) == 0) {
 		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID, client secret) for service principal authentication have been provided")
 	}
 
@@ -148,7 +148,7 @@ func initArgparser() {
 
 // Init and build Azure authorzier
 func initAzureDevOpsConnection() {
-	AzureDevopsClient = AzureDevops.NewAzureDevopsClient()
+	AzureDevopsClient = AzureDevops.NewAzureDevopsClient(logger)
 	if opts.AzureDevops.Url != nil {
 		AzureDevopsClient.HostUrl = opts.AzureDevops.Url
 	}

@@ -12,9 +12,12 @@ import (
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 type AzureDevopsClient struct {
+	logger *zap.SugaredLogger
+
 	// RequestCount has to be the first words
 	// in order to be 64-aligned on 32-bit architectures.
 	RequestCount   uint64
@@ -60,14 +63,21 @@ type AzureDevopsClient struct {
 }
 
 type EntraIdToken struct {
-	token_type     *string
-	expires_in     *int64
-	ext_expires_in *int64
-	access_token   *string
+	TokenType    *string `json:"token_type"`
+	ExpiresIn    *int64  `json:"expires_in"`
+	ExtExpiresIn *int64  `json:"ext_expires_in"`
+	AccessToken  *string `json:"access_token"`
 }
 
-func NewAzureDevopsClient() *AzureDevopsClient {
-	c := AzureDevopsClient{}
+type EntraIdErrorResponse struct {
+	Error            *string `json:"error"`
+	ErrorDescription *string `json:"error_description"`
+}
+
+func NewAzureDevopsClient(logger *zap.SugaredLogger) *AzureDevopsClient {
+	c := AzureDevopsClient{
+		logger: logger,
+	}
 	c.Init()
 
 	return &c
@@ -148,18 +158,20 @@ func (c *AzureDevopsClient) SetClientSecret(clientSecret string) {
 }
 
 func (c *AzureDevopsClient) SupportsPatAuthentication() bool {
-	return c.accessToken != nil
+	return c.accessToken != nil && len(*c.accessToken) > 0
 }
 
 func (c *AzureDevopsClient) SupportsServicePrincipalAuthentication() bool {
-	return c.tenantId != nil && c.clientId != nil && c.clientSecret != nil
+	return c.tenantId != nil && len(*c.tenantId) > 0 &&
+		c.clientId != nil && len(*c.clientId) > 0 &&
+		c.clientSecret != nil && len(*c.clientSecret) > 0
 }
 
 func (c *AzureDevopsClient) HasExpiredEntraIdAccessToken() bool {
 	var currentUnix = time.Now().Unix()
 
 	// subtract 60 seconds of offset (should be enough time to use fire all requests)
-	return (c.entraIdToken == nil || currentUnix >= c.entraIdTokenLastRefreshed+*c.entraIdToken.expires_in-60)
+	return (c.entraIdToken == nil || currentUnix >= c.entraIdTokenLastRefreshed+*c.entraIdToken.ExpiresIn-60)
 }
 
 func (c *AzureDevopsClient) RefreshEntraIdAccessToken() (string, error) {
@@ -171,7 +183,7 @@ func (c *AzureDevopsClient) RefreshEntraIdAccessToken() (string, error) {
 		"client_id":     *c.clientId,
 		"client_secret": *c.clientSecret,
 		"grant_type":    "client_credentials",
-		"scope":         "499b84ac-1321-427f-aa17-267ca6975798", // the scope is always the same for Azure DevOps
+		"scope":         "499b84ac-1321-427f-aa17-267ca6975798/.default", // the scope is always the same for Azure DevOps
 	})
 
 	restClient.SetHeader("Content-Type", "application/x-www-form-urlencoded")
@@ -184,22 +196,40 @@ func (c *AzureDevopsClient) RefreshEntraIdAccessToken() (string, error) {
 		return "", err
 	}
 
-	err = json.Unmarshal(response.Body(), &c.entraIdToken)
+	var responseBody = response.Body()
+
+	var errorResponse *EntraIdErrorResponse
+
+	err = json.Unmarshal(responseBody, &errorResponse)
 
 	if err != nil {
 		return "", err
 	}
 
+	if errorResponse.Error != nil && len(*errorResponse.Error) > 0 {
+		return "", fmt.Errorf("could not request a token, error: %v %v", *errorResponse.Error, *errorResponse.ErrorDescription)
+	}
+
+	err = json.Unmarshal(responseBody, &c.entraIdToken)
+
+	if err != nil {
+		return "", err
+	}
+
+	if c.entraIdToken == nil || c.entraIdToken.AccessToken == nil {
+		return "", errors.New("could not request an access token")
+	}
+
 	c.entraIdTokenLastRefreshed = time.Now().Unix()
 
-	return *c.entraIdToken.access_token, nil
+	return *c.entraIdToken.AccessToken, nil
 }
 
 func (c *AzureDevopsClient) rest() *resty.Client {
 	var client, err = c.restWithAuthentication("dev.azure.com")
 
 	if err != nil {
-		// TODO handle error!
+		c.logger.Fatalf("could not create a rest client: %v", err)
 	}
 
 	return client
@@ -209,7 +239,7 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	var client, err = c.restWithAuthentication("vsrm.dev.azure.com")
 
 	if err != nil {
-		// TODO handle error!
+		c.logger.Fatalf("could not create a rest client: %v", err)
 	}
 
 	return client
