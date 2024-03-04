@@ -1,6 +1,7 @@
 package AzureDevopsClient
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net/url"
@@ -11,9 +12,12 @@ import (
 
 	resty "github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
+	"go.uber.org/zap"
 )
 
 type AzureDevopsClient struct {
+	logger *zap.SugaredLogger
+
 	// RequestCount has to be the first words
 	// in order to be 64-aligned on 32-bit architectures.
 	RequestCount   uint64
@@ -21,7 +25,17 @@ type AzureDevopsClient struct {
 
 	organization *string
 	collection   *string
-	accessToken  *string
+
+	// we can either use a PAT token for authentication ...
+	accessToken *string
+
+	// ... or client id and secret
+	tenantId     *string
+	clientId     *string
+	clientSecret *string
+
+	entraIdToken              *EntraIdToken
+	entraIdTokenLastRefreshed int64
 
 	HostUrl *string
 
@@ -48,8 +62,22 @@ type AzureDevopsClient struct {
 	}
 }
 
-func NewAzureDevopsClient() *AzureDevopsClient {
-	c := AzureDevopsClient{}
+type EntraIdToken struct {
+	TokenType    *string `json:"token_type"`
+	ExpiresIn    *int64  `json:"expires_in"`
+	ExtExpiresIn *int64  `json:"ext_expires_in"`
+	AccessToken  *string `json:"access_token"`
+}
+
+type EntraIdErrorResponse struct {
+	Error            *string `json:"error"`
+	ErrorDescription *string `json:"error_description"`
+}
+
+func NewAzureDevopsClient(logger *zap.SugaredLogger) *AzureDevopsClient {
+	c := AzureDevopsClient{
+		logger: logger,
+	}
 	c.Init()
 
 	return &c
@@ -61,6 +89,8 @@ func (c *AzureDevopsClient) Init() {
 	c.RequestCount = 0
 	c.SetRetries(3)
 	c.SetConcurrency(10)
+
+	c.entraIdTokenLastRefreshed = 0
 
 	c.LimitBuildsPerProject = 100
 	c.LimitBuildsPerDefinition = 10
@@ -115,46 +145,151 @@ func (c *AzureDevopsClient) SetAccessToken(token string) {
 	c.accessToken = &token
 }
 
-func (c *AzureDevopsClient) rest() *resty.Client {
-	if c.restClient == nil {
-		c.restClient = resty.New()
-		if c.HostUrl != nil {
-			c.restClient.SetBaseURL(*c.HostUrl + "/" + *c.organization + "/")
-		} else {
-			c.restClient.SetBaseURL(fmt.Sprintf("https://dev.azure.com/%v/", *c.organization))
-		}
-		c.restClient.SetHeader("Accept", "application/json")
-		c.restClient.SetBasicAuth("", *c.accessToken)
-		c.restClient.SetRetryCount(c.RequestRetries)
-		if c.delayUntil != nil {
-			c.restClient.OnBeforeRequest(c.restOnBeforeRequestDelay)
-		} else {
-			c.restClient.OnBeforeRequest(c.restOnBeforeRequest)
-		}
+func (c *AzureDevopsClient) SetTenantId(tenantId string) {
+	c.tenantId = &tenantId
+}
 
-		c.restClient.OnAfterResponse(c.restOnAfterResponse)
+func (c *AzureDevopsClient) SetClientId(clientId string) {
+	c.clientId = &clientId
+}
 
+func (c *AzureDevopsClient) SetClientSecret(clientSecret string) {
+	c.clientSecret = &clientSecret
+}
+
+func (c *AzureDevopsClient) SupportsPatAuthentication() bool {
+	return c.accessToken != nil && len(*c.accessToken) > 0
+}
+
+func (c *AzureDevopsClient) SupportsServicePrincipalAuthentication() bool {
+	return c.tenantId != nil && len(*c.tenantId) > 0 &&
+		c.clientId != nil && len(*c.clientId) > 0 &&
+		c.clientSecret != nil && len(*c.clientSecret) > 0
+}
+
+func (c *AzureDevopsClient) HasExpiredEntraIdAccessToken() bool {
+	var currentUnix = time.Now().Unix()
+
+	// subtract 60 seconds of offset (should be enough time to use fire all requests)
+	return (c.entraIdToken == nil || currentUnix >= c.entraIdTokenLastRefreshed+*c.entraIdToken.ExpiresIn-60)
+}
+
+func (c *AzureDevopsClient) RefreshEntraIdAccessToken() (string, error) {
+	var restClient = resty.New()
+
+	restClient.SetBaseURL(fmt.Sprintf("https://login.microsoftonline.com/%v/oauth2/v2.0/token", *c.tenantId))
+
+	restClient.SetFormData(map[string]string{
+		"client_id":     *c.clientId,
+		"client_secret": *c.clientSecret,
+		"grant_type":    "client_credentials",
+		"scope":         "499b84ac-1321-427f-aa17-267ca6975798/.default", // the scope is always the same for Azure DevOps
+	})
+
+	restClient.SetHeader("Content-Type", "application/x-www-form-urlencoded")
+	restClient.SetHeader("Accept", "application/json")
+	restClient.SetRetryCount(c.RequestRetries)
+
+	var response, err = restClient.R().Post("")
+
+	if err != nil {
+		return "", err
 	}
 
-	return c.restClient
+	var responseBody = response.Body()
+
+	var errorResponse *EntraIdErrorResponse
+
+	err = json.Unmarshal(responseBody, &errorResponse)
+
+	if err != nil {
+		return "", err
+	}
+
+	if errorResponse.Error != nil && len(*errorResponse.Error) > 0 {
+		return "", fmt.Errorf("could not request a token, error: %v %v", *errorResponse.Error, *errorResponse.ErrorDescription)
+	}
+
+	err = json.Unmarshal(responseBody, &c.entraIdToken)
+
+	if err != nil {
+		return "", err
+	}
+
+	if c.entraIdToken == nil || c.entraIdToken.AccessToken == nil {
+		return "", errors.New("could not request an access token")
+	}
+
+	c.entraIdTokenLastRefreshed = time.Now().Unix()
+
+	return *c.entraIdToken.AccessToken, nil
+}
+
+func (c *AzureDevopsClient) rest() *resty.Client {
+	var client, err = c.restWithAuthentication("dev.azure.com")
+
+	if err != nil {
+		c.logger.Fatalf("could not create a rest client: %v", err)
+	}
+
+	return client
 }
 
 func (c *AzureDevopsClient) restVsrm() *resty.Client {
-	if c.restClientVsrm == nil {
-		c.restClientVsrm = resty.New()
-		if c.HostUrl != nil {
-			c.restClientVsrm.SetBaseURL(*c.HostUrl + "/" + *c.organization + "/")
-		} else {
-			c.restClientVsrm.SetBaseURL(fmt.Sprintf("https://vsrm.dev.azure.com/%v/", *c.organization))
-		}
-		c.restClientVsrm.SetHeader("Accept", "application/json")
-		c.restClientVsrm.SetBasicAuth("", *c.accessToken)
-		c.restClientVsrm.SetRetryCount(c.RequestRetries)
-		c.restClientVsrm.OnBeforeRequest(c.restOnBeforeRequest)
-		c.restClientVsrm.OnAfterResponse(c.restOnAfterResponse)
+	var client, err = c.restWithAuthentication("vsrm.dev.azure.com")
+
+	if err != nil {
+		c.logger.Fatalf("could not create a rest client: %v", err)
 	}
 
-	return c.restClientVsrm
+	return client
+}
+
+func (c *AzureDevopsClient) restWithAuthentication(domain string) (*resty.Client, error) {
+	if c.restClient == nil {
+		c.restClient = c.restWithoutToken(domain)
+	}
+
+	if c.SupportsPatAuthentication() {
+		c.restClient.SetBasicAuth("", *c.accessToken)
+	} else if c.SupportsServicePrincipalAuthentication() {
+		if c.HasExpiredEntraIdAccessToken() {
+			var accessToken, err = c.RefreshEntraIdAccessToken()
+
+			if err != nil {
+				return nil, err
+			}
+
+			c.restClient.SetBasicAuth("", accessToken)
+		}
+	} else {
+		return nil, errors.New("no valid authentication method provided")
+	}
+
+	return c.restClient, nil
+}
+
+func (c *AzureDevopsClient) restWithoutToken(domain string) *resty.Client {
+	var restClient = resty.New()
+
+	if c.HostUrl != nil {
+		restClient.SetBaseURL(*c.HostUrl + "/" + *c.organization + "/")
+	} else {
+		restClient.SetBaseURL(fmt.Sprintf("https://%v/%v/", domain, *c.organization))
+	}
+
+	restClient.SetHeader("Accept", "application/json")
+	restClient.SetRetryCount(c.RequestRetries)
+
+	if c.delayUntil != nil {
+		restClient.OnBeforeRequest(c.restOnBeforeRequestDelay)
+	} else {
+		restClient.OnBeforeRequest(c.restOnBeforeRequest)
+	}
+
+	restClient.OnAfterResponse(c.restOnAfterResponse)
+
+	return restClient
 }
 
 func (c *AzureDevopsClient) concurrencyLock() {
