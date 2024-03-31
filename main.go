@@ -179,6 +179,10 @@ func initAzureDevOpsConnection() {
 	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
 	if opts.AzureDevops.AccessToken != "" {
 		AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
+	} else {
+		if err := AzureDevopsClient.UseAzAuth(); err != nil {
+			logger.Fatalf(err.Error())
+		}
 	}
 	AzureDevopsClient.SetApiVersion(opts.AzureDevops.ApiVersion)
 	AzureDevopsClient.SetConcurrency(opts.Request.ConcurrencyLimit)

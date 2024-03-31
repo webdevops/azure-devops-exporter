@@ -149,6 +149,17 @@ func (c *AzureDevopsClient) SetAccessToken(token string) {
 	c.accessToken = &token
 }
 
+func (c *AzureDevopsClient) UseAzAuth() error {
+	opts := azidentity.DefaultAzureCredentialOptions{}
+	cred, err := azidentity.NewDefaultAzureCredential(&opts)
+	if err != nil {
+		return err
+	}
+
+	c.azcreds = cred
+	return nil
+}
+
 func (c *AzureDevopsClient) SupportsPatAuthentication() bool {
 	return c.accessToken != nil && len(*c.accessToken) > 0
 }
@@ -181,16 +192,6 @@ func (c *AzureDevopsClient) restWithAuthentication(domain string) (*resty.Client
 	if c.SupportsPatAuthentication() {
 		c.restClient.SetBasicAuth("", *c.accessToken)
 	} else {
-		if c.azcreds == nil {
-			opts := azidentity.DefaultAzureCredentialOptions{}
-			cred, err := azidentity.NewDefaultAzureCredential(&opts)
-			if err != nil {
-				panic(err)
-			}
-
-			c.azcreds = cred
-		}
-
 		ctx := context.Background()
 		opts := policy.TokenRequestOptions{
 			Scopes: []string{AZURE_DEVOPS_SCOPE},
