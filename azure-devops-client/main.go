@@ -38,9 +38,6 @@ type AzureDevopsClient struct {
 	// azure auth
 	azcreds *azidentity.DefaultAzureCredential
 
-	entraIdToken              *EntraIdToken
-	entraIdTokenLastRefreshed int64
-
 	HostUrl *string
 
 	ApiVersion string
@@ -93,8 +90,6 @@ func (c *AzureDevopsClient) Init() {
 	c.RequestCount = 0
 	c.SetRetries(3)
 	c.SetConcurrency(10)
-
-	c.entraIdTokenLastRefreshed = 0
 
 	c.LimitBuildsPerProject = 100
 	c.LimitBuildsPerDefinition = 10
