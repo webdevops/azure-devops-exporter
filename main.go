@@ -82,7 +82,7 @@ func initArgparser() {
 		}
 	}
 
-	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.AzureDevops.TenantId) == 0 || len(opts.AzureDevops.ClientId) == 0) {
+	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.Azure.TenantId) == 0 || len(opts.Azure.ClientId) == 0) {
 		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID) for service principal authentication have been provided")
 	}
 
@@ -158,20 +158,21 @@ func initAzureDevOpsConnection() {
 	logger.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
 	logger.Infof("using retries: %v", opts.Request.Retries)
 
-	if opts.AzureDevops.TenantId != "" {
-		if err := os.Setenv("AZURE_TENANT_ID", opts.AzureDevops.TenantId); err != nil {
+	// ensure AZURE env vars are populated for azidentity
+	if opts.Azure.TenantId != "" {
+		if err := os.Setenv("AZURE_TENANT_ID", opts.Azure.TenantId); err != nil {
 			panic(err)
 		}
 	}
 
-	if opts.AzureDevops.ClientId != "" {
-		if err := os.Setenv("AZURE_CLIENT_ID", opts.AzureDevops.ClientId); err != nil {
+	if opts.Azure.ClientId != "" {
+		if err := os.Setenv("AZURE_CLIENT_ID", opts.Azure.ClientId); err != nil {
 			panic(err)
 		}
 	}
 
-	if opts.AzureDevops.ClientSecret != "" {
-		if err := os.Setenv("AZURE_CLIENT_SECRET", opts.AzureDevops.ClientSecret); err != nil {
+	if opts.Azure.ClientSecret != "" {
+		if err := os.Setenv("AZURE_CLIENT_SECRET", opts.Azure.ClientSecret); err != nil {
 			panic(err)
 		}
 	}

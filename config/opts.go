@@ -37,13 +37,17 @@ type (
 		}
 
 		// azure settings
+		Azure struct {
+			TenantId     string `long:"azure.tenant-id"               env:"AZURE_TENANT_ID"                description:"Azure tenant ID for Service Principal authentication"`
+			ClientId     string `long:"azure.client-id"               env:"AZURE_CLIENT_ID"                description:"Client ID for Service Principal authentication"`
+			ClientSecret string `long:"azure.client-secret"           env:"AZURE_CLIENT_SECRET"            description:"Client secret for Service Principal authentication" json:"-"`
+		}
+
+		// azure settings
 		AzureDevops struct {
 			Url             *string `long:"azuredevops.url"                     env:"AZURE_DEVOPS_URL"               description:"Azure DevOps URL (empty if hosted by Microsoft)"`
 			AccessToken     string  `long:"azuredevops.access-token"            env:"AZURE_DEVOPS_ACCESS_TOKEN"      description:"Azure DevOps access token" json:"-"`
 			AccessTokenFile *string `long:"azuredevops.access-token-file"       env:"AZURE_DEVOPS_ACCESS_TOKEN_FILE" description:"Azure DevOps access token (from file)"`
-			TenantId        string  `long:"azuredevops.tenant-id"               env:"AZURE_TENANT_ID"                description:"Azure tenant ID for Service Principal authentication" json:"-"`
-			ClientId        string  `long:"azuredevops.client-id"               env:"AZURE_CLIENT_ID"                description:"Client ID for Service Principal authentication" json:"-"`
-			ClientSecret    string  `long:"azuredevops.client-secret"           env:"AZURE_CLIENT_SECRET"            description:"Client secret for Service Principal authentication" json:"-"`
 			Organisation    string  `long:"azuredevops.organisation"            env:"AZURE_DEVOPS_ORGANISATION"      description:"Azure DevOps organization" required:"true"`
 			ApiVersion      string  `long:"azuredevops.apiversion"              env:"AZURE_DEVOPS_APIVERSION"        description:"Azure DevOps API version"  default:"5.1"`
 
