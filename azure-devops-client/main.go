@@ -1,7 +1,7 @@
 package AzureDevopsClient
 
 import (
-	"encoding/json"
+	"context"
 	"errors"
 	"fmt"
 	"net/url"
@@ -10,9 +10,15 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/Azure/azure-sdk-for-go/sdk/azcore/policy"
+	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
 	"go.uber.org/zap"
+)
+
+const (
+	AZURE_DEVOPS_SCOPE = "499b84ac-1321-427f-aa17-267ca6975798/.default"
 )
 
 type AzureDevopsClient struct {
@@ -26,13 +32,11 @@ type AzureDevopsClient struct {
 	organization *string
 	collection   *string
 
-	// we can either use a PAT token for authentication ...
+	// we can either use a PAT token for authentication
 	accessToken *string
 
-	// ... or client id and secret
-	tenantId     *string
-	clientId     *string
-	clientSecret *string
+	// azure auth
+	azcreds *azidentity.DefaultAzureCredential
 
 	entraIdToken              *EntraIdToken
 	entraIdTokenLastRefreshed int64
@@ -145,84 +149,8 @@ func (c *AzureDevopsClient) SetAccessToken(token string) {
 	c.accessToken = &token
 }
 
-func (c *AzureDevopsClient) SetTenantId(tenantId string) {
-	c.tenantId = &tenantId
-}
-
-func (c *AzureDevopsClient) SetClientId(clientId string) {
-	c.clientId = &clientId
-}
-
-func (c *AzureDevopsClient) SetClientSecret(clientSecret string) {
-	c.clientSecret = &clientSecret
-}
-
 func (c *AzureDevopsClient) SupportsPatAuthentication() bool {
 	return c.accessToken != nil && len(*c.accessToken) > 0
-}
-
-func (c *AzureDevopsClient) SupportsServicePrincipalAuthentication() bool {
-	return c.tenantId != nil && len(*c.tenantId) > 0 &&
-		c.clientId != nil && len(*c.clientId) > 0 &&
-		c.clientSecret != nil && len(*c.clientSecret) > 0
-}
-
-func (c *AzureDevopsClient) HasExpiredEntraIdAccessToken() bool {
-	var currentUnix = time.Now().Unix()
-
-	// subtract 60 seconds of offset (should be enough time to use fire all requests)
-	return (c.entraIdToken == nil || currentUnix >= c.entraIdTokenLastRefreshed+*c.entraIdToken.ExpiresIn-60)
-}
-
-func (c *AzureDevopsClient) RefreshEntraIdAccessToken() (string, error) {
-	var restClient = resty.New()
-
-	restClient.SetBaseURL(fmt.Sprintf("https://login.microsoftonline.com/%v/oauth2/v2.0/token", *c.tenantId))
-
-	restClient.SetFormData(map[string]string{
-		"client_id":     *c.clientId,
-		"client_secret": *c.clientSecret,
-		"grant_type":    "client_credentials",
-		"scope":         "499b84ac-1321-427f-aa17-267ca6975798/.default", // the scope is always the same for Azure DevOps
-	})
-
-	restClient.SetHeader("Content-Type", "application/x-www-form-urlencoded")
-	restClient.SetHeader("Accept", "application/json")
-	restClient.SetRetryCount(c.RequestRetries)
-
-	var response, err = restClient.R().Post("")
-
-	if err != nil {
-		return "", err
-	}
-
-	var responseBody = response.Body()
-
-	var errorResponse *EntraIdErrorResponse
-
-	err = json.Unmarshal(responseBody, &errorResponse)
-
-	if err != nil {
-		return "", err
-	}
-
-	if errorResponse.Error != nil && len(*errorResponse.Error) > 0 {
-		return "", fmt.Errorf("could not request a token, error: %v %v", *errorResponse.Error, *errorResponse.ErrorDescription)
-	}
-
-	err = json.Unmarshal(responseBody, &c.entraIdToken)
-
-	if err != nil {
-		return "", err
-	}
-
-	if c.entraIdToken == nil || c.entraIdToken.AccessToken == nil {
-		return "", errors.New("could not request an access token")
-	}
-
-	c.entraIdTokenLastRefreshed = time.Now().Unix()
-
-	return *c.entraIdToken.AccessToken, nil
 }
 
 func (c *AzureDevopsClient) rest() *resty.Client {
@@ -252,18 +180,27 @@ func (c *AzureDevopsClient) restWithAuthentication(domain string) (*resty.Client
 
 	if c.SupportsPatAuthentication() {
 		c.restClient.SetBasicAuth("", *c.accessToken)
-	} else if c.SupportsServicePrincipalAuthentication() {
-		if c.HasExpiredEntraIdAccessToken() {
-			var accessToken, err = c.RefreshEntraIdAccessToken()
-
+	} else {
+		if c.azcreds == nil {
+			opts := azidentity.DefaultAzureCredentialOptions{}
+			cred, err := azidentity.NewDefaultAzureCredential(&opts)
 			if err != nil {
-				return nil, err
+				panic(err)
 			}
 
-			c.restClient.SetBasicAuth("", accessToken)
+			c.azcreds = cred
 		}
-	} else {
-		return nil, errors.New("no valid authentication method provided")
+
+		ctx := context.Background()
+		opts := policy.TokenRequestOptions{
+			Scopes: []string{AZURE_DEVOPS_SCOPE},
+		}
+		accessToken, err := c.azcreds.GetToken(ctx, opts)
+		if err != nil {
+			panic(err)
+		}
+
+		c.restClient.SetBasicAuth("", accessToken.Token)
 	}
 
 	return c.restClient, nil

@@ -82,8 +82,8 @@ func initArgparser() {
 		}
 	}
 
-	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.AzureDevops.TenantId) == 0 || len(opts.AzureDevops.ClientId) == 0 || len(opts.AzureDevops.ClientSecret) == 0) {
-		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID, client secret) for service principal authentication have been provided")
+	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.AzureDevops.TenantId) == 0 || len(opts.AzureDevops.ClientId) == 0) {
+		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID) for service principal authentication have been provided")
 	}
 
 	// ensure query paths and projects are splitted by '@'
@@ -158,11 +158,28 @@ func initAzureDevOpsConnection() {
 	logger.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
 	logger.Infof("using retries: %v", opts.Request.Retries)
 
+	if opts.AzureDevops.TenantId != "" {
+		if err := os.Setenv("AZURE_TENANT_ID", opts.AzureDevops.TenantId); err != nil {
+			panic(err)
+		}
+	}
+
+	if opts.AzureDevops.ClientId != "" {
+		if err := os.Setenv("AZURE_CLIENT_ID", opts.AzureDevops.ClientId); err != nil {
+			panic(err)
+		}
+	}
+
+	if opts.AzureDevops.ClientSecret != "" {
+		if err := os.Setenv("AZURE_CLIENT_SECRET", opts.AzureDevops.ClientSecret); err != nil {
+			panic(err)
+		}
+	}
+
 	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
-	AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
-	AzureDevopsClient.SetTenantId(opts.AzureDevops.TenantId)
-	AzureDevopsClient.SetClientId(opts.AzureDevops.ClientId)
-	AzureDevopsClient.SetClientSecret(opts.AzureDevops.ClientSecret)
+	if opts.AzureDevops.AccessToken != "" {
+		AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
+	}
 	AzureDevopsClient.SetApiVersion(opts.AzureDevops.ApiVersion)
 	AzureDevopsClient.SetConcurrency(opts.Request.ConcurrencyLimit)
 	AzureDevopsClient.SetRetries(opts.Request.Retries)
