@@ -31,12 +31,12 @@ Application Options:
       --scrape.time.query=                    Scrape time for query results  (time.duration) [$SCRAPE_TIME_QUERY]
       --scrape.time.live=                     Scrape time for live metrics (time.duration) (default: 30s) [$SCRAPE_TIME_LIVE]
       --stats.summary.maxage=                 Stats Summary metrics max age (time.duration) [$STATS_SUMMARY_MAX_AGE]
+      --azure.tenant-id=                      Azure tenant ID for Service Principal authentication [$AZURE_TENANT_ID]
+      --azure.client-id=                      Client ID for Service Principal authentication [$AZURE_CLIENT_ID]
+      --azure.client-secret=                  Client secret for Service Principal authentication [$AZURE_CLIENT_SECRET]
       --azuredevops.url=                      Azure DevOps URL (empty if hosted by Microsoft) [$AZURE_DEVOPS_URL]
       --azuredevops.access-token=             Azure DevOps access token [$AZURE_DEVOPS_ACCESS_TOKEN]
       --azuredevops.access-token-file=        Azure DevOps access token (from file) [$AZURE_DEVOPS_ACCESS_TOKEN_FILE]
-      --azuredevops.tenant-id=                Azure tenant ID for Service Principal authentication [$AZURE_TENANT_ID]
-      --azuredevops.client-id=                Client ID for Service Principal authentication [$AZURE_CLIENT_ID]
-      --azuredevops.client-secret=            Client secret for Service Principal authentication [$AZURE_CLIENT_SECRET]
       --azuredevops.organisation=             Azure DevOps organization [$AZURE_DEVOPS_ORGANISATION]
       --azuredevops.apiversion=               Azure DevOps API version (default: 5.1) [$AZURE_DEVOPS_APIVERSION]
       --azuredevops.agentpool=                Enable scrape metrics for agent pool (IDs) [$AZURE_DEVOPS_AGENTPOOL]
@@ -68,6 +68,11 @@ Application Options:
 Help Options:
   -h, --help                                  Show this help message
 ```
+
+Authentication
+--------------
+
+This exporter supports Azure DevOps PAT tokens and ServicePrincipal authentication with Client Secret and (AKS) Workload Identity.
 
 Metrics
 -------
