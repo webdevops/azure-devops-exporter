@@ -1,6 +1,6 @@
 module github.com/webdevops/azure-devops-exporter
 
-go 1.22
+go 1.22.0
 
 require (
 	github.com/go-resty/resty/v2 v2.11.0
