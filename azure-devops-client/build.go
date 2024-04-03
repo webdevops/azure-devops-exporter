@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -29,6 +30,17 @@ type BuildList struct {
 
 type TimelineRecordList struct {
 	List []TimelineRecord `json:"records"`
+}
+
+type TagList struct {
+	Count int      `json:"count"`
+	List  []string `json:"value"`
+}
+
+type Tag struct {
+	Name  string
+	Value string
+	Type  string
 }
 
 type TimelineRecord struct {
@@ -226,5 +238,64 @@ func (c *AzureDevopsClient) ListBuildTimeline(project string, buildID string) (l
 		return
 	}
 
+	return
+}
+
+func (c *AzureDevopsClient) ListBuildTags(project string, buildID string) (list TagList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"%v/_apis/build/builds/%v/tags",
+		url.QueryEscape(project),
+		url.QueryEscape(buildID),
+	)
+	response, err := c.rest().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+func extractTagKeyValue(tag string) (string, string) {
+	parts := strings.Split(tag, "=")
+	return parts[0], parts[1]
+}
+
+func extractTagSchema(tagSchema string) (string, string) {
+	parts := strings.Split(tagSchema, ":")
+	return parts[0], parts[1]
+}
+
+func (t *TagList) Extract() (tags map[string]string) {
+	tags = make(map[string]string)
+	for _, t := range t.List {
+		k, v := extractTagKeyValue(t)
+		tags[k] = v
+	}
+	return
+}
+
+func (t *TagList) Parse(tagSchema []string) (pTags []Tag) {
+	tags := t.Extract()
+	for _, ts := range tagSchema {
+		name, _type := extractTagSchema(ts)
+		value, isPresent := tags[name]
+		if isPresent {
+			pTags = append(pTags, Tag{
+				Name:  name,
+				Value: value,
+				Type:  _type,
+			})
+		}
+	}
 	return
 }

@@ -53,6 +53,10 @@ type (
 
 			// query settings
 			QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
+
+			// tag settings
+			TagsSchema                *[]string `long:"tags.schema"             env:"AZURE_DEVOPS_TAG_SCHEMA"              env-delim:" "   description:"Tags to be extracted from builds in the format 'tagName:type' with following types: number, info, bool"`
+			TagsBuildDefinitionIdList *[]int64  `long:"tags.build.definition"   env:"AZURE_DEVOPS_TAG_BUILD_DEFINITION"    env-delim:" "   description:"Build definition ids to query tags (IDs)"`
 		}
 
 		// cache settings
