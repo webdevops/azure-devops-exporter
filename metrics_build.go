@@ -647,7 +647,12 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 	for _, build := range list.List {
 		if nil == opts.AzureDevops.TagsBuildDefinitionIdList || arrayIntContains(*opts.AzureDevops.TagsBuildDefinitionIdList, build.Definition.Id) {
 			tagRecordList, _ := AzureDevopsClient.ListBuildTags(project.Id, int64ToString(build.Id))
-			for _, tag := range tagRecordList.Parse(*opts.AzureDevops.TagsSchema) {
+			tagList, err := tagRecordList.Parse(*opts.AzureDevops.TagsSchema)
+			if err != nil {
+				m.Logger().Error(err)
+				continue
+			}
+			for _, tag := range tagList {
 
 				switch tag.Type {
 				case "number":
@@ -669,7 +674,7 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 						"buildDefinitionID": int64ToString(build.Definition.Id),
 						"buildNumber":       build.BuildNumber,
 						"name":              tag.Name,
-						"type":              "number",
+						"type":              "bool",
 						"info":              "",
 					}, value)
 				case "info":
@@ -679,7 +684,7 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 						"buildDefinitionID": int64ToString(build.Definition.Id),
 						"buildNumber":       build.BuildNumber,
 						"name":              tag.Name,
-						"type":              "number",
+						"type":              "info",
 						"info":              tag.Value,
 					})
 				}

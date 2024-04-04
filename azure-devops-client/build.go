@@ -265,29 +265,54 @@ func (c *AzureDevopsClient) ListBuildTags(project string, buildID string) (list 
 	return
 }
 
-func extractTagKeyValue(tag string) (string, string) {
+func extractTagKeyValue(tag string) (k string, v string, error error) {
 	parts := strings.Split(tag, "=")
-	return parts[0], parts[1]
+	if len(parts) != 2 {
+		error = fmt.Errorf("could not extract key value pair from tag '%s'", tag)
+		return
+	}
+	k = parts[0]
+	v = parts[1]
+	return
 }
 
-func extractTagSchema(tagSchema string) (string, string) {
+func extractTagSchema(tagSchema string) (n string, t string, error error) {
 	parts := strings.Split(tagSchema, ":")
-	return parts[0], parts[1]
+	if len(parts) != 2 {
+		error = fmt.Errorf("could not extract type from tag schema '%s'", tagSchema)
+		return
+	}
+	n = parts[0]
+	t = parts[1]
+	return
 }
 
-func (t *TagList) Extract() (tags map[string]string) {
+func (t *TagList) Extract() (tags map[string]string, error error) {
 	tags = make(map[string]string)
 	for _, t := range t.List {
-		k, v := extractTagKeyValue(t)
+		k, v, err := extractTagKeyValue(t)
+		if err != nil {
+			error = err
+			return
+		}
 		tags[k] = v
 	}
 	return
 }
 
-func (t *TagList) Parse(tagSchema []string) (pTags []Tag) {
-	tags := t.Extract()
+func (t *TagList) Parse(tagSchema []string) (pTags []Tag, error error) {
+	tags, err := t.Extract()
+	if err != nil {
+		error = err
+		return
+	}
 	for _, ts := range tagSchema {
-		name, _type := extractTagSchema(ts)
+		name, _type, err := extractTagSchema(ts)
+		if err != nil {
+			error = err
+			return
+		}
+
 		value, isPresent := tags[name]
 		if isPresent {
 			pTags = append(pTags, Tag{
