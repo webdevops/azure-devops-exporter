@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strconv"
 	"strings"
 	"time"
 
@@ -25,6 +26,7 @@ type MetricsCollectorBuild struct {
 		buildPhase *prometheus.GaugeVec
 		buildJob   *prometheus.GaugeVec
 		buildTask  *prometheus.GaugeVec
+		buildTag   *prometheus.GaugeVec
 
 		buildTimeProject *prometheus.SummaryVec
 		jobTimeProject   *prometheus.SummaryVec
@@ -152,6 +154,23 @@ func (m *MetricsCollectorBuild) Setup(collector *collector.Collector) {
 	)
 	m.Collector.RegisterMetricList("buildTask", m.prometheus.buildTask, true)
 
+	m.prometheus.buildTag = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_build_tag",
+			Help: "Azure DevOps build tags",
+		},
+		[]string{
+			"projectID",
+			"buildID",
+			"buildDefinitionID",
+			"buildNumber",
+			"name",
+			"type",
+			"info",
+		},
+	)
+	m.Collector.RegisterMetricList("buildTag", m.prometheus.buildTag, true)
+
 	m.prometheus.buildDefinition = prometheus.NewGaugeVec(
 		prometheus.GaugeOpts{
 			Name: "azure_devops_build_definition_info",
@@ -180,6 +199,9 @@ func (m *MetricsCollectorBuild) Collect(callback chan<- func()) {
 		m.collectDefinition(ctx, projectLogger, callback, project)
 		m.collectBuilds(ctx, projectLogger, callback, project)
 		m.collectBuildsTimeline(ctx, projectLogger, callback, project)
+		if nil != opts.AzureDevops.TagsSchema {
+			m.collectBuildsTags(ctx, projectLogger, callback, project)
+		}
 	}
 }
 
@@ -607,6 +629,66 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 					"result":            timelineRecord.Result,
 					"type":              "duration",
 				}, timelineRecord.FinishTime.Sub(timelineRecord.StartTime))
+			}
+		}
+	}
+}
+
+func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
+	if err != nil {
+		logger.Error(err)
+		return
+	}
+
+	buildTag := m.Collector.GetMetricList("buildTag")
+
+	for _, build := range list.List {
+		if nil == opts.AzureDevops.TagsBuildDefinitionIdList || arrayIntContains(*opts.AzureDevops.TagsBuildDefinitionIdList, build.Definition.Id) {
+			tagRecordList, _ := AzureDevopsClient.ListBuildTags(project.Id, int64ToString(build.Id))
+			tagList, err := tagRecordList.Parse(*opts.AzureDevops.TagsSchema)
+			if err != nil {
+				m.Logger().Error(err)
+				continue
+			}
+			for _, tag := range tagList {
+
+				switch tag.Type {
+				case "number":
+					value, _ := strconv.ParseFloat(tag.Value, 64)
+					buildTag.Add(prometheus.Labels{
+						"projectID":         project.Id,
+						"buildID":           int64ToString(build.Id),
+						"buildDefinitionID": int64ToString(build.Definition.Id),
+						"buildNumber":       build.BuildNumber,
+						"name":              tag.Name,
+						"type":              "number",
+						"info":              "",
+					}, value)
+				case "bool":
+					value, _ := strconv.ParseBool(tag.Value)
+					buildTag.AddBool(prometheus.Labels{
+						"projectID":         project.Id,
+						"buildID":           int64ToString(build.Id),
+						"buildDefinitionID": int64ToString(build.Definition.Id),
+						"buildNumber":       build.BuildNumber,
+						"name":              tag.Name,
+						"type":              "bool",
+						"info":              "",
+					}, value)
+				case "info":
+					buildTag.AddInfo(prometheus.Labels{
+						"projectID":         project.Id,
+						"buildID":           int64ToString(build.Id),
+						"buildDefinitionID": int64ToString(build.Definition.Id),
+						"buildNumber":       build.BuildNumber,
+						"name":              tag.Name,
+						"type":              "info",
+						"info":              tag.Value,
+					})
+				}
+
 			}
 		}
 	}

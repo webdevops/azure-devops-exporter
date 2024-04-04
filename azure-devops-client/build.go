@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/url"
+	"strings"
 	"time"
 )
 
@@ -29,6 +30,17 @@ type BuildList struct {
 
 type TimelineRecordList struct {
 	List []TimelineRecord `json:"records"`
+}
+
+type TagList struct {
+	Count int      `json:"count"`
+	List  []string `json:"value"`
+}
+
+type Tag struct {
+	Name  string
+	Value string
+	Type  string
 }
 
 type TimelineRecord struct {
@@ -226,5 +238,89 @@ func (c *AzureDevopsClient) ListBuildTimeline(project string, buildID string) (l
 		return
 	}
 
+	return
+}
+
+func (c *AzureDevopsClient) ListBuildTags(project string, buildID string) (list TagList, error error) {
+	defer c.concurrencyUnlock()
+	c.concurrencyLock()
+
+	url := fmt.Sprintf(
+		"%v/_apis/build/builds/%v/tags",
+		url.QueryEscape(project),
+		url.QueryEscape(buildID),
+	)
+	response, err := c.rest().R().Get(url)
+	if err := c.checkResponse(response, err); err != nil {
+		error = err
+		return
+	}
+
+	err = json.Unmarshal(response.Body(), &list)
+	if err != nil {
+		error = err
+		return
+	}
+
+	return
+}
+
+func extractTagKeyValue(tag string) (k string, v string, error error) {
+	parts := strings.Split(tag, "=")
+	if len(parts) != 2 {
+		error = fmt.Errorf("could not extract key value pair from tag '%s'", tag)
+		return
+	}
+	k = parts[0]
+	v = parts[1]
+	return
+}
+
+func extractTagSchema(tagSchema string) (n string, t string, error error) {
+	parts := strings.Split(tagSchema, ":")
+	if len(parts) != 2 {
+		error = fmt.Errorf("could not extract type from tag schema '%s'", tagSchema)
+		return
+	}
+	n = parts[0]
+	t = parts[1]
+	return
+}
+
+func (t *TagList) Extract() (tags map[string]string, error error) {
+	tags = make(map[string]string)
+	for _, t := range t.List {
+		k, v, err := extractTagKeyValue(t)
+		if err != nil {
+			error = err
+			return
+		}
+		tags[k] = v
+	}
+	return
+}
+
+func (t *TagList) Parse(tagSchema []string) (pTags []Tag, error error) {
+	tags, err := t.Extract()
+	if err != nil {
+		error = err
+		return
+	}
+	for _, ts := range tagSchema {
+		name, _type, err := extractTagSchema(ts)
+		if err != nil {
+			error = err
+			return
+		}
+
+		value, isPresent := tags[name]
+		if isPresent {
+			pTags = append(pTags, Tag{
+				Name:  name,
+				Value: value,
+				Type:  _type,
+			})
+		}
+	}
 	return
 }

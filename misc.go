@@ -18,6 +18,15 @@ func arrayStringContains(s []string, e string) bool {
 	return false
 }
 
+func arrayIntContains(s []int64, e int64) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
+}
+
 func timeToFloat64(v time.Time) float64 {
 	return float64(v.Unix())
 }
