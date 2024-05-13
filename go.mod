@@ -5,7 +5,7 @@ go 1.22
 require (
 	github.com/go-resty/resty/v2 v2.12.0
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/prometheus/client_golang v1.19.0
+	github.com/prometheus/client_golang v1.19.1
 	github.com/prometheus/common v0.51.1 // indirect
 	github.com/prometheus/procfs v0.13.0 // indirect
 	github.com/sirupsen/logrus v1.9.3
