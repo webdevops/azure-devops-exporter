@@ -25,7 +25,7 @@ jobs:
           check-latest: true
 
       - name: Run Golangci lint
-        uses: golangci/golangci-lint-action@v4
+        uses: golangci/golangci-lint-action@v6
         with:
           version: latest
           args: --print-resources-usage
