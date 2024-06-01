@@ -43,6 +43,9 @@ Application Options:
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
+      --tags.schema=                          Tags to be extracted from builds in the format 'tagName:type' with following types: number,
+                                              info, bool [$AZURE_DEVOPS_TAG_SCHEMA]
+      --tags.build.definition=                Build definition ids to query tags (IDs) [$AZURE_DEVOPS_TAG_BUILD_DEFINITION]
       --cache.path=                           Cache path (to folder, file://path... or
                                               azblob://storageaccount.blob.core.windows.net/containername or
                                               k8scm://{namespace}/{configmap}}) [$CACHE_PATH]
