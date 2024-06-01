@@ -2,4 +2,7 @@
 /release-assets
 /azure-devops-exporter
 *.exe
-.vscode
+
+# VSCode
+.vscode/
+__debug_*
