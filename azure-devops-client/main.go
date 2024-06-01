@@ -160,8 +160,7 @@ func (c *AzureDevopsClient) SupportsPatAuthentication() bool {
 }
 
 func (c *AzureDevopsClient) rest() *resty.Client {
-
-	var client, err = c.restWithAuthentication(&c.restClient, "dev.azure.com")
+	var client, err = c.restWithAuthentication(c.restClient, "dev.azure.com")
 
 	if err != nil {
 		c.logger.Fatalf("could not create a rest client: %v", err)
@@ -171,8 +170,7 @@ func (c *AzureDevopsClient) rest() *resty.Client {
 }
 
 func (c *AzureDevopsClient) restVsrm() *resty.Client {
-
-	var client, err = c.restWithAuthentication(&c.restClientVsrm, "vsrm.dev.azure.com")
+	var client, err = c.restWithAuthentication(c.restClientVsrm, "vsrm.dev.azure.com")
 
 	if err != nil {
 		c.logger.Fatalf("could not create a rest client: %v", err)
@@ -181,14 +179,13 @@ func (c *AzureDevopsClient) restVsrm() *resty.Client {
 	return client
 }
 
-func (c *AzureDevopsClient) restWithAuthentication(restClient **resty.Client, domain string) (*resty.Client, error) {
-
-	if *restClient == nil {
-		*restClient = c.restWithoutToken(domain)
+func (c *AzureDevopsClient) restWithAuthentication(restClient *resty.Client, domain string) (*resty.Client, error) {
+	if restClient == nil {
+		restClient = c.restWithoutToken(domain)
 	}
 
 	if c.SupportsPatAuthentication() {
-		(*restClient).SetBasicAuth("", *c.accessToken)
+		restClient.SetBasicAuth("", *c.accessToken)
 	} else {
 		ctx := context.Background()
 		opts := policy.TokenRequestOptions{
@@ -199,10 +196,10 @@ func (c *AzureDevopsClient) restWithAuthentication(restClient **resty.Client, do
 			panic(err)
 		}
 
-		(*restClient).SetBasicAuth("", accessToken.Token)
+		restClient.SetBasicAuth("", accessToken.Token)
 	}
 
-	return (*restClient), nil
+	return restClient, nil
 }
 
 func (c *AzureDevopsClient) restWithoutToken(domain string) *resty.Client {
