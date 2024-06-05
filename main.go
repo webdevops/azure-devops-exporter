@@ -36,8 +36,9 @@ var (
 )
 
 func main() {
-	initLogger()
 	initArgparser()
+	initLogger()
+	parseArguments()
 
 	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
 	logger.Info(string(opts.GetJson()))
@@ -70,7 +71,10 @@ func initArgparser() {
 			os.Exit(1)
 		}
 	}
+}
 
+// parses and validates the arguments
+func parseArguments() {
 	// load accesstoken from file
 	if opts.AzureDevops.AccessTokenFile != nil && len(*opts.AzureDevops.AccessTokenFile) > 0 {
 		logger.Infof("reading access token from file \"%s\"", *opts.AzureDevops.AccessTokenFile)
