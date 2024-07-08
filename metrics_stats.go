@@ -57,6 +57,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		[]string{
 			"agentPoolID",
 			"projectID",
+			"buildDefinitionID",
 			"result",
 		},
 	)
@@ -275,6 +276,7 @@ func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *zap.S
 			m.prometheus.agentPoolBuildWait.With(prometheus.Labels{
 				"agentPoolID": int64ToString(build.Queue.Pool.Id),
 				"projectID":   build.Project.Id,
+				"buildDefinitionID": int64ToString(build.Definition.Id),
 				"result":      build.Result,
 			}).Observe(waitDuration)
 
