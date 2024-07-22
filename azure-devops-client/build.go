@@ -198,19 +198,19 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 
 	requestUrl := ""
 
-	if statusFilter != "all" {
+	if statusFilter == "all" {
+		requestUrl = fmt.Sprintf(
+			"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
+			url.QueryEscape(project),
+			url.QueryEscape(c.ApiVersion),
+			url.QueryEscape(statusFilter),
+		)
+	} else {
 		requestUrl = fmt.Sprintf(
 			"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
 			url.QueryEscape(project),
 			url.QueryEscape(c.ApiVersion),
 			url.QueryEscape(minTime.Format(time.RFC3339)),
-			url.QueryEscape(statusFilter),
-		)
-	} else {
-		requestUrl = fmt.Sprintf(
-			"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
-			url.QueryEscape(project),
-			url.QueryEscape(c.ApiVersion),
 			url.QueryEscape(statusFilter),
 		)
 	}
