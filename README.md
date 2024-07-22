@@ -42,17 +42,15 @@ Application Options:
       --azuredevops.agentpool=                Enable scrape metrics for agent pool (IDs) [$AZURE_DEVOPS_AGENTPOOL]
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
+      --timeline.state=                       Filter timeline states (completed, inProgress, pending) (default: completed) [$AZURE_DEVOPS_FILTER_TIMELINE_STATE]
+      --builds.all                            Fetch all builds (even if they are not finished) [$AZURE_DEVOPS_FETCH_ALL_BUILDS]
       --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
-      --tags.schema=                          Tags to be extracted from builds in the format 'tagName:type' with following types: number,
-                                              info, bool [$AZURE_DEVOPS_TAG_SCHEMA]
+      --tags.schema=                          Tags to be extracted from builds in the format 'tagName:type' with following types: number, info, bool [$AZURE_DEVOPS_TAG_SCHEMA]
       --tags.build.definition=                Build definition ids to query tags (IDs) [$AZURE_DEVOPS_TAG_BUILD_DEFINITION]
-      --cache.path=                           Cache path (to folder, file://path... or
-                                              azblob://storageaccount.blob.core.windows.net/containername or
-                                              k8scm://{namespace}/{configmap}}) [$CACHE_PATH]
+      --cache.path=                           Cache path (to folder, file://path... or azblob://storageaccount.blob.core.windows.net/containername or k8scm://{namespace}/{configmap}}) [$CACHE_PATH]
       --request.concurrency=                  Number of concurrent requests against dev.azure.com (default: 10) [$REQUEST_CONCURRENCY]
       --request.retries=                      Number of retried requests against dev.azure.com (default: 3) [$REQUEST_RETRIES]
-      --servicediscovery.refresh=             Refresh duration for servicediscovery (time.duration) (default: 30m)
-                                              [$SERVICEDISCOVERY_REFRESH]
+      --servicediscovery.refresh=             Refresh duration for servicediscovery (time.duration) (default: 30m) [$SERVICEDISCOVERY_REFRESH]
       --limit.project=                        Limit number of projects (default: 100) [$LIMIT_PROJECT]
       --limit.builds-per-project=             Limit builds per project (default: 100) [$LIMIT_BUILDS_PER_PROJECT]
       --limit.builds-per-definition=          Limit builds per definition (default: 10) [$LIMIT_BUILDS_PER_DEFINITION]
@@ -60,10 +58,8 @@ Application Options:
       --limit.releases-per-definition=        Limit releases per definition (default: 100) [$LIMIT_RELEASES_PER_DEFINITION]
       --limit.deployments-per-definition=     Limit deployments per definition (default: 100) [$LIMIT_DEPLOYMENTS_PER_DEFINITION]
       --limit.releasedefinitions-per-project= Limit builds per definition (default: 100) [$LIMIT_RELEASEDEFINITION_PER_PROJECT]
-      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h)
-                                              [$LIMIT_BUILD_HISTORY_DURATION]
-      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h)
-                                              [$LIMIT_RELEASE_HISTORY_DURATION]
+      --limit.build-history-duration=         Time (time.Duration) how long the exporter should look back for builds (default: 48h) [$LIMIT_BUILD_HISTORY_DURATION]
+      --limit.release-history-duration=       Time (time.Duration) how long the exporter should look back for releases (default: 48h) [$LIMIT_RELEASE_HISTORY_DURATION]
       --server.bind=                          Server address (default: :8080) [$SERVER_BIND]
       --server.timeout.read=                  Server read timeout (default: 5s) [$SERVER_TIMEOUT_READ]
       --server.timeout.write=                 Server write timeout (default: 10s) [$SERVER_TIMEOUT_WRITE]

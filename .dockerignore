@@ -1,2 +1,3 @@
 /azure-devops-exporter
 /release-assets
+.env

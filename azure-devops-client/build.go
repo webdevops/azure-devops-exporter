@@ -53,6 +53,7 @@ type TimelineRecord struct {
 	Result       string  `json:"result"`
 	WorkerName   string  `json:"workerName"`
 	Identifier   string  `json:"identifier"`
+	State        string  `json:"state"`
 	StartTime    time.Time
 	FinishTime   time.Time
 }
@@ -196,10 +197,9 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
+		"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(statusFilter),
 	)
 	response, err := c.rest().R().Get(url)
