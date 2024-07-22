@@ -196,13 +196,26 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
 
-	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
-		url.QueryEscape(project),
-		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(statusFilter),
-	)
-	response, err := c.rest().R().Get(url)
+	requestUrl := ""
+
+	if statusFilter != "all" {
+		requestUrl = fmt.Sprintf(
+			"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
+			url.QueryEscape(project),
+			url.QueryEscape(c.ApiVersion),
+			url.QueryEscape(minTime.Format(time.RFC3339)),
+			url.QueryEscape(statusFilter),
+		)
+	} else {
+		requestUrl = fmt.Sprintf(
+			"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
+			url.QueryEscape(project),
+			url.QueryEscape(c.ApiVersion),
+			url.QueryEscape(statusFilter),
+		)
+	}
+
+	response, err := c.rest().R().Get(requestUrl)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
