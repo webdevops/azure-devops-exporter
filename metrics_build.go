@@ -306,7 +306,8 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
-	if opts.AzureDevops.FetchAllBuilds {
+	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) {
+		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
 
@@ -652,10 +653,13 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 
 func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+
 	statusFilter := "completed"
-	if opts.AzureDevops.FetchAllBuilds {
+	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) {
+		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
+
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
 	if err != nil {
 		logger.Error(err)
