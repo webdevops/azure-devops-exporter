@@ -231,7 +231,7 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 	if statusFilter == "all" {
 		var filteredList BuildList
 		for _, build := range list.List {
-			if build.FinishTime.After(minTime) {
+			if build.StartTime.After(minTime) {
 				filteredList.List = append(filteredList.List, build)
 			}
 		}
