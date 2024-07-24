@@ -227,6 +227,18 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 		return
 	}
 
+	// if the status filter is "all", we need to filter the builds by minTime manually because Azure DevOps API does not support it
+	if statusFilter == "all" {
+		var filteredList BuildList
+		for _, build := range list.List {
+			if build.FinishTime.After(minTime) {
+				filteredList.List = append(filteredList.List, build)
+			}
+		}
+		filteredList.Count = len(filteredList.List)
+		list = filteredList
+	}
+
 	return
 }
 
