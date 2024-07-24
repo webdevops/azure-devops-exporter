@@ -59,7 +59,7 @@ type (
 			BlacklistProjects []string `long:"blacklist.project"    env:"AZURE_DEVOPS_BLACKLIST_PROJECT" env-delim:" "   description:"Filter projects (UUIDs)"`
 
 			FilterTimelineState  []string `long:"timeline.state"    env:"AZURE_DEVOPS_FILTER_TIMELINE_STATE"    env-delim:" "   description:"Filter timeline states (completed, inProgress, pending)" default:"completed"`
-			FetchAllBuildsFilter []string `long:"builds.all.project"   env:"AZURE_DEVOPS_FETCH_ALL_BUILDS_FILTER_PROJECT"  env-delim:" "  description:"Fetch all builds (even if they are not finished)"`
+			FetchAllBuildsFilter []string `long:"builds.all.project"   env:"AZURE_DEVOPS_FETCH_ALL_BUILDS_FILTER_PROJECT"  env-delim:" "  description:"Fetch all builds from projects (UUIDs or names)"`
 
 			// query settings
 			QueriesWithProjects []string `long:"list.query"    env:"AZURE_DEVOPS_QUERIES"    env-delim:" "   description:"Pairs of query and project UUIDs in the form: '<queryId>@<projectId>'"`
