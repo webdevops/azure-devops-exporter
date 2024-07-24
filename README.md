@@ -43,7 +43,7 @@ Application Options:
       --whitelist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_FILTER_PROJECT]
       --blacklist.project=                    Filter projects (UUIDs) [$AZURE_DEVOPS_BLACKLIST_PROJECT]
       --timeline.state=                       Filter timeline states (completed, inProgress, pending) (default: completed) [$AZURE_DEVOPS_FILTER_TIMELINE_STATE]
-      --builds.all                            Fetch all builds (even if they are not finished) [$AZURE_DEVOPS_FETCH_ALL_BUILDS]
+      --builds.all.project=                   Fetch all builds (even if they are not finished) [$AZURE_DEVOPS_FETCH_ALL_BUILDS_FILTER_PROJECT]
       --list.query=                           Pairs of query and project UUIDs in the form: '<queryId>@<projectId>' [$AZURE_DEVOPS_QUERIES]
       --tags.schema=                          Tags to be extracted from builds in the format 'tagName:type' with following types: number, info, bool [$AZURE_DEVOPS_TAG_SCHEMA]
       --tags.build.definition=                Build definition ids to query tags (IDs) [$AZURE_DEVOPS_TAG_BUILD_DEFINITION]
