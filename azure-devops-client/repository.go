@@ -84,9 +84,9 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=%v",
+		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=2024-01-01&api-version=%v&searchCriteria.$top=5000",
 		url.QueryEscape(repository),
-		url.QueryEscape(fromDate.Format(time.RFC3339)),
+		//url.QueryEscape(fromDate.Format(time.RFC3339)),
 		url.QueryEscape(c.ApiVersion),
 	)
 

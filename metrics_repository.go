@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -60,6 +61,9 @@ func (m *MetricsCollectorRepository) Setup(collector *collector.Collector) {
 		[]string{
 			"projectID",
 			"repositoryID",
+			"commitAuthor",
+			"commitAuthorEmail",
+			"date",
 		},
 	)
 	m.Collector.RegisterMetricList("repositoryCommits", m.prometheus.repositoryCommits, false)
@@ -128,13 +132,31 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logg
 		}, float64(repository.Size))
 	}
 
-	// get commit delta list
+	// // get commit delta list
+	// commitList, err := AzureDevopsClient.ListCommits(project.Id, repository.Id, fromTime)
+	// if err == nil {
+	// 	repositoryCommitsMetric.Add(prometheus.Labels{
+	// 		"projectID":    project.Id,
+	// 		"repositoryID": repository.Id,
+	// 	}, float64(commitList.Count))
+	// } else {
+	// 	logger.Error(err)
+	// }
+
 	commitList, err := AzureDevopsClient.ListCommits(project.Id, repository.Id, fromTime)
 	if err == nil {
-		repositoryCommitsMetric.Add(prometheus.Labels{
-			"projectID":    project.Id,
-			"repositoryID": repository.Id,
-		}, float64(commitList.Count))
+		for _, commit := range commitList.List {
+			authorName := commit.Author.Name
+			authorEmail := strings.ToLower(commit.Author.Email)
+			authorDate := commit.Author.Date.Format(time.RFC3339)
+			repositoryCommitsMetric.Add(prometheus.Labels{
+				"projectID":         project.Id,
+				"repositoryID":      repository.Id,
+				"commitAuthor":      authorName,
+				"commitAuthorEmail": authorEmail,
+				"date":              authorDate,
+			}, 1) // Increment by 1 for each commit
+		}
 	} else {
 		logger.Error(err)
 	}
