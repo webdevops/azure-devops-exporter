@@ -1,7 +1,7 @@
 #############################################
 # Build
 #############################################
-FROM --platform=$BUILDPLATFORM golang:1.22-alpine as build
+FROM --platform=$BUILDPLATFORM golang:1.23-alpine as build
 
 RUN apk upgrade --no-cache --force
 RUN apk add --update build-base make git
