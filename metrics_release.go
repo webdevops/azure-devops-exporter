@@ -214,7 +214,7 @@ func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *z
 
 	// --------------------------------------
 	// Releases
-	minTime := time.Now().Add(-opts.Limit.ReleaseHistoryDuration)
+	minTime := time.Now().Add(-Opts.Limit.ReleaseHistoryDuration)
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {

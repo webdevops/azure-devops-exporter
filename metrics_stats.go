@@ -52,7 +52,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_wait",
 			Help:   "Azure DevOps stats agentpool builds wait duration",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -66,7 +66,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_agentpool_builds_duration",
 			Help:   "Azure DevOps stats agentpool builds process duration",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"agentPoolID",
@@ -109,7 +109,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_wait",
 			Help:   "Azure DevOps stats project builds wait duration",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -123,7 +123,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_builds_duration",
 			Help:   "Azure DevOps stats project builds process duration",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -137,7 +137,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_release_duration",
 			Help:   "Azure DevOps stats project release process duration",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -152,7 +152,7 @@ func (m *MetricsCollectorStats) Setup(collector *collector.Collector) {
 		prometheus.SummaryOpts{
 			Name:   "azure_devops_stats_project_release_success",
 			Help:   "Azure DevOps stats project release success",
-			MaxAge: *opts.Stats.SummaryMaxAge,
+			MaxAge: *Opts.Stats.SummaryMaxAge,
 		},
 		[]string{
 			"projectID",
@@ -219,7 +219,7 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *zap
 }
 
 func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	buildList, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
 	if err != nil {

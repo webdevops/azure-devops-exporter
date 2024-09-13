@@ -63,7 +63,7 @@ func (m *MetricsCollectorQuery) Collect(callback chan<- func()) {
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
 		projectLogger := logger.With(zap.String("project", project.Name))
 
-		for _, query := range opts.AzureDevops.QueriesWithProjects {
+		for _, query := range Opts.AzureDevops.QueriesWithProjects {
 			queryPair := strings.Split(query, "@")
 			m.collectQueryResults(ctx, projectLogger, callback, queryPair[0], queryPair[1])
 		}

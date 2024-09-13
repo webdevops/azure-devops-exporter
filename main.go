@@ -25,7 +25,7 @@ const (
 
 var (
 	argparser *flags.Parser
-	opts      config.Opts
+	Opts      config.Opts
 
 	AzureDevopsClient           *AzureDevops.AzureDevopsClient
 	AzureDevopsServiceDiscovery *azureDevopsServiceDiscovery
@@ -41,7 +41,7 @@ func main() {
 	parseArguments()
 
 	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
-	logger.Info(string(opts.GetJson()))
+	logger.Info(string(Opts.GetJson()))
 
 	logger.Infof("init AzureDevOps connection")
 	initAzureDevOpsConnection()
@@ -51,13 +51,13 @@ func main() {
 	logger.Info("init metrics collection")
 	initMetricCollector()
 
-	logger.Infof("starting http server on %s", opts.Server.Bind)
+	logger.Infof("starting http server on %s", Opts.Server.Bind)
 	startHttpServer()
 }
 
 // init argparser and parse/validate arguments
 func initArgparser() {
-	argparser = flags.NewParser(&opts, flags.Default)
+	argparser = flags.NewParser(&Opts, flags.Default)
 	_, err := argparser.Parse()
 
 	// check if there is an parse error
@@ -76,24 +76,24 @@ func initArgparser() {
 // parses and validates the arguments
 func parseArguments() {
 	// load accesstoken from file
-	if opts.AzureDevops.AccessTokenFile != nil && len(*opts.AzureDevops.AccessTokenFile) > 0 {
-		logger.Infof("reading access token from file \"%s\"", *opts.AzureDevops.AccessTokenFile)
+	if Opts.AzureDevops.AccessTokenFile != nil && len(*Opts.AzureDevops.AccessTokenFile) > 0 {
+		logger.Infof("reading access token from file \"%s\"", *Opts.AzureDevops.AccessTokenFile)
 		// load access token from file
-		if val, err := os.ReadFile(*opts.AzureDevops.AccessTokenFile); err == nil {
-			opts.AzureDevops.AccessToken = strings.TrimSpace(string(val))
+		if val, err := os.ReadFile(*Opts.AzureDevops.AccessTokenFile); err == nil {
+			Opts.AzureDevops.AccessToken = strings.TrimSpace(string(val))
 		} else {
-			logger.Fatalf("unable to read access token file \"%s\": %v", *opts.AzureDevops.AccessTokenFile, err)
+			logger.Fatalf("unable to read access token file \"%s\": %v", *Opts.AzureDevops.AccessTokenFile, err)
 		}
 	}
 
-	if len(opts.AzureDevops.AccessToken) == 0 && (len(opts.Azure.TenantId) == 0 || len(opts.Azure.ClientId) == 0) {
+	if len(Opts.AzureDevops.AccessToken) == 0 && (len(Opts.Azure.TenantId) == 0 || len(Opts.Azure.ClientId) == 0) {
 		logger.Fatalf("neither an Azure DevOps PAT token nor client credentials (tenant ID, client ID) for service principal authentication have been provided")
 	}
 
 	// ensure query paths and projects are splitted by '@'
-	if opts.AzureDevops.QueriesWithProjects != nil {
+	if Opts.AzureDevops.QueriesWithProjects != nil {
 		queryError := false
-		for _, query := range opts.AzureDevops.QueriesWithProjects {
+		for _, query := range Opts.AzureDevops.QueriesWithProjects {
 			if strings.Count(query, "@") != 1 {
 				fmt.Println("Query path '", query, "' is malformed; should be '<query UUID>@<project UUID>'")
 				queryError = true
@@ -105,44 +105,44 @@ func parseArguments() {
 	}
 
 	// use default scrape time if null
-	if opts.Scrape.TimeProjects == nil {
-		opts.Scrape.TimeProjects = &opts.Scrape.Time
+	if Opts.Scrape.TimeProjects == nil {
+		Opts.Scrape.TimeProjects = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeRepository == nil {
-		opts.Scrape.TimeRepository = &opts.Scrape.Time
+	if Opts.Scrape.TimeRepository == nil {
+		Opts.Scrape.TimeRepository = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimePullRequest == nil {
-		opts.Scrape.TimePullRequest = &opts.Scrape.Time
+	if Opts.Scrape.TimePullRequest == nil {
+		Opts.Scrape.TimePullRequest = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeBuild == nil {
-		opts.Scrape.TimeBuild = &opts.Scrape.Time
+	if Opts.Scrape.TimeBuild == nil {
+		Opts.Scrape.TimeBuild = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeRelease == nil {
-		opts.Scrape.TimeRelease = &opts.Scrape.Time
+	if Opts.Scrape.TimeRelease == nil {
+		Opts.Scrape.TimeRelease = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeDeployment == nil {
-		opts.Scrape.TimeDeployment = &opts.Scrape.Time
+	if Opts.Scrape.TimeDeployment == nil {
+		Opts.Scrape.TimeDeployment = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeStats == nil {
-		opts.Scrape.TimeStats = &opts.Scrape.Time
+	if Opts.Scrape.TimeStats == nil {
+		Opts.Scrape.TimeStats = &Opts.Scrape.Time
 	}
 
-	if opts.Scrape.TimeResourceUsage == nil {
-		opts.Scrape.TimeResourceUsage = &opts.Scrape.Time
+	if Opts.Scrape.TimeResourceUsage == nil {
+		Opts.Scrape.TimeResourceUsage = &Opts.Scrape.Time
 	}
 
-	if opts.Stats.SummaryMaxAge == nil {
-		opts.Stats.SummaryMaxAge = opts.Scrape.TimeStats
+	if Opts.Stats.SummaryMaxAge == nil {
+		Opts.Stats.SummaryMaxAge = Opts.Scrape.TimeStats
 	}
 
-	if opts.Scrape.TimeQuery == nil {
-		opts.Scrape.TimeQuery = &opts.Scrape.Time
+	if Opts.Scrape.TimeQuery == nil {
+		Opts.Scrape.TimeQuery = &Opts.Scrape.Time
 	}
 
 	if v := os.Getenv("AZURE_DEVOPS_FILTER_AGENTPOOL"); v != "" {
@@ -153,64 +153,64 @@ func parseArguments() {
 // Init and build Azure authorzier
 func initAzureDevOpsConnection() {
 	AzureDevopsClient = AzureDevops.NewAzureDevopsClient(logger)
-	if opts.AzureDevops.Url != nil {
-		AzureDevopsClient.HostUrl = opts.AzureDevops.Url
+	if Opts.AzureDevops.Url != nil {
+		AzureDevopsClient.HostUrl = Opts.AzureDevops.Url
 	}
 
-	logger.Infof("using organization: %v", opts.AzureDevops.Organisation)
-	logger.Infof("using apiversion: %v", opts.AzureDevops.ApiVersion)
-	logger.Infof("using concurrency: %v", opts.Request.ConcurrencyLimit)
-	logger.Infof("using retries: %v", opts.Request.Retries)
+	logger.Infof("using organization: %v", Opts.AzureDevops.Organisation)
+	logger.Infof("using apiversion: %v", Opts.AzureDevops.ApiVersion)
+	logger.Infof("using concurrency: %v", Opts.Request.ConcurrencyLimit)
+	logger.Infof("using retries: %v", Opts.Request.Retries)
 
 	// ensure AZURE env vars are populated for azidentity
-	if opts.Azure.TenantId != "" {
-		if err := os.Setenv("AZURE_TENANT_ID", opts.Azure.TenantId); err != nil {
+	if Opts.Azure.TenantId != "" {
+		if err := os.Setenv("AZURE_TENANT_ID", Opts.Azure.TenantId); err != nil {
 			panic(err)
 		}
 	}
 
-	if opts.Azure.ClientId != "" {
-		if err := os.Setenv("AZURE_CLIENT_ID", opts.Azure.ClientId); err != nil {
+	if Opts.Azure.ClientId != "" {
+		if err := os.Setenv("AZURE_CLIENT_ID", Opts.Azure.ClientId); err != nil {
 			panic(err)
 		}
 	}
 
-	if opts.Azure.ClientSecret != "" {
-		if err := os.Setenv("AZURE_CLIENT_SECRET", opts.Azure.ClientSecret); err != nil {
+	if Opts.Azure.ClientSecret != "" {
+		if err := os.Setenv("AZURE_CLIENT_SECRET", Opts.Azure.ClientSecret); err != nil {
 			panic(err)
 		}
 	}
 
-	AzureDevopsClient.SetOrganization(opts.AzureDevops.Organisation)
-	if opts.AzureDevops.AccessToken != "" {
-		AzureDevopsClient.SetAccessToken(opts.AzureDevops.AccessToken)
+	AzureDevopsClient.SetOrganization(Opts.AzureDevops.Organisation)
+	if Opts.AzureDevops.AccessToken != "" {
+		AzureDevopsClient.SetAccessToken(Opts.AzureDevops.AccessToken)
 	} else {
 		if err := AzureDevopsClient.UseAzAuth(); err != nil {
 			logger.Fatalf(err.Error())
 		}
 	}
-	AzureDevopsClient.SetApiVersion(opts.AzureDevops.ApiVersion)
-	AzureDevopsClient.SetConcurrency(opts.Request.ConcurrencyLimit)
-	AzureDevopsClient.SetRetries(opts.Request.Retries)
+	AzureDevopsClient.SetApiVersion(Opts.AzureDevops.ApiVersion)
+	AzureDevopsClient.SetConcurrency(Opts.Request.ConcurrencyLimit)
+	AzureDevopsClient.SetRetries(Opts.Request.Retries)
 	AzureDevopsClient.SetUserAgent(fmt.Sprintf("azure-devops-exporter/%v", gitTag))
 
-	AzureDevopsClient.LimitProject = opts.Limit.Project
-	AzureDevopsClient.LimitBuildsPerProject = opts.Limit.BuildsPerProject
-	AzureDevopsClient.LimitBuildsPerDefinition = opts.Limit.BuildsPerDefinition
-	AzureDevopsClient.LimitReleasesPerDefinition = opts.Limit.ReleasesPerDefinition
-	AzureDevopsClient.LimitDeploymentPerDefinition = opts.Limit.DeploymentPerDefinition
-	AzureDevopsClient.LimitReleaseDefinitionsPerProject = opts.Limit.ReleaseDefinitionsPerProject
-	AzureDevopsClient.LimitReleasesPerProject = opts.Limit.ReleasesPerProject
+	AzureDevopsClient.LimitProject = Opts.Limit.Project
+	AzureDevopsClient.LimitBuildsPerProject = Opts.Limit.BuildsPerProject
+	AzureDevopsClient.LimitBuildsPerDefinition = Opts.Limit.BuildsPerDefinition
+	AzureDevopsClient.LimitReleasesPerDefinition = Opts.Limit.ReleasesPerDefinition
+	AzureDevopsClient.LimitDeploymentPerDefinition = Opts.Limit.DeploymentPerDefinition
+	AzureDevopsClient.LimitReleaseDefinitionsPerProject = Opts.Limit.ReleaseDefinitionsPerProject
+	AzureDevopsClient.LimitReleasesPerProject = Opts.Limit.ReleasesPerProject
 }
 
 func initMetricCollector() {
 	var collectorName string
 
 	collectorName = "Project"
-	if opts.Scrape.TimeLive.Seconds() > 0 {
+	if Opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorProject{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("project.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeLive)
+		c.SetCache(Opts.GetCachePath("project.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -219,10 +219,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "AgentPool"
-	if opts.Scrape.TimeLive.Seconds() > 0 {
+	if Opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorAgentPool{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("agentpool.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeLive)
+		c.SetCache(Opts.GetCachePath("agentpool.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -231,10 +231,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "LatestBuild"
-	if opts.Scrape.TimeLive.Seconds() > 0 {
+	if Opts.Scrape.TimeLive.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorLatestBuild{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeLive)
-		c.SetCache(opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeLive)
+		c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -243,10 +243,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Repository"
-	if opts.Scrape.TimeRepository.Seconds() > 0 {
+	if Opts.Scrape.TimeRepository.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorRepository{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeRepository)
-		c.SetCache(opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeRepository)
+		c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -255,10 +255,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "PullRequest"
-	if opts.Scrape.TimePullRequest.Seconds() > 0 {
+	if Opts.Scrape.TimePullRequest.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorPullRequest{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimePullRequest)
-		c.SetCache(opts.GetCachePath("pullrequest.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimePullRequest)
+		c.SetCache(Opts.GetCachePath("pullrequest.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -267,10 +267,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Build"
-	if opts.Scrape.TimeBuild.Seconds() > 0 {
+	if Opts.Scrape.TimeBuild.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorBuild{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeBuild)
-		c.SetCache(opts.GetCachePath("build.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeBuild)
+		c.SetCache(Opts.GetCachePath("build.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -279,10 +279,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Release"
-	if opts.Scrape.TimeRelease.Seconds() > 0 {
+	if Opts.Scrape.TimeRelease.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorRelease{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeRelease)
-		c.SetCache(opts.GetCachePath("release.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeRelease)
+		c.SetCache(Opts.GetCachePath("release.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -291,10 +291,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Deployment"
-	if opts.Scrape.TimeDeployment.Seconds() > 0 {
+	if Opts.Scrape.TimeDeployment.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorDeployment{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeDeployment)
-		c.SetCache(opts.GetCachePath("deployment.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeDeployment)
+		c.SetCache(Opts.GetCachePath("deployment.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -303,10 +303,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Stats"
-	if opts.Scrape.TimeStats.Seconds() > 0 {
+	if Opts.Scrape.TimeStats.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorStats{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeStats)
-		c.SetCache(opts.GetCachePath("stats.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeStats)
+		c.SetCache(Opts.GetCachePath("stats.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -315,10 +315,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "ResourceUsage"
-	if opts.Scrape.TimeResourceUsage.Seconds() > 0 {
+	if Opts.Scrape.TimeResourceUsage.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorResourceUsage{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeResourceUsage)
-		c.SetCache(opts.GetCachePath("resourceusage.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeResourceUsage)
+		c.SetCache(Opts.GetCachePath("resourceusage.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -327,10 +327,10 @@ func initMetricCollector() {
 	}
 
 	collectorName = "Query"
-	if opts.Scrape.TimeQuery.Seconds() > 0 {
+	if Opts.Scrape.TimeQuery.Seconds() > 0 {
 		c := collector.New(collectorName, &MetricsCollectorQuery{}, logger)
-		c.SetScapeTime(*opts.Scrape.TimeQuery)
-		c.SetCache(opts.GetCachePath("query.json"), collector.BuildCacheTag(cacheTag, opts.AzureDevops))
+		c.SetScapeTime(*Opts.Scrape.TimeQuery)
+		c.SetCache(Opts.GetCachePath("query.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
@@ -360,10 +360,10 @@ func startHttpServer() {
 	mux.Handle("/metrics", promhttp.Handler())
 
 	srv := &http.Server{
-		Addr:         opts.Server.Bind,
+		Addr:         Opts.Server.Bind,
 		Handler:      mux,
-		ReadTimeout:  opts.Server.ReadTimeout,
-		WriteTimeout: opts.Server.WriteTimeout,
+		ReadTimeout:  Opts.Server.ReadTimeout,
+		WriteTimeout: Opts.Server.WriteTimeout,
 	}
 	logger.Fatal(srv.ListenAndServe())
 }

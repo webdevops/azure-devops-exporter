@@ -31,7 +31,7 @@ type (
 
 func NewAzureDevopsServiceDiscovery() *azureDevopsServiceDiscovery {
 	sd := &azureDevopsServiceDiscovery{}
-	sd.cacheExpiry = opts.ServiceDiscovery.RefreshDuration
+	sd.cacheExpiry = Opts.ServiceDiscovery.RefreshDuration
 	sd.cache = cache.New(sd.cacheExpiry, time.Duration(1*time.Minute))
 	sd.logger = logger.With(zap.String("component", "servicediscovery"))
 
@@ -67,23 +67,23 @@ func (sd *azureDevopsServiceDiscovery) ProjectList() (list []AzureDevops.Project
 	list = result.List
 
 	// whitelist
-	if len(opts.AzureDevops.FilterProjects) > 0 {
+	if len(Opts.AzureDevops.FilterProjects) > 0 {
 		rawList := list
 		list = []AzureDevops.Project{}
 		for _, project := range rawList {
-			if arrayStringContains(opts.AzureDevops.FilterProjects, project.Id) {
+			if arrayStringContains(Opts.AzureDevops.FilterProjects, project.Id) {
 				list = append(list, project)
 			}
 		}
 	}
 
 	// blacklist
-	if len(opts.AzureDevops.BlacklistProjects) > 0 {
+	if len(Opts.AzureDevops.BlacklistProjects) > 0 {
 		// filter ignored azure devops projects
 		rawList := list
 		list = []AzureDevops.Project{}
 		for _, project := range rawList {
-			if !arrayStringContains(opts.AzureDevops.BlacklistProjects, project.Id) {
+			if !arrayStringContains(Opts.AzureDevops.BlacklistProjects, project.Id) {
 				list = append(list, project)
 			}
 		}
@@ -105,9 +105,9 @@ func (sd *azureDevopsServiceDiscovery) AgentPoolList() (list []int64) {
 		return
 	}
 
-	if opts.AzureDevops.AgentPoolIdList != nil {
+	if Opts.AzureDevops.AgentPoolIdList != nil {
 		sd.logger.Infof("using predefined AgentPool list")
-		list = *opts.AzureDevops.AgentPoolIdList
+		list = *Opts.AzureDevops.AgentPoolIdList
 	} else {
 		sd.logger.Infof("upading AgentPool list")
 
