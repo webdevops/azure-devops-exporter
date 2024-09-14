@@ -8,6 +8,14 @@ Azure DevOps Exporter (VSTS)
 
 Prometheus exporter for Azure DevOps (VSTS) for projects, builds, build times (elapsed and queue wait time), agent pool utilization and active pull requests.
 
+> [!IMPORTANT]
+> I've lost access to Azure DevOps (ADO) instance so i cannot provide proper support anymore.
+> The exporter will still be updated but don't expect active development.
+>
+> Also Microsoft seems to have lost interest in ADO in favor of GitHub, the development of ADO actions has
+> nearly stopped, they don't fix use of deprecated Azure APIs and even features which are supported in
+> GitHub for a long time are not backported to ADO.
+
 Configuration
 -------------
 
