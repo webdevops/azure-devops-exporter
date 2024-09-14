@@ -306,7 +306,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
-	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
 		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
@@ -655,7 +655,7 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
-	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
 		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
