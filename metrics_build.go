@@ -303,10 +303,10 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.S
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
-	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
 		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
@@ -327,7 +327,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 		timelineRecordList, _ := AzureDevopsClient.ListBuildTimeline(project.Id, int64ToString(build.Id))
 		for _, timelineRecord := range timelineRecordList.List {
 
-			if opts.AzureDevops.FilterTimelineState != nil && !arrayStringContains(opts.AzureDevops.FilterTimelineState, timelineRecord.State) {
+			if Opts.AzureDevops.FilterTimelineState != nil && !arrayStringContains(Opts.AzureDevops.FilterTimelineState, timelineRecord.State) {
 				continue
 			}
 
@@ -652,10 +652,10 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
-	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+	if arrayStringContains(Opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
 		logger.Info("fetching all builds for project " + project.Name)
 		statusFilter = "all"
 	}
