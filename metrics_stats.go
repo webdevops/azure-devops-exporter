@@ -274,10 +274,10 @@ func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *zap.S
 
 		if waitDuration >= 0 {
 			m.prometheus.agentPoolBuildWait.With(prometheus.Labels{
-				"agentPoolID": int64ToString(build.Queue.Pool.Id),
-				"projectID":   build.Project.Id,
+				"agentPoolID":       int64ToString(build.Queue.Pool.Id),
+				"projectID":         build.Project.Id,
 				"buildDefinitionID": int64ToString(build.Definition.Id),
-				"result":      build.Result,
+				"result":            build.Result,
 			}).Observe(waitDuration)
 
 			m.prometheus.projectBuildWait.With(prometheus.Labels{

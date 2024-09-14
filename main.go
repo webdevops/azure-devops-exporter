@@ -39,6 +39,7 @@ func main() {
 	initArgparser()
 	initLogger()
 	parseArguments()
+	initSystem()
 
 	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
 	logger.Info(string(Opts.GetJson()))
