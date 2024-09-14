@@ -303,7 +303,6 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.S
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-<<<<<<< main
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -313,10 +312,6 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	}
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
-=======
-	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
-	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
->>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return
@@ -657,7 +652,6 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-<<<<<<< main
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -667,10 +661,6 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 	}
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
-=======
-	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
-	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
->>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return
