@@ -303,8 +303,20 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.S
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+<<<<<<< main
+	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+
+	statusFilter := "completed"
+	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+		logger.Info("fetching all builds for project " + project.Name)
+		statusFilter = "all"
+	}
+
+	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
+=======
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
+>>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return
@@ -316,8 +328,18 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	buildTaskMetric := m.Collector.GetMetricList("buildTask")
 
 	for _, build := range list.List {
+
 		timelineRecordList, _ := AzureDevopsClient.ListBuildTimeline(project.Id, int64ToString(build.Id))
 		for _, timelineRecord := range timelineRecordList.List {
+
+			if opts.AzureDevops.FilterTimelineState != nil && !arrayStringContains(opts.AzureDevops.FilterTimelineState, timelineRecord.State) {
+				continue
+			}
+
+			if timelineRecord.Result == "" {
+				timelineRecord.Result = "unknown"
+			}
+
 			recordType := timelineRecord.RecordType
 			switch strings.ToLower(recordType) {
 			case "stage":
@@ -635,8 +657,20 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+<<<<<<< main
+	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+
+	statusFilter := "completed"
+	if arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Name) || arrayStringContains(opts.AzureDevops.FetchAllBuildsFilter, project.Id) {
+		logger.Info("fetching all builds for project " + project.Name)
+		statusFilter = "all"
+	}
+
+	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
+=======
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
+>>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return

@@ -53,6 +53,7 @@ type TimelineRecord struct {
 	Result       string  `json:"result"`
 	WorkerName   string  `json:"workerName"`
 	Identifier   string  `json:"identifier"`
+	State        string  `json:"state"`
 	StartTime    time.Time
 	FinishTime   time.Time
 }
@@ -195,14 +196,26 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 	defer c.concurrencyUnlock()
 	c.concurrencyLock()
 
-	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
-		url.QueryEscape(project),
-		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(minTime.Format(time.RFC3339)),
-		url.QueryEscape(statusFilter),
-	)
-	response, err := c.rest().R().Get(url)
+	requestUrl := ""
+
+	if statusFilter == "all" {
+		requestUrl = fmt.Sprintf(
+			"%v/_apis/build/builds?api-version=%v&statusFilter=%v",
+			url.QueryEscape(project),
+			url.QueryEscape(c.ApiVersion),
+			url.QueryEscape(statusFilter),
+		)
+	} else {
+		requestUrl = fmt.Sprintf(
+			"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
+			url.QueryEscape(project),
+			url.QueryEscape(c.ApiVersion),
+			url.QueryEscape(minTime.Format(time.RFC3339)),
+			url.QueryEscape(statusFilter),
+		)
+	}
+
+	response, err := c.rest().R().Get(requestUrl)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
@@ -212,6 +225,18 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 	if err != nil {
 		error = err
 		return
+	}
+
+	// if the status filter is "all", we need to filter the builds by minTime manually because Azure DevOps API does not support it
+	if statusFilter == "all" {
+		var filteredList BuildList
+		for _, build := range list.List {
+			if build.StartTime.After(minTime) {
+				filteredList.List = append(filteredList.List, build)
+			}
+		}
+		filteredList.Count = len(filteredList.List)
+		list = filteredList
 	}
 
 	return
