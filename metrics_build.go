@@ -199,7 +199,7 @@ func (m *MetricsCollectorBuild) Collect(callback chan<- func()) {
 		m.collectDefinition(ctx, projectLogger, callback, project)
 		m.collectBuilds(ctx, projectLogger, callback, project)
 		m.collectBuildsTimeline(ctx, projectLogger, callback, project)
-		if nil != opts.AzureDevops.TagsSchema {
+		if nil != Opts.AzureDevops.TagsSchema {
 			m.collectBuildsTags(ctx, projectLogger, callback, project)
 		}
 	}
@@ -227,7 +227,7 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *z
 }
 
 func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
-	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	list, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
 	if err != nil {
@@ -303,6 +303,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.S
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+<<<<<<< main
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -312,6 +313,10 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	}
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
+=======
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
+	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
+>>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return
@@ -652,6 +657,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 }
 
 func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+<<<<<<< main
 	minTime := time.Now().Add(-opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -661,6 +667,10 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 	}
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
+=======
+	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
+	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
+>>>>>>> main
 	if err != nil {
 		logger.Error(err)
 		return
@@ -669,9 +679,9 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 	buildTag := m.Collector.GetMetricList("buildTag")
 
 	for _, build := range list.List {
-		if nil == opts.AzureDevops.TagsBuildDefinitionIdList || arrayIntContains(*opts.AzureDevops.TagsBuildDefinitionIdList, build.Definition.Id) {
+		if nil == Opts.AzureDevops.TagsBuildDefinitionIdList || arrayIntContains(*Opts.AzureDevops.TagsBuildDefinitionIdList, build.Definition.Id) {
 			tagRecordList, _ := AzureDevopsClient.ListBuildTags(project.Id, int64ToString(build.Id))
-			tagList, err := tagRecordList.Parse(*opts.AzureDevops.TagsSchema)
+			tagList, err := tagRecordList.Parse(*Opts.AzureDevops.TagsSchema)
 			if err != nil {
 				m.Logger().Error(err)
 				continue
