@@ -198,8 +198,6 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 		return
 	}
 
-	fmt.Println(fmt.Sprintf("Length: %v", len(list.List)))
-
 	continuationToken := response.Header().Get("x-ms-continuationtoken")
 
 	for continuationToken != "" {
