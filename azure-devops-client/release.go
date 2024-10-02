@@ -222,7 +222,6 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 
 		list.Count += tmpList.Count
 		list.List = append(list.List, tmpList.List...)
-		fmt.Println(fmt.Sprintf("Length: %v", len(list.List)))
 
 		continuationToken = response.Header().Get("x-ms-continuationtoken")
 	}
