@@ -202,12 +202,30 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 	list = tmpReleases
 
 	continuationToken := response.Header().Get("x-ms-continuationtoken")
-	continuationUrl := fmt.Sprintf(
-		"%v&continuationToken=%v",
-		url,
-		continuationToken,
-	)
-	fmt.Println(continuationUrl)
+	for continuationToken != "" {
+		continuationUrl := fmt.Sprintf(
+			"%v&continuationToken=%v",
+			url,
+			continuationToken,
+		)
+
+		response, err = c.restVsrm().R().Get(continuationUrl)
+		if err := c.checkResponse(response, err); err != nil {
+			error = err
+			return
+		}
+
+		err = json.Unmarshal(response.Body(), &tmpReleases)
+		if err != nil {
+			error = err
+			return
+		}
+
+		list.Count += tmpReleases.Count
+		list.List = append(list.List, tmpReleases.List...)
+
+		continuationToken = response.Header().Get("x-ms-continuationtoken")
+	}
 
 	return
 }
