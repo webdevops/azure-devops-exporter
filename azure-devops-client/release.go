@@ -185,21 +185,22 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(int64ToString(c.LimitReleasesPerProject)),
 	)
+	// fmt.Println(fmt.Sprintf("-|-|-|-|-|-|-|-|-|-|-%v-|-|-|-|-|-|-|-|-|-|-",url))
 	response, err := c.restVsrm().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
 		return
 	}
 
-	var tmpReleases ReleaseList
+	var tmpList ReleaseList
 
-	err = json.Unmarshal(response.Body(), &tmpReleases)
+	err = json.Unmarshal(response.Body(), &list)
 	if err != nil {
 		error = err
 		return
 	}
 
-	list = tmpReleases
+	fmt.Println(fmt.Sprintf("Length: %v", len(list.List)))
 
 	continuationToken := response.Header().Get("x-ms-continuationtoken")
 	for continuationToken != "" {
@@ -215,14 +216,15 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 			return
 		}
 
-		err = json.Unmarshal(response.Body(), &tmpReleases)
+		err = json.Unmarshal(response.Body(), &tmpList)
 		if err != nil {
 			error = err
 			return
 		}
 
-		list.Count += tmpReleases.Count
-		list.List = append(list.List, tmpReleases.List...)
+		list.Count += tmpList.Count
+		list.List = append(list.List, tmpList.List...)
+		fmt.Println(fmt.Sprintf("Length: %v", len(list.List)))
 
 		continuationToken = response.Header().Get("x-ms-continuationtoken")
 	}
