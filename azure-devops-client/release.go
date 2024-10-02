@@ -191,11 +191,15 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 		return
 	}
 
-	err = json.Unmarshal(response.Body(), &list)
+	var tmpReleases ReleaseList
+
+	err = json.Unmarshal(response.Body(), &tmpReleases)
 	if err != nil {
 		error = err
 		return
 	}
+
+	list = tmpReleases
 
 	return
 }
