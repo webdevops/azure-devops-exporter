@@ -201,5 +201,13 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 
 	list = tmpReleases
 
+	continuationToken := response.Header().Get("x-ms-continuationtoken")
+	continuationUrl := fmt.Sprintf(
+		"%v&continuationToken=%v",
+		url,
+		continuationToken,
+	)
+	fmt.Println(continuationUrl)
+
 	return
 }
