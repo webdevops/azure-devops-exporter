@@ -185,6 +185,7 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 		url.QueryEscape(minTime.Format(time.RFC3339)),
 		url.QueryEscape(int64ToString(c.LimitReleasesPerProject)),
 	)
+
 	response, err := c.restVsrm().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
 		error = err
@@ -195,6 +196,34 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 	if err != nil {
 		error = err
 		return
+	}
+
+	continuationToken := response.Header().Get("x-ms-continuationtoken")
+
+	for continuationToken != "" {
+		continuationUrl := fmt.Sprintf(
+			"%v&continuationToken=%v",
+			url,
+			continuationToken,
+		)
+
+		response, err = c.restVsrm().R().Get(continuationUrl)
+		if err := c.checkResponse(response, err); err != nil {
+			error = err
+			return
+		}
+
+		var tmpList ReleaseList
+		err = json.Unmarshal(response.Body(), &tmpList)
+		if err != nil {
+			error = err
+			return
+		}
+
+		list.Count += tmpList.Count
+		list.List = append(list.List, tmpList.List...)
+
+		continuationToken = response.Header().Get("x-ms-continuationtoken")
 	}
 
 	return
