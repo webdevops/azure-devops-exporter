@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -46,7 +45,6 @@ func (m *MetricsCollectorRelease) Setup(collector *collector.Collector) {
 			"reason",
 			"result",
 			"url",
-			"counter",
 		},
 	)
 	m.Collector.RegisterMetricList("release", m.prometheus.release, true)
@@ -224,8 +222,6 @@ func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *z
 		return
 	}
 
-	counter := 0
-
 	for _, release := range releaseList.List {
 		releaseMetric.AddInfo(prometheus.Labels{
 			"projectID":           project.Id,
@@ -237,10 +233,7 @@ func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *z
 			"reason":              release.Reason,
 			"result":              to.BoolString(release.Result),
 			"url":                 release.Links.Web.Href,
-			"counter":             fmt.Sprintf("%d", counter),
 		})
-
-		counter++
 
 		for _, artifact := range release.Artifacts {
 			releaseArtifactMetric.AddInfo(prometheus.Labels{
