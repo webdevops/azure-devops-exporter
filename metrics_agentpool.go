@@ -77,6 +77,7 @@ func (m *MetricsCollectorAgentPool) Setup(collector *collector.Collector) {
 			"provisioningState",
 			"maxParallelism",
 			"agentPoolAgentOs",
+			"agentPoolAgentComputerName",
 			"enabled",
 			"status",
 			"hasAssignedRequest",
@@ -193,6 +194,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 			"enabled":               to.BoolString(agentPoolAgent.Enabled),
 			"status":                agentPoolAgent.Status,
 			"hasAssignedRequest":    to.BoolString(agentPoolAgent.AssignedRequest.RequestId > 0),
+			"agentPoolAgentComputerName": agentPoolAgent.SystemCapabilities["Agent.ComputerName"],
 		}
 
 		agentPoolAgentMetric.Add(infoLabels, 1)
