@@ -110,6 +110,7 @@ type AgentPoolAgent struct {
 	Version           string
 	CreatedOn         time.Time
 	AssignedRequest   JobRequest
+	SystemCapabilities map[string]string
 }
 
 type JobRequest struct {
