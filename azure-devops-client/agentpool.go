@@ -161,7 +161,7 @@ func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPo
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=false&includeAssignedRequest=true",
+		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=true&includeAssignedRequest=true",
 		fmt.Sprintf("%d", agentPoolId),
 	)
 	response, err := c.rest().R().Get(url)
