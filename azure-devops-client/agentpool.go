@@ -100,17 +100,17 @@ type AgentPoolAgentList struct {
 }
 
 type AgentPoolAgent struct {
-	Id                int64
-	Enabled           bool
-	MaxParallelism    int64
-	Name              string
-	OsDescription     string
-	ProvisioningState string
-	Status            string
-	Version           string
-	CreatedOn         time.Time
-	AssignedRequest   JobRequest
+	Id                 int64
+	Enabled            bool
+	MaxParallelism     int64
+	Name               string
+	OsDescription      string
 	SystemCapabilities map[string]string
+	ProvisioningState  string
+	Status             string
+	Version            string
+	CreatedOn          time.Time
+	AssignedRequest    JobRequest
 }
 
 type JobRequest struct {
