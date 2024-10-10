@@ -100,16 +100,17 @@ type AgentPoolAgentList struct {
 }
 
 type AgentPoolAgent struct {
-	Id                int64
-	Enabled           bool
-	MaxParallelism    int64
-	Name              string
-	OsDescription     string
-	ProvisioningState string
-	Status            string
-	Version           string
-	CreatedOn         time.Time
-	AssignedRequest   JobRequest
+	Id                 int64
+	Enabled            bool
+	MaxParallelism     int64
+	Name               string
+	OsDescription      string
+	SystemCapabilities map[string]string
+	ProvisioningState  string
+	Status             string
+	Version            string
+	CreatedOn          time.Time
+	AssignedRequest    JobRequest
 }
 
 type JobRequest struct {
@@ -160,7 +161,7 @@ func (c *AzureDevopsClient) ListAgentPoolAgents(agentPoolId int64) (list AgentPo
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=false&includeAssignedRequest=true",
+		"/_apis/distributedtask/pools/%v/agents?includeCapabilities=true&includeAssignedRequest=true",
 		fmt.Sprintf("%d", agentPoolId),
 	)
 	response, err := c.rest().R().Get(url)
