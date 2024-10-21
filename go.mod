@@ -3,9 +3,9 @@ module github.com/webdevops/azure-devops-exporter
 go 1.23
 
 require (
-	github.com/go-resty/resty/v2 v2.14.0
+	github.com/go-resty/resty/v2 v2.15.3
 	github.com/golang/protobuf v1.5.4 // indirect
-	github.com/prometheus/client_golang v1.20.3
+	github.com/prometheus/client_golang v1.20.5
 	github.com/prometheus/common v0.59.1 // indirect
 	github.com/prometheus/procfs v0.15.1 // indirect
 	github.com/sirupsen/logrus v1.9.3
@@ -15,8 +15,8 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.14.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.7.0
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.16.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.8.0
 	github.com/KimMachineGun/automemlimit v0.6.1
 	github.com/dustin/go-humanize v1.0.1
 	github.com/jessevdk/go-flags v1.6.1
