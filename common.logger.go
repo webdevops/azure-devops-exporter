@@ -45,7 +45,7 @@ func initLogger() *zap.SugaredLogger {
 	}
 
 	logger = log.Sugar()
-	slogger = slog.New(zapslog.NewHandler(log.Core(), nil))
+	slogger = slog.New(zapslog.NewHandler(log.Core()))
 
 	return logger
 }
