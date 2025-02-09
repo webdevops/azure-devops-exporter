@@ -7,7 +7,7 @@ linters:
     - bidichk
     - bodyclose
     - errorlint
-    - exportloopref
+    - copyloopvar
     - gofmt
     - goimports
     - gosec
