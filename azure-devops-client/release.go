@@ -182,7 +182,7 @@ func (c *AzureDevopsClient) ListReleaseHistory(project string, minTime time.Time
 		"%v/_apis/release/releases?api-version=%v&isDeleted=false&$expand=94&minCreatedTime=%s&$top=%v&queryOrder=descending",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(minTime.Format(time.RFC3339)),
+		url.QueryEscape(minTime.UTC().Format(time.RFC3339)),
 		url.QueryEscape(int64ToString(c.LimitReleasesPerProject)),
 	)
 

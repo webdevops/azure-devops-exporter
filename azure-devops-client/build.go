@@ -174,7 +174,7 @@ func (c *AzureDevopsClient) ListBuildHistory(project string, minTime time.Time) 
 		"%v/_apis/build/builds?api-version=%v&minTime=%s&$top=%v&queryOrder=finishTimeDescending",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
-		url.QueryEscape(minTime.Format(time.RFC3339)),
+		url.QueryEscape(minTime.UTC().Format(time.RFC3339)),
 		url.QueryEscape(int64ToString(c.LimitBuildsPerProject)),
 	)
 	response, err := c.rest().R().Get(url)
@@ -210,7 +210,7 @@ func (c *AzureDevopsClient) ListBuildHistoryWithStatus(project string, minTime t
 			"%v/_apis/build/builds?api-version=%v&minTime=%s&statusFilter=%v",
 			url.QueryEscape(project),
 			url.QueryEscape(c.ApiVersion),
-			url.QueryEscape(minTime.Format(time.RFC3339)),
+			url.QueryEscape(minTime.UTC().Format(time.RFC3339)),
 			url.QueryEscape(statusFilter),
 		)
 	}

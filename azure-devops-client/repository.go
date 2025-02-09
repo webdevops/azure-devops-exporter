@@ -86,7 +86,7 @@ func (c *AzureDevopsClient) ListCommits(project string, repository string, fromD
 	url := fmt.Sprintf(
 		"_apis/git/repositories/%s/commits?searchCriteria.fromDate=%s&api-version=%v",
 		url.QueryEscape(repository),
-		url.QueryEscape(fromDate.Format(time.RFC3339)),
+		url.QueryEscape(fromDate.UTC().Format(time.RFC3339)),
 		url.QueryEscape(c.ApiVersion),
 	)
 
@@ -112,7 +112,7 @@ func (c *AzureDevopsClient) ListPushes(project string, repository string, fromDa
 	url := fmt.Sprintf(
 		"_apis/git/repositories/%s/pushes?searchCriteria.fromDate=%s&api-version=%v",
 		url.QueryEscape(repository),
-		url.QueryEscape(fromDate.Format(time.RFC3339)),
+		url.QueryEscape(fromDate.UTC().Format(time.RFC3339)),
 		url.QueryEscape(c.ApiVersion),
 	)
 
