@@ -183,6 +183,12 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 	agentPoolUsed := 0
 	for _, agentPoolAgent := range list.List {
 		agentPoolSize++
+
+		agentComputerName := ""
+		if val, exists := agentPoolAgent.SystemCapabilities["Agent.ComputerName"]; exists {
+			agentComputerName = val
+		}
+
 		infoLabels := prometheus.Labels{
 			"agentPoolID":                int64ToString(agentPoolId),
 			"agentPoolAgentID":           int64ToString(agentPoolAgent.Id),
@@ -191,7 +197,7 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 			"provisioningState":          agentPoolAgent.ProvisioningState,
 			"maxParallelism":             int64ToString(agentPoolAgent.MaxParallelism),
 			"agentPoolAgentOs":           agentPoolAgent.OsDescription,
-			"agentPoolAgentComputerName": agentPoolAgent.SystemCapabilities["Agent.ComputerName"],
+			"agentPoolAgentComputerName": agentComputerName,
 			"enabled":                    to.BoolString(agentPoolAgent.Enabled),
 			"status":                     agentPoolAgent.Status,
 			"hasAssignedRequest":         to.BoolString(agentPoolAgent.AssignedRequest.RequestId > 0),
