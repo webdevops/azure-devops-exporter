@@ -3,8 +3,6 @@ package config
 import (
 	"encoding/json"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 type (
@@ -116,7 +114,7 @@ func (o *Opts) GetCachePath(path string) (ret *string) {
 func (o *Opts) GetJson() []byte {
 	jsonBytes, err := json.Marshal(o)
 	if err != nil {
-		log.Panic(err)
+		panic(err)
 	}
 	return jsonBytes
 }
