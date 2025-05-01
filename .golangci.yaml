@@ -1,26 +1,42 @@
-run:
-  timeout: 120m
-
+version: "2"
 linters:
   enable:
     - asciicheck
     - bidichk
     - bodyclose
-    - errorlint
     - copyloopvar
+    - errorlint
+    - gomodguard
+    - gosec
+  settings:
+    gomodguard:
+      blocked:
+        modules:
+          - github.com/Azure/go-autorest/autorest/azure/auth:
+              reason: deprecated
+    gosec:
+      confidence: low
+      config:
+        global:
+          audit: true
+  exclusions:
+    generated: lax
+    presets:
+      - comments
+      - common-false-positives
+      - legacy
+      - std-error-handling
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
+formatters:
+  enable:
     - gofmt
     - goimports
-    - gosec
-
-linters-settings:
-  gosec:
-    excludes: []
-    confidence: low
-    config:
-      global:
-        audit: true
-
-issues: {}
-
-output:
-  sort-results: true
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
