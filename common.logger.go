@@ -1,16 +1,12 @@
 package main
 
 import (
-	"log/slog"
-
 	"go.uber.org/zap"
-	"go.uber.org/zap/exp/zapslog"
 	"go.uber.org/zap/zapcore"
 )
 
 var (
-	logger  *zap.SugaredLogger
-	slogger *slog.Logger
+	logger *zap.SugaredLogger
 )
 
 func initLogger() *zap.SugaredLogger {
@@ -45,7 +41,6 @@ func initLogger() *zap.SugaredLogger {
 	}
 
 	logger = log.Sugar()
-	slogger = slog.New(zapslog.NewHandler(log.Core()))
 
 	return logger
 }
