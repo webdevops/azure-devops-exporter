@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 )
 
 type MetricsCollectorResourceUsage struct {
@@ -53,10 +53,10 @@ func (m *MetricsCollectorResourceUsage) Collect(callback chan<- func()) {
 	m.collectResourceUsageAgent(ctx, logger, callback)
 }
 
-func (m *MetricsCollectorResourceUsage) collectResourceUsageAgent(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) collectResourceUsageAgent(ctx context.Context, logger *slog.Logger, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageAgent()
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -113,10 +113,10 @@ func (m *MetricsCollectorResourceUsage) collectResourceUsageAgent(ctx context.Co
 	}, licenseDetails.TotalHostedLicenseCount)
 }
 
-func (m *MetricsCollectorResourceUsage) collectResourceUsageBuild(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func()) {
+func (m *MetricsCollectorResourceUsage) collectResourceUsageBuild(ctx context.Context, logger *slog.Logger, callback chan<- func()) {
 	resourceUsage, err := AzureDevopsClient.GetResourceUsageBuild()
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

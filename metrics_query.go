@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"strings"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 )
 
 type MetricsCollectorQuery struct {
@@ -61,7 +61,7 @@ func (m *MetricsCollectorQuery) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 
 		for _, query := range Opts.AzureDevops.QueriesWithProjects {
 			queryPair := strings.Split(query, "@")
@@ -70,13 +70,13 @@ func (m *MetricsCollectorQuery) Collect(callback chan<- func()) {
 	}
 }
 
-func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), queryPath string, projectID string) {
+func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, logger *slog.Logger, callback chan<- func(), queryPath string, projectID string) {
 	workItemsMetric := m.Collector.GetMetricList("workItemCount")
 	workItemsDataMetric := m.Collector.GetMetricList("workItemData")
 
 	workItemInfoList, err := AzureDevopsClient.QueryWorkItems(queryPath, projectID)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -88,7 +88,7 @@ func (m *MetricsCollectorQuery) collectQueryResults(ctx context.Context, logger 
 	for _, workItemInfo := range workItemInfoList.List {
 		workItem, err := AzureDevopsClient.GetWorkItem(workItemInfo.Url)
 		if err != nil {
-			logger.Error(err)
+			logger.Error(err.Error())
 			return
 		}
 

@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
 	"github.com/webdevops/go-common/utils/to"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -81,23 +81,23 @@ func (m *MetricsCollectorPullRequest) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 
 		for _, repository := range project.RepositoryList.List {
 			if repository.Disabled() {
 				continue
 			}
 
-			repoLogger := projectLogger.With(zap.String("repository", repository.Name))
+			repoLogger := projectLogger.With(slog.String("repository", repository.Name))
 			m.collectPullRequests(ctx, repoLogger, callback, project, repository)
 		}
 	}
 }
 
-func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	list, err := AzureDevopsClient.ListPullrequest(project.Id, repository.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

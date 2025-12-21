@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -70,15 +70,15 @@ func (m *MetricsCollectorDeployment) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectDeployments(ctx, projectLogger, callback, project)
 	}
 }
 
-func (m *MetricsCollectorDeployment) collectDeployments(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorDeployment) collectDeployments(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -86,11 +86,11 @@ func (m *MetricsCollectorDeployment) collectDeployments(ctx context.Context, log
 	deploymentStatusMetric := m.Collector.GetMetricList("deploymentStatus")
 
 	for _, releaseDefinition := range list.List {
-		contextLogger := logger.With(zap.String("releaseDefinition", releaseDefinition.Name))
+		contextLogger := logger.With(slog.String("releaseDefinition", releaseDefinition.Name))
 
 		deploymentList, err := AzureDevopsClient.ListReleaseDeployments(project.Id, releaseDefinition.Id)
 		if err != nil {
-			contextLogger.Error(err)
+			contextLogger.Error(err.Error())
 			return
 		}
 

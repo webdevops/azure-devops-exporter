@@ -5,5 +5,5 @@ import (
 )
 
 func initSystem() {
-	system.AutoProcMemLimit(logger)
+	system.AutoProcMemLimit(logger.Logger)
 }

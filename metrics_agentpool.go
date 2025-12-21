@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
 	"github.com/webdevops/go-common/utils/to"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -132,21 +132,21 @@ func (m *MetricsCollectorAgentPool) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectAgentInfo(ctx, projectLogger, callback, project)
 	}
 
 	for _, agentPoolId := range AzureDevopsServiceDiscovery.AgentPoolList() {
-		agentPoolLogger := logger.With(zap.Int64("agentPoolId", agentPoolId))
+		agentPoolLogger := logger.With(slog.Int64("agentPoolId", agentPoolId))
 		m.collectAgentQueues(ctx, agentPoolLogger, callback, agentPoolId)
 		m.collectAgentPoolJobs(ctx, agentPoolLogger, callback, agentPoolId)
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListAgentQueues(project.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -167,10 +167,10 @@ func (m *MetricsCollectorAgentPool) collectAgentInfo(ctx context.Context, logger
 	}
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logger *slog.Logger, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolAgents(agentPoolId)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -234,10 +234,10 @@ func (m *MetricsCollectorAgentPool) collectAgentQueues(ctx context.Context, logg
 	}, usage)
 }
 
-func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), agentPoolId int64) {
+func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, logger *slog.Logger, callback chan<- func(), agentPoolId int64) {
 	list, err := AzureDevopsClient.ListAgentPoolJobs(agentPoolId)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

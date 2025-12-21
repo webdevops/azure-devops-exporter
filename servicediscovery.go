@@ -1,11 +1,12 @@
 package main
 
 import (
+	"log/slog"
 	"sync"
 	"time"
 
 	cache "github.com/patrickmn/go-cache"
-	"go.uber.org/zap"
+	"github.com/webdevops/go-common/log/slogger"
 
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -20,7 +21,7 @@ type (
 		cache       *cache.Cache
 		cacheExpiry time.Duration
 
-		logger *zap.SugaredLogger
+		logger *slogger.Logger
 
 		lock struct {
 			projectList   sync.Mutex
@@ -33,7 +34,7 @@ func NewAzureDevopsServiceDiscovery() *azureDevopsServiceDiscovery {
 	sd := &azureDevopsServiceDiscovery{}
 	sd.cacheExpiry = Opts.ServiceDiscovery.RefreshDuration
 	sd.cache = cache.New(sd.cacheExpiry, time.Duration(1*time.Minute))
-	sd.logger = logger.With(zap.String("component", "servicediscovery"))
+	sd.logger = logger.With(slog.String("component", "servicediscovery"))
 
 	sd.logger.Infof("init AzureDevops servicediscovery with %v cache", sd.cacheExpiry.String())
 	return sd
@@ -59,7 +60,7 @@ func (sd *azureDevopsServiceDiscovery) ProjectList() (list []AzureDevops.Project
 	sd.logger.Infof("updating project list")
 	result, err := AzureDevopsClient.ListProjects()
 	if err != nil {
-		sd.logger.Panic(err)
+		sd.logger.Panic(err.Error())
 	}
 
 	sd.logger.Infof("fetched %v projects", result.Count)
@@ -113,7 +114,7 @@ func (sd *azureDevopsServiceDiscovery) AgentPoolList() (list []int64) {
 
 		result, err := AzureDevopsClient.ListAgentPools()
 		if err != nil {
-			sd.logger.Panic(err)
+			sd.logger.Panic(err.Error())
 			return
 		}
 		sd.logger.Infof("fetched %v agentpools", result.Count)

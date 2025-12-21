@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/remeh/sizedwaitgroup"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -84,7 +84,7 @@ func (m *MetricsCollectorRepository) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 
 		wg := sizedwaitgroup.New(5)
 		for _, repository := range project.RepositoryList.List {
@@ -95,7 +95,7 @@ func (m *MetricsCollectorRepository) Collect(callback chan<- func()) {
 			wg.Add()
 			go func(ctx context.Context, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 				defer wg.Done()
-				repositoryLogger := projectLogger.With(zap.String("repository", repository.Name))
+				repositoryLogger := projectLogger.With(slog.String("repository", repository.Name))
 				m.collectRepository(ctx, repositoryLogger, callback, project, repository)
 			}(ctx, callback, project, repository)
 		}
@@ -103,7 +103,7 @@ func (m *MetricsCollectorRepository) Collect(callback chan<- func()) {
 	}
 }
 
-func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
+func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project, repository devopsClient.Repository) {
 	fromTime := time.Now().Add(-*m.Collector.GetScapeTime())
 	if val := m.Collector.GetLastScapeTime(); val != nil {
 		fromTime = *val
@@ -136,7 +136,7 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logg
 			"repositoryID": repository.Id,
 		}, float64(commitList.Count))
 	} else {
-		logger.Error(err)
+		logger.Error(err.Error())
 	}
 
 	// get pushes delta list
@@ -147,6 +147,6 @@ func (m *MetricsCollectorRepository) collectRepository(ctx context.Context, logg
 			"repositoryID": repository.Id,
 		}, float64(pushList.Count))
 	} else {
-		logger.Error(err)
+		logger.Error(err.Error())
 	}
 }

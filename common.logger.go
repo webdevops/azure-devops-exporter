@@ -1,46 +1,27 @@
 package main
 
 import (
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
+	"os"
+
+	"github.com/webdevops/go-common/log/slogger"
 )
 
 var (
-	logger *zap.SugaredLogger
+	logger *slogger.Logger
 )
 
-func initLogger() *zap.SugaredLogger {
-	var config zap.Config
-	if Opts.Logger.Development {
-		config = zap.NewDevelopmentConfig()
-		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
-	} else {
-		config = zap.NewProductionConfig()
+func initLogger() *slogger.Logger {
+	loggerOpts := []slogger.LoggerOptionFunc{
+		slogger.WithLevelText(Opts.Logger.Level),
+		slogger.WithFormat(slogger.FormatMode(Opts.Logger.Format)),
+		slogger.WithSourceMode(slogger.SourceMode(Opts.Logger.Source)),
+		slogger.WithTime(Opts.Logger.Time),
+		slogger.WithColor(slogger.ColorMode(Opts.Logger.Color)),
 	}
 
-	config.Encoding = "console"
-	config.EncoderConfig.EncodeTime = zapcore.ISO8601TimeEncoder
-
-	// debug level
-	if Opts.Logger.Debug {
-		config.Level = zap.NewAtomicLevelAt(zapcore.DebugLevel)
-	}
-
-	// json log format
-	if Opts.Logger.Json {
-		config.Encoding = "json"
-
-		// if running in containers, logs already enriched with timestamp by the container runtime
-		config.EncoderConfig.TimeKey = ""
-	}
-
-	// build logger
-	log, err := config.Build()
-	if err != nil {
-		panic(err)
-	}
-
-	logger = log.Sugar()
+	logger = slogger.NewCliLogger(
+		os.Stderr, loggerOpts...,
+	)
 
 	return logger
 }

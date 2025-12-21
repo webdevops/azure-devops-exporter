@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"net/http"
 	"os"
 	"runtime"
@@ -11,7 +12,6 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	AzureDevops "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 	"github.com/webdevops/azure-devops-exporter/config"
@@ -33,6 +33,7 @@ var (
 	// Git version information
 	gitCommit = "<unknown>"
 	gitTag    = "<unknown>"
+	buildDate = "<unknown>"
 )
 
 func main() {
@@ -40,7 +41,7 @@ func main() {
 	initLogger()
 	parseArguments()
 
-	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v)", gitTag, gitCommit, runtime.Version(), Author)
+	logger.Infof("starting azure-devops-exporter v%s (%s; %s; by %v at %v)", gitTag, gitCommit, runtime.Version(), Author, buildDate)
 	logger.Info(string(Opts.GetJson()))
 	initSystem()
 
@@ -187,7 +188,7 @@ func initAzureDevOpsConnection() {
 		AzureDevopsClient.SetAccessToken(Opts.AzureDevops.AccessToken)
 	} else {
 		if err := AzureDevopsClient.UseAzAuth(); err != nil {
-			logger.Fatalf(err.Error())
+			logger.Fatal(err.Error())
 		}
 	}
 	AzureDevopsClient.SetApiVersion(Opts.AzureDevops.ApiVersion)
@@ -209,134 +210,156 @@ func initMetricCollector() {
 
 	collectorName = "Project"
 	if Opts.Scrape.TimeLive.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorProject{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorProject{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeLive)
-		c.SetCache(Opts.GetCachePath("project.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("project.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "AgentPool"
 	if Opts.Scrape.TimeLive.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorAgentPool{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorAgentPool{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeLive)
-		c.SetCache(Opts.GetCachePath("agentpool.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("agentpool.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "LatestBuild"
 	if Opts.Scrape.TimeLive.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorLatestBuild{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorLatestBuild{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeLive)
-		c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Repository"
 	if Opts.Scrape.TimeRepository.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorRepository{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorRepository{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeRepository)
-		c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("latestbuild.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "PullRequest"
 	if Opts.Scrape.TimePullRequest.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorPullRequest{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorPullRequest{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimePullRequest)
-		c.SetCache(Opts.GetCachePath("pullrequest.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("pullrequest.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Build"
 	if Opts.Scrape.TimeBuild.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorBuild{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorBuild{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeBuild)
-		c.SetCache(Opts.GetCachePath("build.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("build.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Release"
 	if Opts.Scrape.TimeRelease.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorRelease{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorRelease{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeRelease)
-		c.SetCache(Opts.GetCachePath("release.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("release.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Deployment"
 	if Opts.Scrape.TimeDeployment.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorDeployment{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorDeployment{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeDeployment)
-		c.SetCache(Opts.GetCachePath("deployment.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("deployment.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Stats"
 	if Opts.Scrape.TimeStats.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorStats{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorStats{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeStats)
-		c.SetCache(Opts.GetCachePath("stats.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("stats.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "ResourceUsage"
 	if Opts.Scrape.TimeResourceUsage.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorResourceUsage{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorResourceUsage{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeResourceUsage)
-		c.SetCache(Opts.GetCachePath("resourceusage.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("resourceusage.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 
 	collectorName = "Query"
 	if Opts.Scrape.TimeQuery.Seconds() > 0 {
-		c := collector.New(collectorName, &MetricsCollectorQuery{}, logger)
+		c := collector.New(collectorName, &MetricsCollectorQuery{}, logger.Slog())
 		c.SetScapeTime(*Opts.Scrape.TimeQuery)
-		c.SetCache(Opts.GetCachePath("query.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops))
+		if err := c.SetCache(Opts.GetCachePath("query.json"), collector.BuildCacheTag(cacheTag, Opts.AzureDevops)); err != nil {
+			logger.Fatal(err.Error())
+		}
 		if err := c.Start(); err != nil {
 			logger.Fatal(err.Error())
 		}
 	} else {
-		logger.With(zap.String("collector", collectorName)).Info("collector disabled")
+		logger.With(slog.String("collector", collectorName)).Info("collector disabled")
 	}
 }
 
@@ -347,14 +370,14 @@ func startHttpServer() {
 	// healthz
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fmt.Fprint(w, "Ok"); err != nil {
-			logger.Error(err)
+			logger.Error(err.Error())
 		}
 	})
 
 	// readyz
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, r *http.Request) {
 		if _, err := fmt.Fprint(w, "Ok"); err != nil {
-			logger.Error(err)
+			logger.Error(err.Error())
 		}
 	})
 
@@ -366,5 +389,7 @@ func startHttpServer() {
 		ReadTimeout:  Opts.Server.ReadTimeout,
 		WriteTimeout: Opts.Server.WriteTimeout,
 	}
-	logger.Fatal(srv.ListenAndServe())
+	if err := srv.ListenAndServe(); err != nil {
+		logger.Fatal(err.Error())
+	}
 }

@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -42,12 +42,12 @@ func (m *MetricsCollectorProject) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectProject(ctx, projectLogger, callback, project)
 	}
 }
 
-func (m *MetricsCollectorProject) collectProject(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorProject) collectProject(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	projectMetric := m.Collector.GetMetricList("project")
 
 	projectMetric.AddInfo(prometheus.Labels{

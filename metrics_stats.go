@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -171,13 +171,13 @@ func (m *MetricsCollectorStats) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.CollectBuilds(ctx, projectLogger, callback, project)
 		m.CollectReleases(ctx, projectLogger, callback, project)
 	}
 }
 
-func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-*m.Collector.GetScapeTime())
 	if val := m.Collector.GetLastScapeTime(); val != nil {
 		minTime = *val
@@ -185,7 +185,7 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *zap
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -219,12 +219,12 @@ func (m *MetricsCollectorStats) CollectReleases(ctx context.Context, logger *zap
 	}
 }
 
-func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorStats) CollectBuilds(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	buildList, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, "completed")
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

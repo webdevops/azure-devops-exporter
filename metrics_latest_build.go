@@ -2,10 +2,10 @@ package main
 
 import (
 	"context"
+	"log/slog"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -67,15 +67,15 @@ func (m *MetricsCollectorLatestBuild) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectLatestBuilds(ctx, projectLogger, project, callback)
 	}
 }
 
-func (m *MetricsCollectorLatestBuild) collectLatestBuilds(ctx context.Context, logger *zap.SugaredLogger, project devopsClient.Project, callback chan<- func()) {
+func (m *MetricsCollectorLatestBuild) collectLatestBuilds(ctx context.Context, logger *slog.Logger, project devopsClient.Project, callback chan<- func()) {
 	list, err := AzureDevopsClient.ListLatestBuilds(project.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

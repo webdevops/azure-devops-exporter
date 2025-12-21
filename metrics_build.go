@@ -2,13 +2,13 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -195,7 +195,7 @@ func (m *MetricsCollectorBuild) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectDefinition(ctx, projectLogger, callback, project)
 		m.collectBuilds(ctx, projectLogger, callback, project)
 		m.collectBuildsTimeline(ctx, projectLogger, callback, project)
@@ -205,10 +205,10 @@ func (m *MetricsCollectorBuild) Collect(callback chan<- func()) {
 	}
 }
 
-func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListBuildDefinitions(project.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -226,12 +226,12 @@ func (m *MetricsCollectorBuild) collectDefinition(ctx context.Context, logger *z
 	}
 }
 
-func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	list, err := AzureDevopsClient.ListBuildHistory(project.Id, minTime)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -302,7 +302,7 @@ func (m *MetricsCollectorBuild) collectBuilds(ctx context.Context, logger *zap.S
 	}
 }
 
-func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -313,7 +313,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -651,7 +651,7 @@ func (m *MetricsCollectorBuild) collectBuildsTimeline(ctx context.Context, logge
 	}
 }
 
-func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	minTime := time.Now().Add(-Opts.Limit.BuildHistoryDuration)
 
 	statusFilter := "completed"
@@ -662,7 +662,7 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 
 	list, err := AzureDevopsClient.ListBuildHistoryWithStatus(project.Id, minTime, statusFilter)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -673,7 +673,7 @@ func (m *MetricsCollectorBuild) collectBuildsTags(ctx context.Context, logger *z
 			tagRecordList, _ := AzureDevopsClient.ListBuildTags(project.Id, int64ToString(build.Id))
 			tagList, err := tagRecordList.Parse(*Opts.AzureDevops.TagsSchema)
 			if err != nil {
-				m.Logger().Error(err)
+				logger.Error(err.Error())
 				continue
 			}
 			for _, tag := range tagList {

@@ -14,7 +14,7 @@ import (
 	"github.com/Azure/azure-sdk-for-go/sdk/azidentity"
 	resty "github.com/go-resty/resty/v2"
 	"github.com/prometheus/client_golang/prometheus"
-	"go.uber.org/zap"
+	"github.com/webdevops/go-common/log/slogger"
 )
 
 const (
@@ -22,7 +22,7 @@ const (
 )
 
 type AzureDevopsClient struct {
-	logger *zap.SugaredLogger
+	logger *slogger.Logger
 
 	// RequestCount has to be the first words
 	// in order to be 64-aligned on 32-bit architectures.
@@ -75,7 +75,7 @@ type EntraIdErrorResponse struct {
 	ErrorDescription *string `json:"error_description"`
 }
 
-func NewAzureDevopsClient(logger *zap.SugaredLogger) *AzureDevopsClient {
+func NewAzureDevopsClient(logger *slogger.Logger) *AzureDevopsClient {
 	c := AzureDevopsClient{
 		logger: logger,
 	}

@@ -2,12 +2,12 @@ package main
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
 	"github.com/webdevops/go-common/utils/to"
-	"go.uber.org/zap"
 
 	devopsClient "github.com/webdevops/azure-devops-exporter/azure-devops-client"
 )
@@ -165,15 +165,15 @@ func (m *MetricsCollectorRelease) Collect(callback chan<- func()) {
 	logger := m.Logger()
 
 	for _, project := range AzureDevopsServiceDiscovery.ProjectList() {
-		projectLogger := logger.With(zap.String("project", project.Name))
+		projectLogger := logger.With(slog.String("project", project.Name))
 		m.collectReleases(ctx, projectLogger, callback, project)
 	}
 }
 
-func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *zap.SugaredLogger, callback chan<- func(), project devopsClient.Project) {
+func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *slog.Logger, callback chan<- func(), project devopsClient.Project) {
 	list, err := AzureDevopsClient.ListReleaseDefinitions(project.Id)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 
@@ -218,7 +218,7 @@ func (m *MetricsCollectorRelease) collectReleases(ctx context.Context, logger *z
 
 	releaseList, err := AzureDevopsClient.ListReleaseHistory(project.Id, minTime)
 	if err != nil {
-		logger.Error(err)
+		logger.Error(err.Error())
 		return
 	}
 

@@ -1,7 +1,9 @@
 PROJECT_NAME		:= $(shell basename $(CURDIR))
 GIT_TAG				:= $(shell git describe --dirty --tags --always)
 GIT_COMMIT			:= $(shell git rev-parse --short HEAD)
-LDFLAGS				:= -X "main.gitTag=$(GIT_TAG)" -X "main.gitCommit=$(GIT_COMMIT)" -extldflags "-static" -s -w
+BUILD_DATE          := $(shell TZ=UTC date '+%Y-%m-%dT%H:%M:%SZ')
+LDFLAGS				:= -X "main.gitTag=$(GIT_TAG)" -X "main.gitCommit=$(GIT_COMMIT)" -X "main.buildDate=$(BUILD_DATE)" -extldflags "-static" -s -w
+BUILDFLAGS          := -trimpath
 
 FIRST_GOPATH			:= $(firstword $(subst :, ,$(shell go env GOPATH)))
 GOLANGCI_LINT_BIN		:= $(FIRST_GOPATH)/bin/golangci-lint
@@ -25,13 +27,13 @@ vendor:
 
 .PHONY: build-all
 build-all:
-	GOOS=linux   GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o '$(PROJECT_NAME)' .
-	GOOS=darwin  GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o '$(PROJECT_NAME).darwin' .
-	GOOS=windows GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o '$(PROJECT_NAME).exe' .
+	GOOS=linux   GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' $(BUILDFLAGS) -o '$(PROJECT_NAME)' .
+	GOOS=darwin  GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' $(BUILDFLAGS) -o '$(PROJECT_NAME).darwin' .
+	GOOS=windows GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' $(BUILDFLAGS) -o '$(PROJECT_NAME).exe' .
 
 .PHONY: build
 build:
-	GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' -o $(PROJECT_NAME) .
+	GOOS=${GOOS} GOARCH=${GOARCH} CGO_ENABLED=0 go build -ldflags '$(LDFLAGS)' $(BUILDFLAGS) -o $(PROJECT_NAME) .
 
 .PHONY: image
 image: image
