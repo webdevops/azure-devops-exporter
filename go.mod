@@ -5,22 +5,19 @@ go 1.25.0
 toolchain go1.25.5
 
 require (
+	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0
+	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
 	github.com/go-resty/resty/v2 v2.17.1
+	github.com/jessevdk/go-flags v1.6.1
+	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/prometheus/client_golang v1.23.2
 	github.com/prometheus/common v0.67.4 // indirect
 	github.com/prometheus/procfs v0.19.2 // indirect
+	github.com/remeh/sizedwaitgroup v1.0.0
+	github.com/webdevops/go-common v0.0.0-20251219213826-139615203ee5
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	google.golang.org/protobuf v1.36.11 // indirect
-)
-
-require (
-	github.com/Azure/azure-sdk-for-go/sdk/azcore v1.20.0
-	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.13.1
-	github.com/jessevdk/go-flags v1.6.1
-	github.com/patrickmn/go-cache v2.1.0+incompatible
-	github.com/remeh/sizedwaitgroup v1.0.0
-	github.com/webdevops/go-common v0.0.0-20251219213826-139615203ee5
 )
 
 require (
