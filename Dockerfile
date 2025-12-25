@@ -15,7 +15,6 @@ RUN go mod download
 # Compile
 COPY . .
 RUN make test
-RUN make build # warmup
 ARG TARGETOS TARGETARCH
 RUN GOOS=${TARGETOS} GOARCH=${TARGETARCH} make build
 
