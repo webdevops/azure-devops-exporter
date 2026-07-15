@@ -71,6 +71,7 @@ type Build struct {
 	Queue AgentPoolQueue
 
 	Reason        string
+	Path          string
 	Result        string
 	Status        string
 	QueueTime     time.Time
@@ -146,10 +147,11 @@ func (c *AzureDevopsClient) ListLatestBuilds(project string) (list BuildList, er
 	c.concurrencyLock()
 
 	url := fmt.Sprintf(
-		"%v/_apis/build/builds?api-version=%v&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted",
+		"%v/_apis/build/builds?api-version=%v&maxBuildsPerDefinition=%s&deletedFilter=excludeDeleted&$top=%v",
 		url.QueryEscape(project),
 		url.QueryEscape(c.ApiVersion),
 		url.QueryEscape("1"),
+		url.QueryEscape(int64ToString(c.LimitBuildsPerProject)),
 	)
 	response, err := c.rest().R().Get(url)
 	if err := c.checkResponse(response, err); err != nil {
