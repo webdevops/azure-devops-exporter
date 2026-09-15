@@ -93,6 +93,7 @@ Metrics
 | `azure_devops_agentpool_size`                  | live          | Number of agents per agent pool                                                         |
 | `azure_devops_agentpool_usage`                 | live          | Usage of agent pool (used agents; percent 0-1)                                          |
 | `azure_devops_agentpool_queue_length`          | live          | Queue length per agent pool                                                             |
+| `azure_devops_agentpool_job_wait_seconds`      | live          | Agent pool job wait time in seconds before assignment to an agent                       |
 | `azure_devops_agentpool_agent_info`            | live          | Agent information per agent pool                                                        |
 | `azure_devops_agentpool_agent_status`          | live          | Status informations (eg. created date) for each agent in a agent pool                   |
 | `azure_devops_agentpool_agent_job`             | live          | Currently running jobs on each agent                                                    |
@@ -183,4 +184,26 @@ azure_devops_agentpool_info
 * on (agentPoolID) group_left() (
   count by(agentPoolID) (azure_devops_agentpool_agent_info{status="online",enabled="true"})
 )
+```
+
+Top 20 currently waiting jobs (minutes)
+```
+topk(
+  20,
+  azure_devops_agentpool_job_wait_seconds{state="queued"} / 60
+)
+```
+
+Max queued wait time by pool (minutes)
+```
+max by (agentPoolID) (
+  azure_devops_agentpool_job_wait_seconds{state="queued"}
+) / 60
+```
+
+Average queued wait time by pool (minutes)
+```
+avg by (agentPoolID) (
+  azure_devops_agentpool_job_wait_seconds{state="queued"}
+) / 60
 ```

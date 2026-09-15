@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/webdevops/go-common/prometheus/collector"
@@ -22,6 +23,7 @@ type MetricsCollectorAgentPool struct {
 		agentPoolAgentStatus *prometheus.GaugeVec
 		agentPoolAgentJob    *prometheus.GaugeVec
 		agentPoolQueueLength *prometheus.GaugeVec
+		agentPoolJobWait     *prometheus.GaugeVec
 	}
 }
 
@@ -123,6 +125,23 @@ func (m *MetricsCollectorAgentPool) Setup(collector *collector.Collector) {
 		},
 	)
 	m.Collector.RegisterMetricList("agentPoolQueueLength", m.prometheus.agentPoolQueueLength, true)
+
+	m.prometheus.agentPoolJobWait = prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Name: "azure_devops_agentpool_job_wait_seconds",
+			Help: "Azure DevOps agentpool job wait time before assignment to an agent",
+		},
+		[]string{
+			"agentPoolID",
+			"jobRequestId",
+			"definitionID",
+			"definitionName",
+			"planType",
+			"scopeID",
+			"state",
+		},
+	)
+	m.Collector.RegisterMetricList("agentPoolJobWait", m.prometheus.agentPoolJobWait, true)
 }
 
 func (m *MetricsCollectorAgentPool) Reset() {}
@@ -242,6 +261,7 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, lo
 	}
 
 	agentPoolQueueLengthMetric := m.Collector.GetMetricList("agentPoolQueueLength")
+	agentPoolJobWaitMetric := m.Collector.GetMetricList("agentPoolJobWait")
 
 	notStartedJobCount := 0
 
@@ -249,6 +269,35 @@ func (m *MetricsCollectorAgentPool) collectAgentPoolJobs(ctx context.Context, lo
 		if agentPoolJob.AssignTime == nil {
 			notStartedJobCount++
 		}
+
+		if agentPoolJob.QueueTime.IsZero() {
+			continue
+		}
+
+		var waitSeconds float64
+		var state string
+
+		if agentPoolJob.AssignTime == nil {
+			waitSeconds = time.Since(agentPoolJob.QueueTime).Seconds()
+			state = "queued"
+		} else {
+			waitSeconds = agentPoolJob.AssignTime.Sub(agentPoolJob.QueueTime).Seconds()
+			state = "assigned"
+		}
+
+		if waitSeconds < 0 {
+			waitSeconds = 0
+		}
+
+		agentPoolJobWaitMetric.Add(prometheus.Labels{
+			"agentPoolID":    int64ToString(agentPoolId),
+			"jobRequestId":   int64ToString(agentPoolJob.RequestId),
+			"definitionID":   int64ToString(agentPoolJob.Definition.Id),
+			"definitionName": agentPoolJob.Definition.Name,
+			"planType":       agentPoolJob.PlanType,
+			"scopeID":        agentPoolJob.ScopeId,
+			"state":          state,
+		}, waitSeconds)
 	}
 
 	infoLabels := prometheus.Labels{
