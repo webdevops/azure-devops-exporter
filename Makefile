@@ -60,7 +60,7 @@ lint: $(GOLANGCI_LINT_BIN)
 	time $(GOLANGCI_LINT_BIN) run --verbose --print-resources-usage
 
 $(GOLANGCI_LINT_BIN):
-	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(FIRST_GOPATH)/bin
+	curl -sSfL https://golangci-lint.run/install.sh | sh -s -- -b $(FIRST_GOPATH)/bin
 
 #######################################
 # release assets
