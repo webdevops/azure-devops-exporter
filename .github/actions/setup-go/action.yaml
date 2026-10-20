@@ -1,0 +1,16 @@
+name: 'Setup-Go'
+description: 'Setup go with dependencies'
+runs:
+  using: composite
+  steps:
+
+    - uses: actions/setup-go@v7
+      with:
+        go-version-file: 'go.mod'
+        cache-dependency-path: "go.sum"
+        check-latest: true
+
+    - name: GoLang dependencies
+      shell: bash
+      run: |
+        go mod vendor
