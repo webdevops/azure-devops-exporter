@@ -40,6 +40,7 @@ func (m *MetricsCollectorPullRequest) Setup(collector *collector.Collector) {
 			"isDraft",
 			"voteStatus",
 			"creator",
+			"creationDate",
 		},
 	)
 	m.Collector.RegisterMetricList("pullRequest", m.prometheus.pullRequest, true)
@@ -119,6 +120,7 @@ func (m *MetricsCollectorPullRequest) collectPullRequests(ctx context.Context, l
 			"isDraft":          to.BoolString(pullRequest.IsDraft),
 			"sourceBranch":     pullRequest.SourceRefName,
 			"targetBranch":     pullRequest.TargetRefName,
+			"creationDate":     int64ToString(pullRequest.CreationDate.Unix()),
 		})
 
 		pullRequestStatusMetric.AddTime(prometheus.Labels{
